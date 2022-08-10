@@ -33,7 +33,7 @@
 #include "EventAction.hh"
 #include "SteppingAction.hh"
 
-namespace B1
+namespace TexPPACSim
 {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

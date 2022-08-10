@@ -39,7 +39,7 @@
 #include "G4SystemOfUnits.hh"
 #include "Randomize.hh"
 
-namespace B1
+namespace TexPPACSim
 {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

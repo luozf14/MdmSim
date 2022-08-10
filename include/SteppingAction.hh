@@ -38,7 +38,7 @@ class G4LogicalVolume;
 /// Stepping action class
 ///
 
-namespace B1
+namespace TexPPACSim
 {
 
 class EventAction;

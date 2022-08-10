@@ -34,7 +34,7 @@
 
 /// Action initialization class.
 
-namespace B1
+namespace TexPPACSim
 {
 
 class ActionInitialization : public G4VUserActionInitialization

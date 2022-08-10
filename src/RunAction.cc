@@ -40,7 +40,7 @@
 #include "G4UnitsTable.hh"
 #include "G4SystemOfUnits.hh"
 
-namespace B1
+namespace TexPPACSim
 {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

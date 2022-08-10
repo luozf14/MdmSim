@@ -33,7 +33,7 @@
 #include "G4Event.hh"
 #include "G4RunManager.hh"
 
-namespace B1
+namespace TexPPACSim
 {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

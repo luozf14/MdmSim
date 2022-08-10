@@ -42,7 +42,7 @@ class G4Run;
 /// from the energy deposit accumulated via stepping and event actions.
 /// The computed dose is then printed on the screen.
 
-namespace B1
+namespace TexPPACSim
 {
 
 class RunAction : public G4UserRunAction

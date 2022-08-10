@@ -36,7 +36,7 @@
 /// Event action class
 ///
 
-namespace B1
+namespace TexPPACSim
 {
 
 class RunAction;
