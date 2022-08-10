@@ -1,8 +1,0 @@
-/home/luozf/Applications/geant4-v11.0.2/share/Geant4-11.0.2/examples/basic/B1/build/CMakeFiles/install/strip.dir
-/home/luozf/Applications/geant4-v11.0.2/share/Geant4-11.0.2/examples/basic/B1/build/CMakeFiles/install/local.dir
-/home/luozf/Applications/geant4-v11.0.2/share/Geant4-11.0.2/examples/basic/B1/build/CMakeFiles/install.dir
-/home/luozf/Applications/geant4-v11.0.2/share/Geant4-11.0.2/examples/basic/B1/build/CMakeFiles/list_install_components.dir
-/home/luozf/Applications/geant4-v11.0.2/share/Geant4-11.0.2/examples/basic/B1/build/CMakeFiles/rebuild_cache.dir
-/home/luozf/Applications/geant4-v11.0.2/share/Geant4-11.0.2/examples/basic/B1/build/CMakeFiles/edit_cache.dir
-/home/luozf/Applications/geant4-v11.0.2/share/Geant4-11.0.2/examples/basic/B1/build/CMakeFiles/B1.dir
-/home/luozf/Applications/geant4-v11.0.2/share/Geant4-11.0.2/examples/basic/B1/build/CMakeFiles/exampleB1.dir
