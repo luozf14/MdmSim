@@ -25,10 +25,10 @@
 //
 //
 /// \file DetectorConstruction.hh
-/// \brief Definition of the B1::DetectorConstruction class
+/// \brief Definition of the TexPPACSim::DetectorConstruction class
 
-#ifndef B1DetectorConstruction_h
-#define B1DetectorConstruction_h 1
+#ifndef TexPPACSimDetectorConstruction_h
+#define TexPPACSimDetectorConstruction_h 1
 
 #include "G4VUserDetectorConstruction.hh"
 #include "globals.hh"
@@ -41,22 +41,22 @@ class G4LogicalVolume;
 namespace TexPPACSim
 {
 
-class DetectorConstruction : public G4VUserDetectorConstruction
-{
-  public:
-    DetectorConstruction();
-    ~DetectorConstruction() override;
+    class DetectorConstruction : public G4VUserDetectorConstruction
+    {
+    public:
+        DetectorConstruction();
+        ~DetectorConstruction() override;
 
-    G4VPhysicalVolume* Construct() override;
+        G4VPhysicalVolume *Construct() override;
+        void ParseParams(std::map<std::string, double> params);
 
-    G4LogicalVolume* GetScoringVolume() const { return fScoringVolume; }
+    private:
+        G4double fTargetRotationAngle;
+        G4double fTargetThickness;
+        G4double fSiDetectorAngle;
+        G4double fMdmAngle;
+    };
 
-  protected:
-    G4LogicalVolume* fScoringVolume = nullptr;
-};
-
+    //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 #endif
