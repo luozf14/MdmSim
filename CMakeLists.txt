@@ -28,7 +28,8 @@ endif()
 # Setup include directory for this project
 #
 include(${Geant4_USE_FILE})
-include_directories(${PROJECT_SOURCE_DIR}/include)
+include_directories(${PROJECT_SOURCE_DIR}/include
+  ${Geant4_INCLUDE_DIR})
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
@@ -40,7 +41,7 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
-add_executable(TexPPACSim TexPPACSim.cc ${sources} ${headers})
+add_executable(TexPPACSim TexPPACSim.cc ${sources} ${add_sources} ${headers} ${add_headers})
 target_link_libraries(TexPPACSim ${Geant4_LIBRARIES})
 
 #----------------------------------------------------------------------------
@@ -52,8 +53,7 @@ set(TexPPACSim_SCRIPTS
   TexPPACSim.in
   TexPPACSim.out
   init_vis.mac
-  run1.mac
-  run2.mac
+  run.mac
   vis.mac
   )
 
