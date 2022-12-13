@@ -25,10 +25,10 @@
 //
 //
 /// \file SteppingAction.hh
-/// \brief Definition of the B1::SteppingAction class
+/// \brief Definition of the TexPPACSim::SteppingAction class
 
-#ifndef B1SteppingAction_h
-#define B1SteppingAction_h 1
+#ifndef TexPPACSimSteppingAction_h
+#define TexPPACSimSteppingAction_h 1
 
 #include "G4UserSteppingAction.hh"
 #include "globals.hh"
@@ -54,7 +54,6 @@ class SteppingAction : public G4UserSteppingAction
 
   private:
     EventAction* fEventAction = nullptr;
-    G4LogicalVolume* fScoringVolume = nullptr;
 };
 
 }
