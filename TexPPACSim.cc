@@ -16,6 +16,8 @@
 
 #include "Randomize.hh"
 
+#include <map>
+
 using namespace TexPPACSim;
 using json = nlohmann::json;
 
@@ -40,10 +42,12 @@ int main(int argc, char **argv)
     G4bool interactive = config["Interactive"].get<G4bool>();
     G4String macroName = config["MarcoName"].get<std::string>();
     G4int processNumber = config["ProcessNumber"].get<G4int>();
-    G4int targetRotationInDeg = config["TargetRotationInDeg"].get<G4double>();
-    G4double targetThicknessInUm = config["TargetThicknessInUm"].get<G4double>();
-    G4double siDetectorAngleInDeg = config["SiDetectorAngleInDeg"].get<G4double>();
-    G4double mdmAngleInDeg = config["MDMAngleInDeg"].get<G4double>();
+    std::map<std::string, G4double> detectorParameters; // parameters for DectectorConstruction
+    detectorParameters["TargetRotationAngleInDeg"] = config["TargetRotationAngleInDeg"].get<G4double>();
+    detectorParameters["TargetThicknessInMgCm2"] = config["TargetThicknessInMgCm2"].get<G4double>();
+    detectorParameters["SiDetectorAngleInDeg"] = config["SiDetectorAngleInDeg"].get<G4double>();
+    detectorParameters["MdmAngleInDeg"] = config["MdmAngleInDeg"].get<G4double>();
+
 
     // Optionally: choose a different Random engine...
     G4Random::setTheEngine(new CLHEP::MTwistEngine);
@@ -63,11 +67,13 @@ int main(int argc, char **argv)
     // Set mandatory initialization classes
     //
     // Detector construction
-    runManager->SetUserInitialization(new DetectorConstruction());
+    DetectorConstruction *detector = new DetectorConstruction();
+    detector->ParseParams(detectorParameters);
+    runManager->SetUserInitialization(detector);
 
     // Physics list
     G4VModularPhysicsList *physicsList = new QBBC;
-    physicsList->SetVerboseLevel(1);
+    physicsList->SetVerboseLevel(0);
     runManager->SetUserInitialization(physicsList);
 
     // User action initialization
