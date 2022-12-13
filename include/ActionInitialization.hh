@@ -25,27 +25,30 @@
 //
 //
 /// \file ActionInitialization.hh
-/// \brief Definition of the B1::ActionInitialization class
+/// \brief Definition of the TexPPACSim::ActionInitialization class
 
-#ifndef B1ActionInitialization_h
-#define B1ActionInitialization_h 1
+#ifndef TexPPACSimActionInitialization_h
+#define TexPPACSimActionInitialization_h 1
 
 #include "G4VUserActionInitialization.hh"
+#include "globals.hh"
 
+#include <map>
 /// Action initialization class.
 
 namespace TexPPACSim
 {
 
-class ActionInitialization : public G4VUserActionInitialization
-{
-  public:
-    ActionInitialization();
-    ~ActionInitialization() override;
+    class ActionInitialization : public G4VUserActionInitialization
+    {
+    public:
+        ActionInitialization();
+        ~ActionInitialization() override;
 
-    void BuildForMaster() const override;
-    void Build() const override;
-};
+        void BuildForMaster() const override;
+        void Build() const override;
+    private:
+    };
 
 }
 
