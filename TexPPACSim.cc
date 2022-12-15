@@ -1,7 +1,3 @@
-//
-/// \file TexPPACSim.cc
-/// \brief Main program of the TexPPACSim
-
 #include "DetectorConstruction.hh"
 #include "ActionInitialization.hh"
 #include "nlohmann/json.hpp"
