@@ -41,7 +41,7 @@ namespace TexPPACSim
         if (!fFactoryOn)
         {
             // Open a root file
-            std::string fileName = "Data~" + processNumber;
+            std::string fileName = "Data~" + processNumber + ".root";
             fFile = new TFile(fileName.c_str(), "RECREATE");
             if (!fFile)
             {
