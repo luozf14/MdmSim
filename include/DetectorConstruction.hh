@@ -19,6 +19,7 @@ namespace TexPPACSim
         ~DetectorConstruction() override;
 
         G4VPhysicalVolume *Construct() override;
+        virtual void ConstructSDandField();
         void ParseParams(std::map<std::string, double> params);
 
     private:

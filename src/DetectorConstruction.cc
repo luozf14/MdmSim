@@ -1,4 +1,5 @@
 #include "DetectorConstruction.hh"
+#include "SiDetectorSD.hh"
 
 #include "G4RunManager.hh"
 #include "G4NistManager.hh"
@@ -13,6 +14,7 @@
 #include "G4SystemOfUnits.hh"
 #include "G4UnitsTable.hh"
 #include "G4UserLimits.hh"
+#include "G4SDManager.hh"
 
 namespace TexPPACSim
 {
@@ -134,7 +136,6 @@ namespace TexPPACSim
 
         logicDeltaE->SetUserLimits(new G4UserLimits(0.5 * DeltaEZ));
 
-
         //
         // Si detector - E
         //
@@ -168,7 +169,6 @@ namespace TexPPACSim
                           checkOverlaps); // overlaps checking
 
         logicE->SetUserLimits(new G4UserLimits(0.5 * EZ));
-        
 
         //
         // MDM slit box
@@ -195,6 +195,20 @@ namespace TexPPACSim
         // always return the physical World
         //
         return physWorld;
+    }
+
+    //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+    void DetectorConstruction::ConstructSDandField()
+    {
+        // Sensitive detector
+        SiDetectorSD *aSiDetectorESD = new SiDetectorSD("TexPPACSim/SiDetectorESD", "SiDetectorEHitsCollection");
+        G4SDManager::GetSDMpointer()->AddNewDetector(aSiDetectorESD);
+        SetSensitiveDetector("SiDetectorE", aSiDetectorESD, true);
+
+        SiDetectorSD *aSiDetectorDeltaESD = new SiDetectorSD("TexPPACSim/SiDetectorDeltaESD", "SiDetectorDeltaEHitsCollection");
+        G4SDManager::GetSDMpointer()->AddNewDetector(aSiDetectorDeltaESD);
+        SetSensitiveDetector("SiDetectorDeltaE", aSiDetectorDeltaESD, true);
     }
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
