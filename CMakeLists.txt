@@ -32,6 +32,13 @@ include_directories(${PROJECT_SOURCE_DIR}/include
   ${Geant4_INCLUDE_DIR})
 
 #----------------------------------------------------------------------------
+# Find ROOT
+find_package(ROOT CONFIG REQUIRED )
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ROOT_CXX_FLAGS}")
+include_directories(${ROOT_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR})
+link_directories(${ROOT_LIBRARY_DIR})
+
+#----------------------------------------------------------------------------
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
 #
@@ -41,8 +48,8 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
-add_executable(TexPPACSim TexPPACSim.cc ${sources} ${add_sources} ${headers} ${add_headers})
-target_link_libraries(TexPPACSim ${Geant4_LIBRARIES})
+add_executable(TexPPACSim TexPPACSim.cc ${sources} ${headers})
+target_link_libraries(TexPPACSim ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we
