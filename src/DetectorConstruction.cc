@@ -98,8 +98,7 @@ namespace TexPPACSim
                           0,               // copy number
                           checkOverlaps);  // overlaps checking
 
-        G4double maxStep = 0.1 * targetDz;
-        logicTarget->SetUserLimits(new G4UserLimits(maxStep));
+        logicTarget->SetUserLimits(new G4UserLimits(0.1 * targetDz));
 
         //
         // Si detector - Delta E
@@ -133,6 +132,9 @@ namespace TexPPACSim
                           0,                  // copy number
                           checkOverlaps);     // overlaps checking
 
+        logicDeltaE->SetUserLimits(new G4UserLimits(0.5 * DeltaEZ));
+
+
         //
         // Si detector - E
         //
@@ -165,6 +167,9 @@ namespace TexPPACSim
                           0,              // copy number
                           checkOverlaps); // overlaps checking
 
+        logicE->SetUserLimits(new G4UserLimits(0.5 * EZ));
+        
+
         //
         // MDM slit box
         //
@@ -196,7 +201,7 @@ namespace TexPPACSim
 
     void DetectorConstruction::ParseParams(std::map<std::string, double> params)
     {
-        G4cout << "-----In DetectorConstruction::ParseParams-----" << G4endl;
+        G4cout << "\n---> DetectorConstruction::ParseParams():" << G4endl;
         for (auto it : params)
         {
             if (it.first == "TargetRotationAngleInDeg")
