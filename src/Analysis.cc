@@ -55,10 +55,18 @@ namespace TexPPACSim
             fTreeExperiment = new TTree("ExperimentalData", "Experimental data recorded by DAQ");
 
             // Add branches to trees
-            fTreeAccurate->Branch("SiEHitGlobalPos", &fSiEHitGlobalPos);
-            fTreeAccurate->Branch("SiEHitLocalPos", &fSiEHitLocalPos);
-            fTreeAccurate->Branch("SiEHitGlobalMomentum", &fSiEHitGlobalMomentum);
-            fTreeAccurate->Branch("SiEHitLocalMomentum", &fSiEHitLocalMomentum);
+            fTreeAccurate->Branch("SiEHitGlobalPosX", &fSiEHitGlobalPosX);
+            fTreeAccurate->Branch("SiEHitGlobalPosY", &fSiEHitGlobalPosY);
+            fTreeAccurate->Branch("SiEHitGlobalPosZ", &fSiEHitGlobalPosZ);
+            fTreeAccurate->Branch("SiEHitLocalPosX", &fSiEHitLocalPosX);
+            fTreeAccurate->Branch("SiEHitLocalPosY", &fSiEHitLocalPosY);
+            fTreeAccurate->Branch("SiEHitLocalPosZ", &fSiEHitLocalPosZ);
+            fTreeAccurate->Branch("SiEHitGlobalMomentumX", &fSiEHitGlobalMomentumX);
+            fTreeAccurate->Branch("SiEHitGlobalMomentumY", &fSiEHitGlobalMomentumY);
+            fTreeAccurate->Branch("SiEHitGlobalMomentumZ", &fSiEHitGlobalMomentumZ);
+            fTreeAccurate->Branch("SiEHitLocalMomentumX", &fSiEHitLocalMomentumX);
+            fTreeAccurate->Branch("SiEHitLocalMomentumY", &fSiEHitLocalMomentumY);
+            fTreeAccurate->Branch("SiEHitLocalMomentumZ", &fSiEHitLocalMomentumZ);
             fTreeAccurate->Branch("SiEHitTrackId", &fSiEHitTrackId);
             fTreeAccurate->Branch("SiEHitEDep", &fSiEHitEDep);
             fTreeAccurate->Branch("SiEHitTime", &fSiEHitTime);
@@ -88,7 +96,7 @@ namespace TexPPACSim
         fTreeExperiment->Write();
         fFile->Close();
 
-        G4cout << "\n----> Histograms and ntuples are saved.\n"
+        G4cout << "\n----> TTrees are saved.\n"
                << G4endl;
     }
 
