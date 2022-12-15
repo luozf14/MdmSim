@@ -16,20 +16,21 @@ class G4Run;
 namespace TexPPACSim
 {
 
-class RunAction : public G4UserRunAction
-{
-  public:
-    RunAction();
-    ~RunAction() override;
+    class RunAction : public G4UserRunAction
+    {
+    public:
+        RunAction();
+        ~RunAction() override;
 
-    void BeginOfRunAction(const G4Run*) override;
-    void   EndOfRunAction(const G4Run*) override;
+        void BeginOfRunAction(const G4Run *) override;
+        void EndOfRunAction(const G4Run *) override;
 
+        void SetProcessNumber(G4int i) { fProcessNumber = i; };
 
-  private:
-};
+    private:
+        G4int fProcessNumber;
+    };
 
 }
 
 #endif
-

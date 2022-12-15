@@ -22,6 +22,7 @@ ActionInitialization::~ActionInitialization()
 void ActionInitialization::BuildForMaster() const
 {
   RunAction* runAction = new RunAction;
+  runAction->SetProcessNumber(fProcessNumber);
   SetUserAction(runAction);
 }
 
@@ -32,6 +33,7 @@ void ActionInitialization::Build() const
   SetUserAction(new PrimaryGeneratorAction);
 
   RunAction* runAction = new RunAction;
+  runAction->SetProcessNumber(fProcessNumber);
   SetUserAction(runAction);
 
   EventAction* eventAction = new EventAction(runAction);

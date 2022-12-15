@@ -73,7 +73,9 @@ int main(int argc, char **argv)
     runManager->SetUserInitialization(physicsList);
 
     // User action initialization
-    runManager->SetUserInitialization(new ActionInitialization());
+    ActionInitialization* action = new ActionInitialization();
+    action->SetProcessNumber(processNumber);
+    runManager->SetUserInitialization(action);
 
     // Initialize visualization
     //

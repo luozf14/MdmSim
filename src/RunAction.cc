@@ -1,7 +1,7 @@
 #include "RunAction.hh"
 #include "PrimaryGeneratorAction.hh"
 #include "DetectorConstruction.hh"
-// #include "Run.hh"
+#include "Analysis.hh"
 
 #include "G4RunManager.hh"
 #include "G4Run.hh"
@@ -14,31 +14,35 @@
 namespace TexPPACSim
 {
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+    //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-RunAction::RunAction()
-{
-}
+    RunAction::RunAction()
+    {
+        Analysis::Instance();
+    }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+    //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-RunAction::~RunAction()
-{}
+    RunAction::~RunAction()
+    {
+        delete Analysis::Instance();
+    }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+    //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void RunAction::BeginOfRunAction(const G4Run*)
-{
-}
+    void RunAction::BeginOfRunAction(const G4Run *aRun)
+    {
+        G4cout << "### Run " << aRun->GetRunID() << " start." << G4endl;
+        Analysis::Instance()->Book(std::to_string(fProcessNumber));
+    }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+    //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void RunAction::EndOfRunAction(const G4Run* run)
-{
-  
-}
+    void RunAction::EndOfRunAction(const G4Run *run)
+    {
+        Analysis::Instance()->Save();
+    }
 
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+    //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 }

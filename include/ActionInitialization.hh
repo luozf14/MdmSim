@@ -18,7 +18,11 @@ namespace TexPPACSim
 
         void BuildForMaster() const override;
         void Build() const override;
+
+        void SetProcessNumber(G4int i) { fProcessNumber = i; };
+
     private:
+        G4int fProcessNumber;
     };
 
 }
