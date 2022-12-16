@@ -24,7 +24,8 @@ class EventAction : public G4UserEventAction
 
   private:
     RunAction* fRunAction = nullptr;
-
+    G4int fHCID_SiDetectorE;
+    G4int fHCID_SiDetectorDeltaE;
 };
 
 }
