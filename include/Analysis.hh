@@ -23,6 +23,9 @@ namespace TexPPACSim
         void FillTreeAccurate();
         void FillTreeExperiment();
 
+        void SetSiDeltaEHitTrackId(std::vector<G4int> &v) { fSiDeltaEHitTrackId = v; };
+        void SetSiDeltaEHitEDep(std::vector<G4double> &v) { fSiDeltaEHitEDep = v; };
+        void SetSiDeltaEHitTime(std::vector<G4double> &v) { fSiDeltaEHitTime = v; };
         void SetSiEHitGlobalPosX(std::vector<G4double> &v) { fSiEHitGlobalPosX = v; };
         void SetSiEHitGlobalPosY(std::vector<G4double> &v) { fSiEHitGlobalPosY = v; };
         void SetSiEHitGlobalPosZ(std::vector<G4double> &v) { fSiEHitGlobalPosZ = v; };
@@ -40,6 +43,8 @@ namespace TexPPACSim
         void SetSiEHitTime(std::vector<G4double> &v) { fSiEHitTime = v; };
 
         void SetDaqTrigger(G4bool tri) { fDaqTrigger = tri; };
+        void SetSiDeltaEHitEDepExp(std::vector<G4double> &v) { fSiDeltaEHitEDepExp = v; };
+        void SetSiDeltaEHitTimeExp(std::vector<G4double> &v) { fSiDeltaEHitTimeExp = v; };
         void SetSiEHitHorizontalNo(std::vector<G4int> &v) { fSiEHitHorizontalNo = v; };
         void SetSiEHitVerticalNo(std::vector<G4int> &v) { fSiEHitVerticalNo = v; };
         void SetSiEHitEDepExp(std::vector<G4double> &v) { fSiEHitEDepExp = v; };
@@ -52,6 +57,9 @@ namespace TexPPACSim
         TTree *fTreeAccurate = nullptr;
         TTree *fTreeExperiment = nullptr;
 
+        std::vector<G4int> fSiDeltaEHitTrackId;
+        std::vector<G4double> fSiDeltaEHitEDep;
+        std::vector<G4double> fSiDeltaEHitTime;
         std::vector<G4double> fSiEHitGlobalPosX;
         std::vector<G4double> fSiEHitGlobalPosY;
         std::vector<G4double> fSiEHitGlobalPosZ;
@@ -69,6 +77,8 @@ namespace TexPPACSim
         std::vector<G4double> fSiEHitTime;
 
         G4bool fDaqTrigger;
+        std::vector<G4double> fSiDeltaEHitEDepExp;
+        std::vector<G4double> fSiDeltaEHitTimeExp;
         std::vector<G4int> fSiEHitHorizontalNo;
         std::vector<G4int> fSiEHitVerticalNo;
         std::vector<G4double> fSiEHitEDepExp;

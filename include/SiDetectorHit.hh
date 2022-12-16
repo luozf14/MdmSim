@@ -49,6 +49,7 @@ namespace TexPPACSim
         G4ThreeVector GetGlobalMomentum() const { return fGlobalMomentum; };
         G4ThreeVector GetGlobalPosition() const { return fGlobalPosition; };
         G4ThreeVector GetLocalPosition() const { return fLocalPosition; };
+        G4double GetTime() const { return fTime; };
 
     private:
         G4int fTrackID;
