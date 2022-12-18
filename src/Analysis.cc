@@ -41,7 +41,7 @@ namespace TexPPACSim
         if (!fFactoryOn)
         {
             // Open a root file
-            std::string fileName = "TexPPACSimData~" + processNumber + ".root";
+            std::string fileName = "SimData~" + processNumber + ".root";
             fFile = new TFile(fileName.c_str(), "RECREATE");
             if (!fFile)
             {
@@ -55,6 +55,13 @@ namespace TexPPACSim
             fTreeExperiment = new TTree("ExperimentalData", "Experimental data recorded by DAQ");
 
             // Add branches to trees
+            fTreeAccurate->Branch("SiDeltaEHitTrackId", &fSiDeltaEHitTrackId);
+            fTreeAccurate->Branch("SiDeltaEHitEDep", &fSiDeltaEHitEDep);
+            fTreeAccurate->Branch("SiDeltaEHitTime", &fSiDeltaEHitTime);
+
+            fTreeAccurate->Branch("SiEHitTrackId", &fSiEHitTrackId);
+            fTreeAccurate->Branch("SiEHitEDep", &fSiEHitEDep);
+            fTreeAccurate->Branch("SiEHitTime", &fSiEHitTime);
             fTreeAccurate->Branch("SiEHitGlobalPosX", &fSiEHitGlobalPosX);
             fTreeAccurate->Branch("SiEHitGlobalPosY", &fSiEHitGlobalPosY);
             fTreeAccurate->Branch("SiEHitGlobalPosZ", &fSiEHitGlobalPosZ);
@@ -67,15 +74,14 @@ namespace TexPPACSim
             fTreeAccurate->Branch("SiEHitLocalMomentumX", &fSiEHitLocalMomentumX);
             fTreeAccurate->Branch("SiEHitLocalMomentumY", &fSiEHitLocalMomentumY);
             fTreeAccurate->Branch("SiEHitLocalMomentumZ", &fSiEHitLocalMomentumZ);
-            fTreeAccurate->Branch("SiEHitTrackId", &fSiEHitTrackId);
-            fTreeAccurate->Branch("SiEHitEDep", &fSiEHitEDep);
-            fTreeAccurate->Branch("SiEHitTime", &fSiEHitTime);
 
             fTreeExperiment->Branch("DaqTrigger", &fDaqTrigger, "DaqTrigger/O");
-            fTreeExperiment->Branch("SiEHitHorizontalNo", &fSiEHitHorizontalNo);
-            fTreeExperiment->Branch("SiEHitVerticalNo", &fSiEHitVerticalNo);
+            fTreeExperiment->Branch("SiDeltaEHitEDep", &fSiDeltaEHitEDepExp);
+            fTreeExperiment->Branch("SiDeltaEHitTime", &fSiDeltaEHitTimeExp);
             fTreeExperiment->Branch("SiEHitEDep", &fSiEHitEDepExp);
             fTreeExperiment->Branch("SiEHitTime", &fSiEHitTimeExp);
+            fTreeExperiment->Branch("SiEHitHorizontalNo", &fSiEHitHorizontalNo);
+            fTreeExperiment->Branch("SiEHitVerticalNo", &fSiEHitVerticalNo);
 
             fFactoryOn = true;
         }
