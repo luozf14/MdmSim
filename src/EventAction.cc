@@ -9,6 +9,7 @@
 #include "globals.hh"
 #include "Randomize.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4UnitsTable.hh"
 
 namespace TexPPACSim
 {
@@ -99,7 +100,7 @@ namespace TexPPACSim
         for (int i = 0; i < siDeltaEHitTrackId.size(); i++)
         {
             siDeltaEHitEDepExp.push_back(G4RandGauss::shoot(siDeltaEHitEDep[i], fSiDetectorEnergyResolution * siDeltaEHitEDep[i] / 2.355));
-            siDeltaEHitTimeExp.push_back(siDeltaEHitTime[i] + G4RandFlat::shoot(-0.25, 0.25));
+            siDeltaEHitTimeExp.push_back(siDeltaEHitTime[i] + G4RandFlat::shoot(-fTdcResolution, fTdcResolution));
         }
         analysis->SetSiDeltaEHitEDepExp(siDeltaEHitEDepExp);
         analysis->SetSiDeltaEHitTimeExp(siDeltaEHitTimeExp);
@@ -217,7 +218,7 @@ namespace TexPPACSim
         for (int i = 0; i < siEHitTrackId.size(); i++)
         {
             siEHitEDepExp.push_back(G4RandGauss::shoot(siEHitEDep[i], fSiDetectorEnergyResolution * siEHitEDep[i] / 2.355));
-            siEHitTimeExp.push_back(siEHitTime[i] + G4RandFlat::shoot(-0.25, 0.25));
+            siEHitTimeExp.push_back(siEHitTime[i] + G4RandFlat::shoot(-fTdcResolution, fTdcResolution));
             G4int frontStripNo = std::floor((siEHitLocalPosX[i] + 2.5) / (5. / 16.));
             G4int backStripNo = std::floor((siEHitLocalPosY[i] + 2.5) / (5. / 16.));
             siEHitHorizontalNo.push_back(backStripNo);
@@ -235,5 +236,21 @@ namespace TexPPACSim
     }
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-    
+    void EventAction::ParseParams(std::map<std::string, G4double> params)
+    {
+        G4cout << "\n---> EventAction::ParseParams():" << G4endl;
+        for (auto it : params)
+        {
+            if (it.first == "SiDetectorEnergyResolution")
+            {
+                fSiDetectorEnergyResolution = it.second;
+                printf("Set: Si detector energy resolution = %.2f%\n",fSiDetectorEnergyResolution*100.);
+            }
+            else if (it.first == "TdcResolution")
+            {
+                fTdcResolution = it.second *ns;
+                G4cout << "Set: TDC resolution = " << G4BestUnit(fTdcResolution, "Time") << G4endl;
+            }
+        }
+    }
 }

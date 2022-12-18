@@ -21,13 +21,14 @@ namespace TexPPACSim
         void BeginOfEventAction(const G4Event *event) override;
         void EndOfEventAction(const G4Event *event) override;
 
-        void SetSiDetectorEnergyResolution(G4double res) { fSiDetectorEnergyResolution = res; };
+        void ParseParams(std::map<std::string, G4double> params);
 
     private:
         RunAction *fRunAction = nullptr;
         G4int fHCID_SiDetectorE;
         G4int fHCID_SiDetectorDeltaE;
         G4double fSiDetectorEnergyResolution;
+        G4double fTdcResolution;
     };
 
 }

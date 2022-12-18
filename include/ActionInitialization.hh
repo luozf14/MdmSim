@@ -20,10 +20,10 @@ namespace TexPPACSim
         void BuildForMaster() const override;
         void Build() const override;
 
-        void SetParameters(std::map<std::string, std::variant<G4int, G4double>> i) { fParameters = i; };
+        void SetParameters(std::map<std::string, std::variant<G4int, std::map<std::string, G4double>>> i) { fParameters = i; };
 
     private:
-        std::map<std::string, std::variant<G4int, G4double>> fParameters;
+        std::map<std::string, std::variant<G4int, std::map<std::string, G4double>>> fParameters;
     };
 
 }

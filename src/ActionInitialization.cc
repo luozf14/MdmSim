@@ -39,7 +39,7 @@ namespace TexPPACSim
         SetUserAction(runAction);
 
         EventAction *eventAction = new EventAction(runAction);
-        eventAction->SetSiDetectorEnergyResolution(std::get<G4double>(fParameters.find("SiDetectorEnergyResolution")->second));
+        eventAction->ParseParams(std::get<std::map<std::string, G4double>>(fParameters.find("EventParameters")->second));
         SetUserAction(eventAction);
 
         SetUserAction(new SteppingAction(eventAction));
