@@ -228,6 +228,11 @@ namespace TexPPACSim
                 fTargetThickness = it.second * mg / cm2;
                 G4cout << "Set: Target thickness = " << G4BestUnit(fTargetThickness, "Mass/Surface") << G4endl;
             }
+            else if(it.first == "UseDeltaE")
+            {
+                fUseDeltaE = it.second;
+                G4cout << std::boolalpha << "Set: Use Delta-E detector = " << it.second << G4endl;
+            }
             else if (it.first == "SiDetectorAngleInDeg")
             {
                 fSiDetectorAngle = it.second * deg;

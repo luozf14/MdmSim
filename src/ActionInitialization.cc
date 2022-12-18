@@ -7,41 +7,44 @@
 namespace TexPPACSim
 {
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+    //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-ActionInitialization::ActionInitialization()
-{}
+    ActionInitialization::ActionInitialization()
+    {
+    }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+    //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-ActionInitialization::~ActionInitialization()
-{}
+    ActionInitialization::~ActionInitialization()
+    {
+    }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+    //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void ActionInitialization::BuildForMaster() const
-{
-  RunAction* runAction = new RunAction;
-  runAction->SetProcessNumber(fProcessNumber);
-  SetUserAction(runAction);
-}
+    void ActionInitialization::BuildForMaster() const
+    {
+        RunAction *runAction = new RunAction;
+        runAction->SetProcessNumber(std::get<G4int>(fParameters.find("ProcessNumber")->second));
+        SetUserAction(runAction);
+    }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+    //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void ActionInitialization::Build() const
-{
-  SetUserAction(new PrimaryGeneratorAction);
+    void ActionInitialization::Build() const
+    {
+        SetUserAction(new PrimaryGeneratorAction);
 
-  RunAction* runAction = new RunAction;
-  runAction->SetProcessNumber(fProcessNumber);
-  SetUserAction(runAction);
+        RunAction *runAction = new RunAction;
+        runAction->SetProcessNumber(std::get<G4int>(fParameters.find("ProcessNumber")->second));
+        SetUserAction(runAction);
 
-  EventAction* eventAction = new EventAction(runAction);
-  SetUserAction(eventAction);
+        EventAction *eventAction = new EventAction(runAction);
+        eventAction->SetSiDetectorEnergyResolution(std::get<G4double>(fParameters.find("SiDetectorEnergyResolution")->second));
+        SetUserAction(eventAction);
 
-  SetUserAction(new SteppingAction(eventAction));
-}
+        SetUserAction(new SteppingAction(eventAction));
+    }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+    //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 }

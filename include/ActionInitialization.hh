@@ -5,6 +5,7 @@
 #include "globals.hh"
 
 #include <map>
+#include <variant>
 /// Action initialization class.
 
 namespace TexPPACSim
@@ -19,10 +20,10 @@ namespace TexPPACSim
         void BuildForMaster() const override;
         void Build() const override;
 
-        void SetProcessNumber(G4int i) { fProcessNumber = i; };
+        void SetParameters(std::map<std::string, std::variant<G4int, G4double>> i) { fParameters = i; };
 
     private:
-        G4int fProcessNumber;
+        std::map<std::string, std::variant<G4int, G4double>> fParameters;
     };
 
 }

@@ -8,6 +8,7 @@
 #include "G4RunManager.hh"
 #include "globals.hh"
 #include "Randomize.hh"
+#include "G4SystemOfUnits.hh"
 
 namespace TexPPACSim
 {
@@ -45,21 +46,21 @@ namespace TexPPACSim
         {
             G4ExceptionDescription msg;
             msg << "No hits collection of this event found.\n";
-            G4Exception("\n---> EventAction::EndOfEventAction()",
-                        "TexPPACSimCode01", JustWarning, msg);
+            // G4Exception("\n---> EventAction::EndOfEventAction()",
+            //             "TexPPACSimCode01", JustWarning, msg);
             return;
         }
 
         //
         // Delta E
-        SiDetectorHitsCollection *hcSiDetectorDeltaE = (SiDetectorHitsCollection *)aEvent->GetHCofThisEvent()->GetHC(fHCID_SiDetectorDeltaE);
+        SiDetectorHitsCollection *hcSiDetectorDeltaE = (SiDetectorHitsCollection *)hce->GetHC(fHCID_SiDetectorDeltaE);
         G4int nofHitsSiDetectorDeltaE = hcSiDetectorDeltaE->GetSize();
         if (nofHitsSiDetectorDeltaE == 0)
         {
             G4ExceptionDescription msg;
             msg << "No hits in Si detector Delta-E of this event found.\n";
-            G4Exception("\n---> EventAction::EndOfEventAction()",
-                        "TexPPACSimCode01", JustWarning, msg);
+            // G4Exception("\n---> EventAction::EndOfEventAction()",
+            //             "TexPPACSimCode01", JustWarning, msg);
             return;
         }
         std::vector<G4int> siDeltaEHitTrackId;
@@ -95,25 +96,24 @@ namespace TexPPACSim
         analysis->SetSiDeltaEHitTime(siDeltaEHitTime);
         std::vector<G4double> siDeltaEHitEDepExp;
         std::vector<G4double> siDeltaEHitTimeExp;
-        for(int i=0;i<siDeltaEHitTrackId.size();i++)
+        for (int i = 0; i < siDeltaEHitTrackId.size(); i++)
         {
-            siDeltaEHitEDepExp.push_back(G4RandGauss::shoot(siDeltaEHitEDep[i], 0.03*siDeltaEHitEDep[i]/2.355));
-            siDeltaEHitTimeExp.push_back(siDeltaEHitTime[i]+G4RandFlat::shoot(-0.25,0.25));
-
+            siDeltaEHitEDepExp.push_back(G4RandGauss::shoot(siDeltaEHitEDep[i], fSiDetectorEnergyResolution * siDeltaEHitEDep[i] / 2.355));
+            siDeltaEHitTimeExp.push_back(siDeltaEHitTime[i] + G4RandFlat::shoot(-0.25, 0.25));
         }
         analysis->SetSiDeltaEHitEDepExp(siDeltaEHitEDepExp);
         analysis->SetSiDeltaEHitTimeExp(siDeltaEHitTimeExp);
 
         //
         // E
-        SiDetectorHitsCollection *hcSiDetectorE = (SiDetectorHitsCollection *)aEvent->GetHCofThisEvent()->GetHC(fHCID_SiDetectorE);
+        SiDetectorHitsCollection *hcSiDetectorE = (SiDetectorHitsCollection *)hce->GetHC(fHCID_SiDetectorE);
         G4int nofHitsSiDetectorE = hcSiDetectorE->GetSize();
         if (nofHitsSiDetectorE == 0)
         {
             G4ExceptionDescription msg;
             msg << "No hits in Si detector E of this event found.\n";
-            G4Exception("\n---> EventAction::EndOfEventAction()",
-                        "TexPPACSimCode01", JustWarning, msg);
+            // G4Exception("\n---> EventAction::EndOfEventAction()",
+            //             "TexPPACSimCode01", JustWarning, msg);
             return;
         }
         std::vector<G4int> siEHitTrackId;
@@ -196,7 +196,7 @@ namespace TexPPACSim
 
         analysis->SetDaqTrigger(daqTrigger);
         analysis->SetSiEHitTrackId(siEHitTrackId);
-        analysis->SetSiDeltaEHitEDep(siEHitEDep);
+        analysis->SetSiEHitEDep(siEHitEDep);
         analysis->SetSiEHitTime(siEHitTime);
         analysis->SetSiEHitGlobalPosX(siEHitGlobalPosX);
         analysis->SetSiEHitGlobalPosY(siEHitGlobalPosY);
@@ -214,12 +214,12 @@ namespace TexPPACSim
         std::vector<G4double> siEHitTimeExp;
         std::vector<G4int> siEHitHorizontalNo;
         std::vector<G4int> siEHitVerticalNo;
-        for(int i=0;i<siEHitTrackId.size();i++)
+        for (int i = 0; i < siEHitTrackId.size(); i++)
         {
-            siEHitEDepExp.push_back(G4RandGauss::shoot(siEHitEDep[i], 0.03*siEHitEDep[i]/2.355));
-            siEHitTimeExp.push_back(siEHitTime[i]+G4RandFlat::shoot(-0.25,0.25));
-            G4int frontStripNo = std::floor((siEHitLocalPosX[i]+ 2.5) / (5. / 16.));
-            G4int backStripNo = std::floor((siEHitLocalPosY[i] + 2.5) / (5. / 16.));  
+            siEHitEDepExp.push_back(G4RandGauss::shoot(siEHitEDep[i], fSiDetectorEnergyResolution * siEHitEDep[i] / 2.355));
+            siEHitTimeExp.push_back(siEHitTime[i] + G4RandFlat::shoot(-0.25, 0.25));
+            G4int frontStripNo = std::floor((siEHitLocalPosX[i] + 2.5) / (5. / 16.));
+            G4int backStripNo = std::floor((siEHitLocalPosY[i] + 2.5) / (5. / 16.));
             siEHitHorizontalNo.push_back(backStripNo);
             siEHitVerticalNo.push_back(frontStripNo);
         }
@@ -227,14 +227,13 @@ namespace TexPPACSim
         analysis->SetSiEHitTimeExp(siEHitTimeExp);
         analysis->SetSiEHitHorizontalNo(siEHitHorizontalNo);
         analysis->SetSiEHitVerticalNo(siEHitVerticalNo);
-        
+
         //
         // Fill the trees
         analysis->FillTreeAccurate();
         analysis->FillTreeExperiment();
-
     }
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
+    
 }

@@ -25,6 +25,7 @@ namespace TexPPACSim
     private:
         G4double fTargetRotationAngle;
         G4double fTargetThickness;
+        G4bool fUseDeltaE;
         G4double fSiDetectorAngle;
         G4double fMdmAngle;
     };
