@@ -4,7 +4,7 @@
     "ProcessNumber": 0,
     "TargetRotationAngleInDeg": 0.0,
     "TargetThicknessInMgCm2": 159.0,
-    "TdcResolution": 0.25,
+    "TdcResolutionInNs": 0.25,
     "UseDeltaE": false,
     "SiDetectorAngleInDeg": 0.0,
     "SiDetectorEnergyResolution": 0.1,
