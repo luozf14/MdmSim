@@ -36,20 +36,24 @@ int main(int argc, char **argv)
     std::string configFile = argv[1];
     std::ifstream configStream(configFile.c_str());
     json config = json::parse(configStream);
+
     G4bool interactive = config["Interactive"].get<G4bool>();
     G4String macroName = config["MarcoName"].get<std::string>();
     G4int processNumber = config["ProcessNumber"].get<G4int>();
+
     std::map<std::string, G4double> detectorParameters; // parameters for DectectorConstruction
     detectorParameters["TargetRotationAngleInDeg"] = config["TargetRotationAngleInDeg"].get<G4double>();
     detectorParameters["TargetThicknessInMgCm2"] = config["TargetThicknessInMgCm2"].get<G4double>();
     detectorParameters["UseDeltaE"] = config["UseDeltaE"].get<G4bool>();
     detectorParameters["SiDetectorAngleInDeg"] = config["SiDetectorAngleInDeg"].get<G4double>();
     detectorParameters["MdmAngleInDeg"] = config["MdmAngleInDeg"].get<G4double>();
-    std::map<std::string, std::variant<G4int, std::map<std::string, G4double>>> actionInitParameters; // parameters for ActionInitialization
-    actionInitParameters["ProcessNumber"] = processNumber;
+
     std::map<std::string, G4double> eventParameters; // parameters for EventAction
     eventParameters["SiDetectorEnergyResolution"] = config["SiDetectorEnergyResolution"].get<G4double>();
     eventParameters["TdcResolution"] = config["TdcResolution"].get<G4double>();
+    
+    std::map<std::string, std::variant<G4int, std::map<std::string, G4double>>> actionInitParameters; // parameters for ActionInitialization
+    actionInitParameters["ProcessNumber"] = processNumber;
     actionInitParameters["EventParameters"] = eventParameters;
 
     // Optionally: choose a different Random engine...
