@@ -13,6 +13,7 @@
 #include "Randomize.hh"
 
 #include <map>
+#include <variant>
 
 using namespace TexPPACSim;
 using json = nlohmann::json;
@@ -41,9 +42,15 @@ int main(int argc, char **argv)
     std::map<std::string, G4double> detectorParameters; // parameters for DectectorConstruction
     detectorParameters["TargetRotationAngleInDeg"] = config["TargetRotationAngleInDeg"].get<G4double>();
     detectorParameters["TargetThicknessInMgCm2"] = config["TargetThicknessInMgCm2"].get<G4double>();
+    detectorParameters["UseDeltaE"] = config["UseDeltaE"].get<G4bool>();
     detectorParameters["SiDetectorAngleInDeg"] = config["SiDetectorAngleInDeg"].get<G4double>();
     detectorParameters["MdmAngleInDeg"] = config["MdmAngleInDeg"].get<G4double>();
-
+    std::map<std::string, std::variant<G4int, std::map<std::string, G4double>>> actionInitParameters; // parameters for ActionInitialization
+    actionInitParameters["ProcessNumber"] = processNumber;
+    std::map<std::string, G4double> eventParameters; // parameters for EventAction
+    eventParameters["SiDetectorEnergyResolution"] = config["SiDetectorEnergyResolution"].get<G4double>();
+    eventParameters["TdcResolution"] = config["TdcResolution"].get<G4double>();
+    actionInitParameters["EventParameters"] = eventParameters;
 
     // Optionally: choose a different Random engine...
     G4Random::setTheEngine(new CLHEP::MTwistEngine);
@@ -73,8 +80,8 @@ int main(int argc, char **argv)
     runManager->SetUserInitialization(physicsList);
 
     // User action initialization
-    ActionInitialization* action = new ActionInitialization();
-    action->SetProcessNumber(processNumber);
+    ActionInitialization *action = new ActionInitialization();
+    action->SetParameters(actionInitParameters);
     runManager->SetUserInitialization(action);
 
     // Initialize visualization
