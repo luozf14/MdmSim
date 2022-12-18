@@ -1,9 +1,12 @@
 {
-    "Interactive": true,
-    "MarcoName": "run0.mac",
+    "Interactive": false,
+    "MarcoName": "run.mac",
     "ProcessNumber": 0,
     "TargetRotationAngleInDeg": 0.0,
     "TargetThicknessInMgCm2": 159.0,
-    "SiDetectorAngleInDeg": 30.0,
+    "TdcResolution": 0.25,
+    "UseDeltaE": false,
+    "SiDetectorAngleInDeg": 0.0,
+    "SiDetectorEnergyResolution": 0.1,
     "MdmAngleInDeg": 5.0
 }
