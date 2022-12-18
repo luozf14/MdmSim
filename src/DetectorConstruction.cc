@@ -105,6 +105,7 @@ namespace TexPPACSim
         //
         // Si detector - Delta E
         //
+        G4Material *DeltaEMaterial = fUseDeltaE ? nist->FindOrBuildMaterial("G4_Si") : nist->FindOrBuildMaterial("G4_Galactic");
         G4ThreeVector DeltaEPos = G4ThreeVector(0., 0., 13.724 * cm);
         DeltaEPos.setTheta(fSiDetectorAngle);
         DeltaEPos.setPhi(180. * deg);
@@ -122,7 +123,7 @@ namespace TexPPACSim
 
         G4LogicalVolume *logicDeltaE =
             new G4LogicalVolume(solidDeltaE,                        // its solid
-                                nist->FindOrBuildMaterial("G4_Si"), // its material
+                                DeltaEMaterial, // its material
                                 "SiDetectorDeltaE");                // its name
 
         new G4PVPlacement(DeltaERot,          // rotation
@@ -228,7 +229,7 @@ namespace TexPPACSim
                 fTargetThickness = it.second * mg / cm2;
                 G4cout << "Set: Target thickness = " << G4BestUnit(fTargetThickness, "Mass/Surface") << G4endl;
             }
-            else if(it.first == "UseDeltaE")
+            else if (it.first == "UseDeltaE")
             {
                 fUseDeltaE = it.second;
                 G4cout << std::boolalpha << "Set: Use Delta-E detector = " << it.second << G4endl;
