@@ -213,7 +213,7 @@ namespace TexPPACSim
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-    void DetectorConstruction::ParseParams(std::map<std::string, double> params)
+    void DetectorConstruction::ParseParams(std::map<std::string, G4double> params)
     {
         G4cout << "\n---> DetectorConstruction::ParseParams():" << G4endl;
         for (auto it : params)

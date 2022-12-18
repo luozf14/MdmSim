@@ -20,7 +20,7 @@ namespace TexPPACSim
 
         G4VPhysicalVolume *Construct() override;
         virtual void ConstructSDandField();
-        void ParseParams(std::map<std::string, double> params);
+        void ParseParams(std::map<std::string, G4double> params);
 
     private:
         G4double fTargetRotationAngle;
