@@ -246,7 +246,7 @@ namespace TexPPACSim
                 fSiDetectorEnergyResolution = it.second;
                 printf("Set: Si detector energy resolution = %.2f%\n",fSiDetectorEnergyResolution*100.);
             }
-            else if (it.first == "TdcResolution")
+            else if (it.first == "TdcResolutionInNs")
             {
                 fTdcResolution = it.second *ns;
                 G4cout << "Set: TDC resolution = " << G4BestUnit(fTdcResolution, "Time") << G4endl;

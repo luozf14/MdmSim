@@ -50,8 +50,8 @@ int main(int argc, char **argv)
 
     std::map<std::string, G4double> eventParameters; // parameters for EventAction
     eventParameters["SiDetectorEnergyResolution"] = config["SiDetectorEnergyResolution"].get<G4double>();
-    eventParameters["TdcResolution"] = config["TdcResolution"].get<G4double>();
-    
+    eventParameters["TdcResolutionInNs"] = config["TdcResolutionInNs"].get<G4double>();
+
     std::map<std::string, std::variant<G4int, std::map<std::string, G4double>>> actionInitParameters; // parameters for ActionInitialization
     actionInitParameters["ProcessNumber"] = processNumber;
     actionInitParameters["EventParameters"] = eventParameters;
