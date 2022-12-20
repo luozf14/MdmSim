@@ -21,12 +21,12 @@
 #/vis/viewer/set/viewpointVector 0 -1 0
 /vis/viewer/set/lightsVector 0 0 1
 /vis/viewer/zoom 1.
-/vis/viewer/set/style s # wireframe, surface
+/vis/viewer/set/style w # wireframe, surface
 
 #
 # Add axes, trajectories and hits
 #
-/vis/scene/add/trajectories rich # smooth, rich
+/vis/scene/add/trajectories smooth # smooth, rich
 #/vis/scene/add/axes 0 0 0 30 cm # axes [x0] [y0] [z0] [length] [unit]
 /vis/scene/add/hits
 
@@ -35,6 +35,7 @@
 #
 /vis/modeling/trajectories/create/drawByCharge
 /vis/modeling/trajectories/drawByCharge-0/default/setDrawStepPts true
+/vis/modeling/trajectories/drawByCharge-0/default/setDrawAuxPts true
 /vis/modeling/trajectories/drawByCharge-0/default/setStepPtsSize 2
 
 #
@@ -42,6 +43,12 @@
 #
 #/vis/modeling/trajectories/create/drawByParticleID
 #/vis/modeling/trajectories/drawByParticleID-0/set e- yellow
+
+#
+# Accumulating trajectories and hits
+#
+/vis/scene/endOfEventAction accumulate
+#/vis/scene/endOfRunAction accumulate
 
 #
 # Filtering Trajectories
