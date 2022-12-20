@@ -50,6 +50,8 @@ namespace TexPPACSim
                 return;
             }
 
+            fFile->cd();
+
             // Define two trees, one for accurate hit info, the other one for what you will get in experiment.
             fTreeAccurate = new TTree("AccurateData", "Accurate data recorded");
             fTreeExperiment = new TTree("ExperimentalData", "Experimental data recorded by DAQ");
@@ -97,7 +99,7 @@ namespace TexPPACSim
     {
         if (!fFactoryOn)
             return;
-
+        fFile->cd();
         fTreeAccurate->Write();
         fTreeExperiment->Write();
         fFile->Close();

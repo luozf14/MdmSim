@@ -1,8 +1,17 @@
 #include "DetectorConstruction.hh"
 #include "SiDetectorSD.hh"
+#include "DipoleField.hh"
+#include "Constants.hh"
+
+#include "G4FieldManager.hh"
+#include "G4TransportationManager.hh"
+#include "G4Mag_UsualEqRhs.hh"
+
+#include "G4GenericMessenger.hh"
+
+#include "G4NistManager.hh"
 
 #include "G4RunManager.hh"
-#include "G4NistManager.hh"
 #include "G4Tubs.hh"
 #include "G4Box.hh"
 #include "G4Cons.hh"
@@ -11,35 +20,37 @@
 #include "G4Trd.hh"
 #include "G4LogicalVolume.hh"
 #include "G4PVPlacement.hh"
+
 #include "G4SystemOfUnits.hh"
 #include "G4UnitsTable.hh"
 #include "G4UserLimits.hh"
 #include "G4SDManager.hh"
+#include "G4SubtractionSolid.hh"
 
 namespace TexPPACSim
 {
-
+    G4ThreadLocal DipoleField *DetectorConstruction::fDipoleField = 0;
+    G4ThreadLocal G4FieldManager *DetectorConstruction::fFieldMgr = 0;
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
     DetectorConstruction::DetectorConstruction()
     {
+        fMdmRotation = new G4RotationMatrix();
+        DefineCommands();
     }
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
     DetectorConstruction::~DetectorConstruction()
     {
+        delete fMdmRotation;
+        delete fMessenger;
     }
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
     G4VPhysicalVolume *DetectorConstruction::Construct()
     {
-        printf("fTargetRotationAngle: %.1f\n", fTargetRotationAngle / M_PI * 180.);
-        printf("fTargetThickness: %.1f\n", fTargetThickness);
-        printf("fSiDetectorAngle: %.1f\n", fSiDetectorAngle / M_PI * 180.);
-        printf("fMdmAngle: %.1f\n", fMdmAngle / M_PI * 180.);
-
         // Get nist material manager
         G4NistManager *nist = G4NistManager::Instance();
 
@@ -50,8 +61,8 @@ namespace TexPPACSim
         //
         // World
         //
-        G4double world_sizeXY = 2. * m;
-        G4double world_sizeZ = 2. * m;
+        G4double world_sizeXY = 10. * m;
+        G4double world_sizeZ = 10. * m;
         G4Material *world_mat = nist->FindOrBuildMaterial("G4_Galactic");
 
         G4Box *solidWorld =
@@ -82,7 +93,7 @@ namespace TexPPACSim
         G4double targetRMin = 0.;
         G4double targetRMax = 3.5 * mm;
         G4double targetDz = fTargetThickness / (2.253 * g / cm3);
-        G4cout << "targetDz: " << G4BestUnit(targetDz, "Length") << G4endl;
+        G4cout << "\n---> DetectorConstruction::Construct(): targetDz= " << G4BestUnit(targetDz, "Length") << G4endl;
         G4Tubs *solidTarget = new G4Tubs("Target",                                                      // its name
                                          targetRMin, targetRMax, 0.5 * targetDz, 2. * M_PI, 2. * M_PI); // its size
 
@@ -122,9 +133,9 @@ namespace TexPPACSim
                       0.5 * DeltaEX, 0.5 * DeltaEY, 0.5 * DeltaEZ);
 
         G4LogicalVolume *logicDeltaE =
-            new G4LogicalVolume(solidDeltaE,                        // its solid
-                                DeltaEMaterial, // its material
-                                "SiDetectorDeltaE");                // its name
+            new G4LogicalVolume(solidDeltaE,         // its solid
+                                DeltaEMaterial,      // its material
+                                "SiDetectorDeltaE"); // its name
 
         new G4PVPlacement(DeltaERot,          // rotation
                           DeltaEPos,          // at position
@@ -181,8 +192,10 @@ namespace TexPPACSim
         G4RotationMatrix *slitBoxRot = new G4RotationMatrix;
         slitBoxRot->rotateY(-1. * fMdmAngle);
 
-        G4VSolid *solidSlitBox = new G4Box("SlitBox", 2.27965 * cm, 2.27965 * cm, 1. * mm); // measured on 1/26/2022
-        G4LogicalVolume *logicSlitBox = new G4LogicalVolume(solidSlitBox, nist->FindOrBuildMaterial("G4_Galactic"), "SlitBox");
+        G4VSolid *solidSlitBoxVoid = new G4Box("SlitBoxVoid", 2.27965 * cm, 2.27965 * cm, 1. * cm); // measured on 1/26/2022
+        G4VSolid *solidSlitBoxShape = new G4Box("SlitBoxShape", (2.27965 + 5.) * cm, (2.27965 + 5.) * cm, 1. * cm);
+        G4VSolid *solidSlitBox = new G4SubtractionSolid("SlitBox", solidSlitBoxShape, solidSlitBoxVoid);
+        G4LogicalVolume *logicSlitBox = new G4LogicalVolume(solidSlitBox, nist->FindOrBuildMaterial("G4_Pb"), "SlitBox");
         new G4PVPlacement(slitBoxRot,     // rotation
                           slitBoxPos,     // at position
                           logicSlitBox,   // its logical volume
@@ -191,6 +204,24 @@ namespace TexPPACSim
                           false,          // no boolean operation
                           0,              // copy number
                           checkOverlaps); // overlaps checking
+
+        //
+        // Dipole field
+        //
+        // Tube with Local Magnetic field
+        auto solidDipole = new G4Tubs("DipoleTubs", 0., 2. * kDipoleRadius, 0.5 * m, 0., kDipoleDeflectionAngle);
+        fLogicDipole = new G4LogicalVolume(solidDipole, nist->FindOrBuildMaterial("G4_Galactic"), "DipoleLogical");
+        auto x = kFirstArmLength * std::sin(fMdmAngle) - kDipoleRadius * std::cos(fMdmAngle);
+        auto z = kFirstArmLength * std::cos(fMdmAngle);
+        G4ThreeVector dipolePos(x, 0., z);
+        fMdmRotation->rotateY(-fMdmAngle);
+        fMdmRotation->rotateX(-90.*deg);
+        fPhysicDipole = new G4PVPlacement(fMdmRotation, dipolePos, fLogicDipole,
+                                          "DipolePhysical", logicWorld,
+                                          false, 0, checkOverlaps);
+
+        G4UserLimits *userLimits = new G4UserLimits(1. * cm);
+        fLogicDipole->SetUserLimits(userLimits);
 
         //
         // always return the physical World
@@ -210,6 +241,53 @@ namespace TexPPACSim
         SiDetectorSD *aSiDetectorDeltaESD = new SiDetectorSD("TexPPACSim/SiDetectorDeltaESD", "SiDetectorDeltaEHitsCollection");
         G4SDManager::GetSDMpointer()->AddNewDetector(aSiDetectorDeltaESD);
         SetSensitiveDetector("SiDetectorDeltaE", aSiDetectorDeltaESD, true);
+
+        // magnetic field ----------------------------------------------------------
+        fDipoleField = new DipoleField();
+        fFieldMgr = new G4FieldManager();
+        fFieldMgr->SetDetectorField(fDipoleField);
+        fFieldMgr->CreateChordFinder(fDipoleField);
+        G4bool forceToAllDaughters = true;
+        fLogicDipole->SetFieldManager(fFieldMgr, forceToAllDaughters);
+    }
+
+    //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+    void DetectorConstruction::SetMdmAngle(G4double val)
+    {
+        if (!fPhysicDipole)
+        {
+            G4cerr << "\n---> DetectorConstruction::SetMdmAngle(): Detector has not yet been constructed." << G4endl;
+            return;
+        }
+
+        fMdmAngle = val;
+        *fMdmRotation = G4RotationMatrix(); // make it unit vector
+        fMdmRotation->rotateY(-fMdmAngle);
+        fMdmRotation->rotateX(-90.*deg);
+        auto x = kFirstArmLength * std::sin(fMdmAngle) - kDipoleRadius * std::cos(fMdmAngle);
+        auto z = kFirstArmLength * std::cos(fMdmAngle);
+        fPhysicDipole->SetTranslation(G4ThreeVector(x, 0., z));
+        printf("\n---> DetectorConstruction::SetMdmAngle(): fMdmAngle: %.2f\n",fMdmAngle);
+
+        // tell G4RunManager that we change the geometry
+        G4RunManager::GetRunManager()->GeometryHasBeenModified();
+    }
+    //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+    void DetectorConstruction::DefineCommands()
+    {
+        // Define /TexPPACSim/detector command directory using generic messenger class
+        fMessenger = new G4GenericMessenger(this,
+                                            "/TexPPACSim/detector/",
+                                            "Detector control");
+
+        // MdmAngle command
+        auto &MdmAngleCmd = fMessenger->DeclareMethodWithUnit("MdmAngle", "deg",
+                                                              &DetectorConstruction::SetMdmAngle,
+                                                              "Set rotation angle of the MDM.");
+        MdmAngleCmd.SetParameterName("angle", true);
+        MdmAngleCmd.SetRange("angle>=-50. && angle<=150.");
+        MdmAngleCmd.SetDefaultValue("0.");
     }
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
