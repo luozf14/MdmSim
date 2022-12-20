@@ -19,6 +19,7 @@ namespace TexPPACSim
 constexpr G4double kFirstArmLength = 2420.*mm;
 constexpr G4double kDipoleRadius = 1600.*mm;
 constexpr G4double kDipoleDeflectionAngle = 100.*deg;
+constexpr G4double kDipoleAlpha = -0.191;
 constexpr G4double kSecondArmLength = 1295.*mm;
 
 
