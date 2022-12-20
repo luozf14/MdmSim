@@ -195,7 +195,7 @@ namespace TexPPACSim
         G4VSolid *solidSlitBoxVoid = new G4Box("SlitBoxVoid", 2.27965 * cm, 2.27965 * cm, 1. * cm); // measured on 1/26/2022
         G4VSolid *solidSlitBoxShape = new G4Box("SlitBoxShape", (2.27965 + 5.) * cm, (2.27965 + 5.) * cm, 1. * cm);
         G4VSolid *solidSlitBox = new G4SubtractionSolid("SlitBox", solidSlitBoxShape, solidSlitBoxVoid);
-        G4LogicalVolume *logicSlitBox = new G4LogicalVolume(solidSlitBox, nist->FindOrBuildMaterial("G4_Pb"), "SlitBox");
+        G4LogicalVolume *logicSlitBox = new G4LogicalVolume(solidSlitBox, nist->FindOrBuildMaterial("G4_Cu"), "SlitBox");
         new G4PVPlacement(slitBoxRot,     // rotation
                           slitBoxPos,     // at position
                           logicSlitBox,   // its logical volume
