@@ -5,6 +5,7 @@
 #include "G4MagneticField.hh"
 
 #include "G4SystemOfUnits.hh"
+#include "G4UnitsTable.hh"
 
 class G4GenericMessenger;
 
@@ -21,14 +22,15 @@ class DipoleField : public G4MagneticField
 
     void GetFieldValue(const G4double point[4],double* bField ) const override;
 
-    void SetField(G4double val) { fBy = val; }
-    G4double GetField() const { return fBy; }
+    void SetField(G4double val) { fBy0 = val; }
+    G4double GetField() const { return fBy0; }
 
   private:
     void DefineCommands();
 
     G4GenericMessenger* fMessenger = nullptr;
-    G4double fBy = 1.0*CLHEP::tesla;
+    G4double fBy0 = 1.0*CLHEP::tesla;
+    G4ThreeVector fDipolePos;
 };
 
 }
