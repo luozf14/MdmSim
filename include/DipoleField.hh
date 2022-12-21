@@ -12,26 +12,26 @@ class G4GenericMessenger;
 namespace TexPPACSim
 {
 
-/// Dipole field
+    /// Dipole field
 
-class DipoleField : public G4MagneticField
-{
-  public:
-    DipoleField();
-    ~DipoleField() override;
+    class DipoleField : public G4MagneticField
+    {
+    public:
+        DipoleField();
+        ~DipoleField() override;
 
-    void GetFieldValue(const G4double point[4],double* bField ) const override;
+        void GetFieldValue(const G4double point[4], double *bField) const override;
 
-    void SetField(G4double val) { fBy0 = val; }
-    G4double GetField() const { return fBy0; }
+        void SetField(G4double val) { fBy0 = val; }
+        G4double GetField() const { return fBy0; }
 
-  private:
-    void DefineCommands();
+    private:
+        void DefineCommands();
 
-    G4GenericMessenger* fMessenger = nullptr;
-    G4double fBy0 = 1.0*CLHEP::tesla;
-    G4ThreeVector fDipolePos;
-};
+        G4GenericMessenger *fMessenger = nullptr;
+        G4double fBy0 = 0.404985 * tesla;
+        G4ThreeVector fDipolePos;
+    };
 
 }
 
