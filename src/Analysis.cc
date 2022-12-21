@@ -103,6 +103,7 @@ namespace TexPPACSim
         fTreeAccurate->Write();
         fTreeExperiment->Write();
         fFile->Close();
+        fFactoryOn = false;
 
         G4cout << "\n----> TTrees are saved.\n"
                << G4endl;
