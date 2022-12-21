@@ -31,9 +31,6 @@ namespace TexPPACSim
         void SetMdmAngle(G4double ang);
 
     private:
-        void DefineCommands();
-        G4GenericMessenger *fMessenger = nullptr;
-
         static G4ThreadLocal DipoleField *fDipoleField;
         static G4ThreadLocal FirstMultipoleField *fFirstMultipoleField;
 
@@ -47,13 +44,17 @@ namespace TexPPACSim
         G4double fSiDetectorAngle;
 
         G4double fMdmAngle;
-        G4RotationMatrix *fMdmRotation = nullptr;
+
+        G4double fFirstMultipoleProbe;
+        G4double fDipoleProbe;
 
         G4LogicalVolume *fLogicFirstMultipoleField = nullptr;
         G4VPhysicalVolume *fPhysicFirstMultipoleField = nullptr;
+        G4ThreeVector fMultipoleFieldPos;
 
         G4LogicalVolume *fLogicDipoleField = nullptr;
         G4VPhysicalVolume *fPhysicDipoleField = nullptr;
+        G4ThreeVector fDipoleFieldPos;
 
         G4LogicalVolume *fLogicDipoleMagnet = nullptr;
         G4VPhysicalVolume *fPhysicDipoleMagnet = nullptr;

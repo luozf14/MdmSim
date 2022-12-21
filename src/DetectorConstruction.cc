@@ -38,16 +38,12 @@ namespace TexPPACSim
 
     DetectorConstruction::DetectorConstruction()
     {
-        fMdmRotation = new G4RotationMatrix();
-        DefineCommands();
     }
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
     DetectorConstruction::~DetectorConstruction()
     {
-        delete fMdmRotation;
-        delete fMessenger;
     }
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -65,7 +61,7 @@ namespace TexPPACSim
         // World
         //
         G4double world_sizeXY = 10. * m;
-        G4double world_sizeZ = 10. * m;
+        G4double world_sizeZ = 15. * m;
         G4Material *world_mat = nist->FindOrBuildMaterial("G4_Galactic");
 
         G4Box *solidWorld =
@@ -214,32 +210,34 @@ namespace TexPPACSim
         //
         G4VSolid *solidFirstMultipoleField = new G4Tubs("FirstMultipoleFieldTubs", 0., kFirstMultipoleAperture, kFirstMultipoleLength, 0., 360. * deg);
         fLogicFirstMultipoleField = new G4LogicalVolume(solidFirstMultipoleField, nist->FindOrBuildMaterial("G4_Galactic"), "FirstMultipoleFieldLogical");
-        G4ThreeVector firstMultipoleFieldPos = G4ThreeVector(kFirstMultipolePos + 0.5 * kFirstMultipoleLength, 0., 0.); // position in mother frame
-        firstMultipoleFieldPos.setTheta(-1. * fMdmAngle);
-        firstMultipoleFieldPos.setPhi(0. * deg);
+        fMultipoleFieldPos.setX(kFirstMultipolePos + 0.5 * kFirstMultipoleLength);
+        fMultipoleFieldPos.setY(0.);
+        fMultipoleFieldPos.setZ(0.);
+        fMultipoleFieldPos.setTheta(fMdmAngle);
+        fMultipoleFieldPos.setPhi(0. * deg);
         G4RotationMatrix *firstMultipoleFieldRot = new G4RotationMatrix;
-        firstMultipoleFieldRot->rotateY(-1. * fMdmAngle);
-        fPhysicFirstMultipoleField = new G4PVPlacement(firstMultipoleFieldRot, firstMultipoleFieldPos, fLogicFirstMultipoleField,
+        firstMultipoleFieldRot->rotateY(fMdmAngle);
+        fPhysicFirstMultipoleField = new G4PVPlacement(G4Transform3D(*firstMultipoleFieldRot, fMultipoleFieldPos), fLogicFirstMultipoleField,
                                                        "FirstMultipolePhysical", logicWorld,
                                                        false, 0, checkOverlaps);
+        fLogicFirstMultipoleField->SetUserLimits(new G4UserLimits(1. * cm));
 
         //
         // Dipole field
         //
         G4VSolid *solidDipoleField = new G4Tubs("DipoleFieldTubs", kDipoleFieldRadius - 0.5 * kDipoleFieldWidth, kDipoleFieldRadius + 0.5 * kDipoleFieldWidth, kDipoleFieldHeight, 0., kDipoleDeflectionAngle);
         fLogicDipoleField = new G4LogicalVolume(solidDipoleField, nist->FindOrBuildMaterial("G4_Galactic"), "DipoleFieldLogical");
-        // auto x = kFirstArmLength * std::sin(fMdmAngle) - kDipoleFieldRadius * std::cos(fMdmAngle);
-        // auto z = kFirstArmLength * std::cos(fMdmAngle);
-        G4ThreeVector dipolePos(-kDipoleFieldRadius, 0., kFirstArmLength);
-        dipolePos.rotateY(-fMdmAngle);
-        fMdmRotation->rotateY(-fMdmAngle);
-        fMdmRotation->rotateX(-90. * deg);
-        fPhysicDipoleField = new G4PVPlacement(fMdmRotation, dipolePos, fLogicDipoleField,
+        fDipoleFieldPos.setX(-kDipoleFieldRadius);
+        fDipoleFieldPos.setY(0.);
+        fDipoleFieldPos.setZ(kFirstArmLength);
+        fDipoleFieldPos.rotateY(fMdmAngle);
+        G4RotationMatrix *dipoleRot = new G4RotationMatrix;
+        dipoleRot->rotateX(90. * deg);
+        dipoleRot->rotateY(fMdmAngle);
+        fPhysicDipoleField = new G4PVPlacement(G4Transform3D(*dipoleRot, fDipoleFieldPos), fLogicDipoleField,
                                                "DipoleFieldPhysical", logicWorld,
                                                false, 0, checkOverlaps);
-
-        G4UserLimits *userLimits = new G4UserLimits(1. * cm);
-        fLogicDipoleField->SetUserLimits(userLimits);
+        fLogicDipoleField->SetUserLimits(new G4UserLimits(1. * cm));
 
         //
         // Dipole magnet
@@ -247,7 +245,7 @@ namespace TexPPACSim
         auto solidDipoleMagnetShape = new G4Tubs("DipoleMagnetShape", 0., kDipoleMagnetRadius, 0.5 * m, 0., kDipoleDeflectionAngle);
         auto solidDipoleMagnet = new G4SubtractionSolid("DipoleMagnetSolid", solidDipoleMagnetShape, solidDipoleField);
         fLogicDipoleMagnet = new G4LogicalVolume(solidDipoleMagnet, nist->FindOrBuildMaterial("G4_Cu"), "DipoleMagnetLogical");
-        fPhysicDipoleMagnet = new G4PVPlacement(fMdmRotation, dipolePos, fLogicDipoleMagnet,
+        fPhysicDipoleMagnet = new G4PVPlacement(G4Transform3D(*dipoleRot, fDipoleFieldPos), fLogicDipoleMagnet,
                                                 "DipoleMagnetPhysical", logicWorld,
                                                 false, 0, checkOverlaps);
 
@@ -272,59 +270,20 @@ namespace TexPPACSim
 
         // Magnetic field ----------------------------------------------------------
         // First multipole
-        fFirstMultipoleField = new FirstMultipoleField();
+        fFirstMultipoleField = new FirstMultipoleField(fMultipoleFieldPos, fPhysicFirstMultipoleField->GetObjectRotation());
+        fFirstMultipoleField->SetField(fFirstMultipoleProbe);
         fFirstMultipoleFieldMgr = new G4FieldManager();
         fFirstMultipoleFieldMgr->SetDetectorField(fFirstMultipoleField);
         fFirstMultipoleFieldMgr->CreateChordFinder(fFirstMultipoleField);
         G4bool forceToAllDaughters = true;
         fLogicFirstMultipoleField->SetFieldManager(fFirstMultipoleFieldMgr, forceToAllDaughters);
         // Dipole
-        fDipoleField = new DipoleField();
+        fDipoleField = new DipoleField(fDipoleFieldPos);
+        fDipoleField->SetField(fDipoleProbe * 1.034);
         fDipoleFieldMgr = new G4FieldManager();
         fDipoleFieldMgr->SetDetectorField(fDipoleField);
         fDipoleFieldMgr->CreateChordFinder(fDipoleField);
         fLogicDipoleField->SetFieldManager(fDipoleFieldMgr, forceToAllDaughters);
-        G4cout << "Dipole field: " << G4BestUnit(fDipoleField->GetField(), "Magnetic flux density") << G4endl;
-    }
-
-    //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-    void DetectorConstruction::SetMdmAngle(G4double val)
-    {
-        if (!fPhysicDipoleField)
-        {
-            G4cerr << "\n---> DetectorConstruction::SetMdmAngle(): Detector has not yet been constructed." << G4endl;
-            return;
-        }
-
-        fMdmAngle = val;
-        *fMdmRotation = G4RotationMatrix(); // make it unit vector
-        fMdmRotation->rotateY(-fMdmAngle);
-        fMdmRotation->rotateX(-90. * deg);
-        G4ThreeVector dipolePos(-kDipoleFieldRadius, 0., kFirstArmLength);
-        dipolePos.rotateY(-fMdmAngle);
-        fPhysicDipoleField->SetTranslation(dipolePos);
-        fPhysicDipoleMagnet->SetTranslation(dipolePos);
-        printf("\n---> DetectorConstruction::SetMdmAngle(): fMdmAngle: %.2f\n", fMdmAngle);
-
-        // tell G4RunManager that we change the geometry
-        G4RunManager::GetRunManager()->GeometryHasBeenModified();
-    }
-    //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-    void DetectorConstruction::DefineCommands()
-    {
-        // Define /TexPPACSim/detector command directory using generic messenger class
-        fMessenger = new G4GenericMessenger(this,
-                                            "/TexPPACSim/detector/",
-                                            "Detector control");
-
-        // MdmAngle command
-        auto &MdmAngleCmd = fMessenger->DeclareMethodWithUnit("MdmAngle", "deg",
-                                                              &DetectorConstruction::SetMdmAngle,
-                                                              "Set rotation angle of the MDM.");
-        MdmAngleCmd.SetParameterName("angle", true);
-        MdmAngleCmd.SetRange("angle>=-50. && angle<=150.");
-        MdmAngleCmd.SetDefaultValue("0.");
     }
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -359,7 +318,60 @@ namespace TexPPACSim
                 fMdmAngle = it.second * deg;
                 G4cout << "Set: MDM angle = " << G4BestUnit(fMdmAngle, "Angle") << G4endl;
             }
+            else if (it.first == "FirstMultipoleProbe")
+            {
+                fFirstMultipoleProbe = it.second * gauss;
+                G4cout << "Set: Multipole probe = " << G4BestUnit(fFirstMultipoleProbe, "Magnetic flux density") << G4endl;
+            }
+            else if (it.first == "DipoleProbe")
+            {
+                fDipoleProbe = it.second * gauss;
+                G4cout << "Set: Dipole probe = " << G4BestUnit(fDipoleProbe, "Magnetic flux density") << G4endl;
+            }
         }
     }
 
+    //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+    /*
+        void DetectorConstruction::DefineCommands()
+        {
+            // Define /TexPPACSim/detector command directory using generic messenger class
+            fMessenger = new G4GenericMessenger(this,
+                                                "/TexPPACSim/detector/",
+                                                "Detector control");
+
+            // MdmAngle command
+            auto &MdmAngleCmd = fMessenger->DeclareMethodWithUnit("MdmAngle", "deg",
+                                                                  &DetectorConstruction::SetMdmAngle,
+                                                                  "Set rotation angle of the MDM.");
+            MdmAngleCmd.SetParameterName("angle", true);
+            MdmAngleCmd.SetRange("angle>=-50. && angle<=150.");
+            MdmAngleCmd.SetDefaultValue("0.");
+        }
+    */
+
+    //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+    /*
+        void DetectorConstruction::SetMdmAngle(G4double val)
+    {
+        if (!fPhysicDipoleField)
+        {
+            G4cerr << "\n---> DetectorConstruction::SetMdmAngle(): Detector has not yet been constructed." << G4endl;
+            return;
+        }
+
+        fMdmAngle = val;
+        *fMdmRotation = G4RotationMatrix(); // make it unit vector
+        fMdmRotation->rotateY(-fMdmAngle);
+        fMdmRotation->rotateX(-90. * deg);
+        G4ThreeVector dipolePos(-kDipoleFieldRadius, 0., kFirstArmLength);
+        dipolePos.rotateY(-fMdmAngle);
+        fPhysicDipoleField->SetTranslation(dipolePos);
+        fPhysicDipoleMagnet->SetTranslation(dipolePos);
+        printf("\n---> DetectorConstruction::SetMdmAngle(): fMdmAngle: %.2f\n", fMdmAngle);
+
+        // tell G4RunManager that we change the geometry
+        G4RunManager::GetRunManager()->GeometryHasBeenModified();
+    }
+    */
 }

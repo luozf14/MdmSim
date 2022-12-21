@@ -47,6 +47,9 @@ int main(int argc, char **argv)
     detectorParameters["UseDeltaE"] = config["UseDeltaE"].get<G4bool>();
     detectorParameters["SiDetectorAngleInDeg"] = config["SiDetectorAngleInDeg"].get<G4double>();
     detectorParameters["MdmAngleInDeg"] = config["MdmAngleInDeg"].get<G4double>();
+    detectorParameters["FirstMultipoleProbe"] = config["FirstMultipoleProbe"].get<G4double>();
+    detectorParameters["DipoleProbe"] = config["DipoleProbe"].get<G4double>();
+
 
     std::map<std::string, G4double> eventParameters; // parameters for EventAction
     eventParameters["SiDetectorEnergyResolution"] = config["SiDetectorEnergyResolution"].get<G4double>();
