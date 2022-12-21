@@ -17,7 +17,7 @@ namespace TexPPACSim
     class DipoleField : public G4MagneticField
     {
     public:
-        DipoleField();
+        DipoleField(G4ThreeVector dipolePos);
         ~DipoleField() override;
 
         void GetFieldValue(const G4double point[4], double *bField) const override;
@@ -26,10 +26,7 @@ namespace TexPPACSim
         G4double GetField() const { return fBy0; }
 
     private:
-        void DefineCommands();
-
-        G4GenericMessenger *fMessenger = nullptr;
-        G4double fBy0 = 0.404985 * tesla;
+        G4double fBy0;
         G4ThreeVector fDipolePos;
     };
 
