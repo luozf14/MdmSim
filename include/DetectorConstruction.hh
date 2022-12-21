@@ -17,6 +17,7 @@ class G4GenericMessenger;
 namespace TexPPACSim
 {
     class DipoleField;
+    class FirstMultipoleField;
 
     class DetectorConstruction : public G4VUserDetectorConstruction
     {
@@ -34,7 +35,10 @@ namespace TexPPACSim
         G4GenericMessenger *fMessenger = nullptr;
 
         static G4ThreadLocal DipoleField *fDipoleField;
-        static G4ThreadLocal G4FieldManager *fFieldMgr;
+        static G4ThreadLocal FirstMultipoleField *fFirstMultipoleField;
+
+        static G4ThreadLocal G4FieldManager *fDipoleFieldMgr;
+        static G4ThreadLocal G4FieldManager *fFirstMultipoleFieldMgr;
 
         G4double fTargetRotationAngle;
         G4double fTargetThickness;
@@ -44,8 +48,15 @@ namespace TexPPACSim
 
         G4double fMdmAngle;
         G4RotationMatrix *fMdmRotation = nullptr;
-        G4LogicalVolume *fLogicDipole = nullptr;
-        G4VPhysicalVolume *fPhysicDipole = nullptr;
+
+        G4LogicalVolume *fLogicFirstMultipoleField = nullptr;
+        G4VPhysicalVolume *fPhysicFirstMultipoleField = nullptr;
+
+        G4LogicalVolume *fLogicDipoleField = nullptr;
+        G4VPhysicalVolume *fPhysicDipoleField = nullptr;
+
+        G4LogicalVolume *fLogicDipoleMagnet = nullptr;
+        G4VPhysicalVolume *fPhysicDipoleMagnet = nullptr;
     };
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
