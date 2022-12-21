@@ -1,12 +1,14 @@
 {
-    "Interactive": false,
+    "Interactive": true,
     "MarcoName": "run.mac",
     "ProcessNumber": 0,
     "TargetRotationAngleInDeg": 0.0,
     "TargetThicknessInMgCm2": 159.0,
     "TdcResolutionInNs": 0.25,
     "UseDeltaE": false,
-    "SiDetectorAngleInDeg": 0.0,
+    "SiDetectorAngleInDeg": 90.0,
     "SiDetectorEnergyResolution": 0.1,
-    "MdmAngleInDeg": 5.0
+    "MdmAngleInDeg": 60.0,
+    "FirstMultipoleProbe": 2780.84,
+    "DipoleProbe": 3916.68
 }
