@@ -6,14 +6,15 @@ This program is under developing!
      TexPPACSim - A Geant4 simulation program for TexPPAC
      =========================================================
 
-                            Example B1
+                            TexPPACSim
                             -----------
 
- This example demonstrates a very simple application where an energy
- deposit is accounted in user actions and their associated objects
- and a dose in a selected volume is calculated.
+ This program provides simulation of using the MDM sprectrometer and a 
+focal plane detector. The MDM spectrometer' s geometry and fields are 
+precisely migrated from the original rayin.dat.
+![demo](Demo.png)
 
-
+-----------------------Below are from example B1-----------------------
  1- GEOMETRY DEFINITION
 
    The geometry is constructed in the B1::DetectorConstruction class.
