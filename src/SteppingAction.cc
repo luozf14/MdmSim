@@ -10,24 +10,31 @@
 namespace TexPPACSim
 {
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+    //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-SteppingAction::SteppingAction(EventAction* eventAction)
-: fEventAction(eventAction)
-{}
+    SteppingAction::SteppingAction(EventAction *eventAction)
+        : fEventAction(eventAction)
+    {
+    }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+    //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-SteppingAction::~SteppingAction()
-{}
+    SteppingAction::~SteppingAction()
+    {
+    }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+    //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void SteppingAction::UserSteppingAction(const G4Step* step)
-{
-  
-}
+    void SteppingAction::UserSteppingAction(const G4Step *step)
+    {
+        G4String volumeName = step->GetPreStepPoint()->GetPhysicalVolume()->GetName();
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+        if (std::find(fPipeNames.begin(), fPipeNames.end(), volumeName) != fPipeNames.end())
+        {
+            step->GetTrack()->SetTrackStatus(fKillTrackAndSecondaries);
+        }
+    }
+
+    //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 }

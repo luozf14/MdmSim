@@ -12,20 +12,21 @@ class G4LogicalVolume;
 namespace TexPPACSim
 {
 
-class EventAction;
+    class EventAction;
 
-class SteppingAction : public G4UserSteppingAction
-{
-  public:
-    SteppingAction(EventAction* eventAction);
-    ~SteppingAction() override;
+    class SteppingAction : public G4UserSteppingAction
+    {
+    public:
+        SteppingAction(EventAction *eventAction);
+        ~SteppingAction() override;
 
-    // method from the base class
-    void UserSteppingAction(const G4Step*) override;
+        // method from the base class
+        void UserSteppingAction(const G4Step *) override;
 
-  private:
-    EventAction* fEventAction = nullptr;
-};
+    private:
+        EventAction *fEventAction = nullptr;
+        std::array<G4String, 3> fPipeNames = {"FirstMultipoleMagnetPhysical", "SlitBox", "DipoleMagnetPhysical"};
+    };
 
 }
 
