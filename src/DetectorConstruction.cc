@@ -206,7 +206,7 @@ namespace TexPPACSim
                           checkOverlaps); // overlaps checking
 
         //
-        // First multipole
+        // First multipole field
         //
         G4VSolid *solidFirstMultipoleField = new G4Tubs("FirstMultipoleFieldTubs", 0., kFirstMultipoleAperture, kFirstMultipoleLength, 0., 360. * deg);
         fLogicFirstMultipoleField = new G4LogicalVolume(solidFirstMultipoleField, nist->FindOrBuildMaterial("G4_Galactic"), "FirstMultipoleFieldLogical");
@@ -218,9 +218,19 @@ namespace TexPPACSim
         G4RotationMatrix *firstMultipoleFieldRot = new G4RotationMatrix;
         firstMultipoleFieldRot->rotateY(fMdmAngle);
         fPhysicFirstMultipoleField = new G4PVPlacement(G4Transform3D(*firstMultipoleFieldRot, fMultipoleFieldPos), fLogicFirstMultipoleField,
-                                                       "FirstMultipolePhysical", logicWorld,
+                                                       "FirstMultipoleFieldPhysical", logicWorld,
                                                        false, 0, checkOverlaps);
         fLogicFirstMultipoleField->SetUserLimits(new G4UserLimits(1. * cm));
+
+        //
+        // First multipole magnet
+        //
+        G4VSolid *solidFirstMultipoleMagnetShape = new G4Tubs("FirstMultipoleMagnetShape", 0., kFirstMultipoleAperture + 0.1 * cm, kFirstMultipoleLength, 0., 360. * deg);
+        auto solidFirstMultipoleMagnet = new G4SubtractionSolid("FirstMultipoleMagnetSolid", solidFirstMultipoleMagnetShape, solidFirstMultipoleField);
+        auto logicFirstMultipoleMagnet = new G4LogicalVolume(solidFirstMultipoleMagnet, nist->FindOrBuildMaterial("G4_Al"), "FirstMultipoleMagnetLogical");
+        new G4PVPlacement(G4Transform3D(*firstMultipoleFieldRot, fMultipoleFieldPos), logicFirstMultipoleMagnet,
+                                                       "FirstMultipoleMagnetPhysical", logicWorld,
+                                                       false, 0, checkOverlaps);
 
         //
         // Dipole field
