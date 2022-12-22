@@ -1,11 +1,6 @@
 This program is under developing!
 
-     =========================================================
-     TexPPACSim - A Geant4 simulation program for TexPPAC
-     =========================================================
 
-                            TexPPACSim
-                            -----------
 
  This program provides simulation of using the MDM sprectrometer and a 
 focal plane detector. The MDM spectrometer' s geometry and fields are 
