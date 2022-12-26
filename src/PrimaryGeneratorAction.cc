@@ -25,7 +25,7 @@ namespace TexPPACSim
         G4String particleName;
         G4ParticleDefinition *particle = particleTable->FindParticle(particleName = "proton");
         fParticleGun->SetParticleDefinition(particle);
-        fParticleGun->SetParticleEnergy(40. * MeV);
+        fParticleGun->SetParticleEnergy(20. * MeV);
     }
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -48,7 +48,7 @@ namespace TexPPACSim
 
         G4ThreeVector direction(1.,0,0);
         direction.setPhi(G4RandFlat::shoot(-180.*deg,180.*deg));
-        direction.setTheta(std::acos(G4RandFlat::shoot(std::cos(1.5*deg),1.)));
+        direction.setTheta(std::acos(G4RandFlat::shoot(std::cos(2.*deg),1.)));
         fParticleGun->SetParticleMomentumDirection(direction);
 
         fParticleGun->SetParticlePosition(G4ThreeVector(0., 0., -1.));
