@@ -26,7 +26,8 @@ namespace TexPPACSim
         G4ThreeVector particlePos(PositionAndTime[0], PositionAndTime[1], PositionAndTime[2]);
         G4ThreeVector deltaR = particlePos - fDipolePos;
         G4double x = std::sqrt(deltaR.x() * deltaR.x() + deltaR.z() * deltaR.z()) - kDipoleFieldRadius;
-        G4double By = fBy0 * (1. - kDipoleNDX * (x / kDipoleFieldRadius) + kDipoleBET1 * std::pow(x / kDipoleFieldRadius, 2.) + kDipoleGAMA * std::pow(x / kDipoleFieldRadius, 3.) + kDipoleDELT * std::pow(x / kDipoleFieldRadius, 4.));
+        G4double By = fBy0 * gauss * (1. - kDipoleNDX * (x / kDipoleFieldRadius) + kDipoleBET1 * std::pow(x / kDipoleFieldRadius, 2.) + kDipoleGAMA * std::pow(x / kDipoleFieldRadius, 3.) + kDipoleDELT * std::pow(x / kDipoleFieldRadius, 4.));
+        // printf("\n---> DipoleField::GetFieldValue(): fBy0=%.4f\n",By);
         bField[1] = By;
         bField[2] = 0.;
     }
