@@ -28,7 +28,7 @@ namespace TexPPACSim
         G4VPhysicalVolume *Construct() override;
         virtual void ConstructSDandField();
         void ParseParams(std::map<std::string, G4double> params);
-        void SetMdmAngle(G4double ang);
+        // void SetMdmAngle(G4double ang);
 
     private:
         static G4ThreadLocal DipoleField *fDipoleField;
