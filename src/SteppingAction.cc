@@ -6,6 +6,8 @@
 #include "G4Event.hh"
 #include "G4RunManager.hh"
 #include "G4LogicalVolume.hh"
+#include "G4UnitsTable.hh"
+#include "G4SystemOfUnits.hh"
 
 namespace TexPPACSim
 {
@@ -33,6 +35,8 @@ namespace TexPPACSim
         {
             step->GetTrack()->SetTrackStatus(fKillTrackAndSecondaries);
         }
+        // G4cout << "\n---> SteppingAction::UserSteppingAction: stepPos= " << G4BestUnit(step->GetPreStepPoint()->GetPosition(), "Length") << G4endl;
+
     }
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
