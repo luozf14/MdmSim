@@ -27,7 +27,7 @@
 # Add axes, trajectories and hits
 #
 /vis/scene/add/trajectories smooth # smooth, rich
-#/vis/scene/add/axes 0 0 0 30 cm # axes [x0] [y0] [z0] [length] [unit]
+/vis/scene/add/axes 0 0 0 400 cm # axes [x0] [y0] [z0] [length] [unit]
 /vis/scene/add/hits
 
 #
@@ -79,7 +79,7 @@
 #/vis/scene/add/scale 3 cm z 1 0 0 manual 0. -6. 12.5 cm # scale [length] [unit] [direction] [red] [green] [blue] [auto|manual] [xmid] [ymid] [zmid] [unit]
 #/vis/scene/add/axes    # Simple axes: x=red, y=green, z=blue.
 #/vis/scene/add/eventID # Drawn at end of event
-/vis/scene/add/date    # Date stamp
+#/vis/scene/add/date    # Date stamp
 #/vis/scene/add/logo2D  # Simple logo
 #/vis/scene/add/logo    # 3D logo
 
