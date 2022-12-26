@@ -7,6 +7,9 @@
 #include "G4FieldManager.hh"
 #include "G4TransportationManager.hh"
 #include "G4Mag_UsualEqRhs.hh"
+#include "G4ChordFinder.hh"
+#include "G4Field.hh"
+#include "G4AutoDelete.hh"
 
 #include "G4GenericMessenger.hh"
 
@@ -30,10 +33,10 @@
 
 namespace TexPPACSim
 {
-    G4ThreadLocal DipoleField *DetectorConstruction::fDipoleField = 0;
-    G4ThreadLocal G4FieldManager *DetectorConstruction::fDipoleFieldMgr = 0;
-    G4ThreadLocal FirstMultipoleField *DetectorConstruction::fFirstMultipoleField = 0;
-    G4ThreadLocal G4FieldManager *DetectorConstruction::fFirstMultipoleFieldMgr = 0;
+    G4ThreadLocal DipoleField *DetectorConstruction::fDipoleField = nullptr;
+    G4ThreadLocal G4FieldManager *DetectorConstruction::fDipoleFieldMgr = nullptr;
+    G4ThreadLocal FirstMultipoleField *DetectorConstruction::fFirstMultipoleField = nullptr;
+    G4ThreadLocal G4FieldManager *DetectorConstruction::fFirstMultipoleFieldMgr = nullptr;
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
     DetectorConstruction::DetectorConstruction()
@@ -185,15 +188,14 @@ namespace TexPPACSim
         //
         // MDM slit box
         //
-        G4double slitBoxDistance = 63.5 * cm;
-        G4ThreeVector slitBoxPos = G4ThreeVector(slitBoxDistance + 0.5 * mm, 0., 0.); // position in mother frame
+        G4ThreeVector slitBoxPos = G4ThreeVector(kSlitBoxPos, 0., 0.); // position in mother frame
         slitBoxPos.setTheta(-1. * fMdmAngle);
         slitBoxPos.setPhi(0. * deg);
         G4RotationMatrix *slitBoxRot = new G4RotationMatrix;
         slitBoxRot->rotateY(-1. * fMdmAngle);
 
-        G4VSolid *solidSlitBoxVoid = new G4Box("SlitBoxVoid", 2.27965 * cm, 2.27965 * cm, 1. * cm); // measured on 1/26/2022
-        G4VSolid *solidSlitBoxShape = new G4Box("SlitBoxShape", (2.27965 + 5.) * cm, (2.27965 + 5.) * cm, 1. * cm);
+        G4VSolid *solidSlitBoxVoid = new G4Box("SlitBoxVoid", 2.27965 * cm, 2.27965 * cm, 0.5 * kSlitBoxDz); // measured on 1/26/2022
+        G4VSolid *solidSlitBoxShape = new G4Box("SlitBoxShape", (2.27965 + 5.) * cm, (2.27965 + 5.) * cm, 0.5 * kSlitBoxDz);
         G4VSolid *solidSlitBox = new G4SubtractionSolid("SlitBox", solidSlitBoxShape, solidSlitBoxVoid);
         G4LogicalVolume *logicSlitBox = new G4LogicalVolume(solidSlitBox, nist->FindOrBuildMaterial("G4_Cu"), "SlitBox");
         new G4PVPlacement(slitBoxRot,     // rotation
@@ -208,9 +210,9 @@ namespace TexPPACSim
         //
         // First multipole field
         //
-        G4VSolid *solidFirstMultipoleField = new G4Tubs("FirstMultipoleFieldTubs", 0., kFirstMultipoleAperture, kFirstMultipoleLength, 0., 360. * deg);
+        G4VSolid *solidFirstMultipoleField = new G4Tubs("FirstMultipoleFieldTubs", 0., kFirstMultipoleAperture, 0.5 * kFirstMultipoleLength, 0., 360. * deg);
         fLogicFirstMultipoleField = new G4LogicalVolume(solidFirstMultipoleField, nist->FindOrBuildMaterial("G4_Galactic"), "FirstMultipoleFieldLogical");
-        fMultipoleFieldPos.setX(kFirstMultipolePos + 0.5 * kFirstMultipoleLength);
+        fMultipoleFieldPos.setX(kFirstMultipoleEntrancePos + 0.5 * kFirstMultipoleLength);
         fMultipoleFieldPos.setY(0.);
         fMultipoleFieldPos.setZ(0.);
         fMultipoleFieldPos.setTheta(fMdmAngle);
@@ -225,17 +227,17 @@ namespace TexPPACSim
         //
         // First multipole magnet
         //
-        G4VSolid *solidFirstMultipoleMagnetShape = new G4Tubs("FirstMultipoleMagnetShape", 0., kFirstMultipoleAperture + 0.1 * cm, kFirstMultipoleLength, 0., 360. * deg);
+        G4VSolid *solidFirstMultipoleMagnetShape = new G4Tubs("FirstMultipoleMagnetShape", 0., kFirstMultipoleAperture + 0.1 * cm, 0.5 * kFirstMultipoleLength, 0., 360. * deg);
         auto solidFirstMultipoleMagnet = new G4SubtractionSolid("FirstMultipoleMagnetSolid", solidFirstMultipoleMagnetShape, solidFirstMultipoleField);
         auto logicFirstMultipoleMagnet = new G4LogicalVolume(solidFirstMultipoleMagnet, nist->FindOrBuildMaterial("G4_Al"), "FirstMultipoleMagnetLogical");
         new G4PVPlacement(G4Transform3D(*firstMultipoleFieldRot, fMultipoleFieldPos), logicFirstMultipoleMagnet,
-                                                       "FirstMultipoleMagnetPhysical", logicWorld,
-                                                       false, 0, checkOverlaps);
+                          "FirstMultipoleMagnetPhysical", logicWorld,
+                          false, 0, checkOverlaps);
 
         //
         // Dipole field
         //
-        G4VSolid *solidDipoleField = new G4Tubs("DipoleFieldTubs", kDipoleFieldRadius - 0.5 * kDipoleFieldWidth, kDipoleFieldRadius + 0.5 * kDipoleFieldWidth, kDipoleFieldHeight, 0., kDipoleDeflectionAngle);
+        G4VSolid *solidDipoleField = new G4Tubs("DipoleFieldTubs", kDipoleFieldRadius - 0.5 * kDipoleFieldWidth, kDipoleFieldRadius + 0.5 * kDipoleFieldWidth, 0.5 * kDipoleFieldHeight, 0., kDipoleDeflectionAngle);
         fLogicDipoleField = new G4LogicalVolume(solidDipoleField, nist->FindOrBuildMaterial("G4_Galactic"), "DipoleFieldLogical");
         fDipoleFieldPos.setX(-kDipoleFieldRadius);
         fDipoleFieldPos.setY(0.);
@@ -285,15 +287,23 @@ namespace TexPPACSim
         fFirstMultipoleFieldMgr = new G4FieldManager();
         fFirstMultipoleFieldMgr->SetDetectorField(fFirstMultipoleField);
         fFirstMultipoleFieldMgr->CreateChordFinder(fFirstMultipoleField);
+        // fFirstMultipoleFieldMgr->GetChordFinder()->SetDeltaChord(1. * mm);
+        // fFirstMultipoleFieldMgr->SetAccuraciesWithDeltaOneStep(1. * mm);
         G4bool forceToAllDaughters = true;
         fLogicFirstMultipoleField->SetFieldManager(fFirstMultipoleFieldMgr, forceToAllDaughters);
+        G4AutoDelete::Register(fFirstMultipoleField);
+        G4AutoDelete::Register(fFirstMultipoleFieldMgr);
         // Dipole
         fDipoleField = new DipoleField(fDipoleFieldPos);
         fDipoleField->SetField(fDipoleProbe * 1.034);
         fDipoleFieldMgr = new G4FieldManager();
         fDipoleFieldMgr->SetDetectorField(fDipoleField);
         fDipoleFieldMgr->CreateChordFinder(fDipoleField);
+        // fDipoleFieldMgr->GetChordFinder()->SetDeltaChord(1. * mm);
+        // fDipoleFieldMgr->SetAccuraciesWithDeltaOneStep(1. * mm);
         fLogicDipoleField->SetFieldManager(fDipoleFieldMgr, forceToAllDaughters);
+        G4AutoDelete::Register(fDipoleField);
+        G4AutoDelete::Register(fDipoleFieldMgr);
     }
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -330,13 +340,13 @@ namespace TexPPACSim
             }
             else if (it.first == "FirstMultipoleProbe")
             {
-                fFirstMultipoleProbe = it.second * gauss;
-                G4cout << "Set: Multipole probe = " << G4BestUnit(fFirstMultipoleProbe, "Magnetic flux density") << G4endl;
+                fFirstMultipoleProbe = it.second;
+                G4cout << "Set: Multipole probe = " << fFirstMultipoleProbe << " Gauss" << G4endl;
             }
             else if (it.first == "DipoleProbe")
             {
-                fDipoleProbe = it.second * gauss;
-                G4cout << "Set: Dipole probe = " << G4BestUnit(fDipoleProbe, "Magnetic flux density") << G4endl;
+                fDipoleProbe = it.second;
+                G4cout << "Set: Dipole probe = " << fDipoleProbe << " Gauss" << G4endl;
             }
         }
     }
