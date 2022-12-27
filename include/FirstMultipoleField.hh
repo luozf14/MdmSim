@@ -19,11 +19,12 @@ namespace TexPPACSim
     class FirstMultipoleField : public G4MagneticField
     {
     public:
-        FirstMultipoleField(G4ThreeVector, G4RotationMatrix *);
+        FirstMultipoleField(G4double, G4ThreeVector, G4RotationMatrix *);
         ~FirstMultipoleField() override;
 
         void GetFieldValue(const G4double point[4], double *bField) const override;
-        void SetField(G4double multipoleProbe);
+        // void SetField(G4double multipoleProbe);
+        
         // 0th to 6th order derivatives of f1S
         double S0(double *x, double *par) const;
         double S1(double *x, double *par) const;
@@ -35,10 +36,12 @@ namespace TexPPACSim
 
     private:
         // G4GenericMessenger *fMessenger = nullptr;
-        G4ThreeVector GetEntranceFringingField(G4ThreeVector pos) const;
-        G4ThreeVector GetUniformZoneField(G4ThreeVector pos) const;
-        G4ThreeVector GetExitFringingField(G4ThreeVector pos) const;
+        // G4ThreeVector GetEntranceFringingField(G4ThreeVector pos) const;
+        // G4ThreeVector GetUniformZoneField(G4ThreeVector pos) const;
+        // G4ThreeVector GetExitFringingField(G4ThreeVector pos) const;
+        G4ThreeVector GetCompleteField(G4ThreeVector pos) const;
 
+        G4double fMultipoleProbe;
         G4ThreeVector fFirstMultipolePos;
         G4RotationMatrix *fFirstMultipoleRot;
         G4double fBQR;      // quadrupole at r=R;
