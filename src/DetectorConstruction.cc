@@ -47,6 +47,10 @@ namespace TexPPACSim
 
     DetectorConstruction::~DetectorConstruction()
     {
+        delete fDipoleField;
+        delete fDipoleFieldMgr;
+        delete fFirstMultipoleField;
+        delete fFirstMultipoleFieldMgr;
     }
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -282,8 +286,7 @@ namespace TexPPACSim
 
         // Magnetic field ----------------------------------------------------------
         // First multipole
-        fFirstMultipoleField = new FirstMultipoleField(fMultipoleFieldPos, fPhysicFirstMultipoleField->GetObjectRotation());
-        fFirstMultipoleField->SetField(fFirstMultipoleProbe);
+        fFirstMultipoleField = new FirstMultipoleField(fFirstMultipoleProbe, fMultipoleFieldPos, fPhysicFirstMultipoleField->GetObjectRotation());
         fFirstMultipoleFieldMgr = new G4FieldManager();
         fFirstMultipoleFieldMgr->SetDetectorField(fFirstMultipoleField);
         fFirstMultipoleFieldMgr->CreateChordFinder(fFirstMultipoleField);
@@ -291,8 +294,6 @@ namespace TexPPACSim
         // fFirstMultipoleFieldMgr->SetAccuraciesWithDeltaOneStep(1. * mm);
         G4bool forceToAllDaughters = true;
         fLogicFirstMultipoleField->SetFieldManager(fFirstMultipoleFieldMgr, forceToAllDaughters);
-        G4AutoDelete::Register(fFirstMultipoleField);
-        G4AutoDelete::Register(fFirstMultipoleFieldMgr);
         // Dipole
         fDipoleField = new DipoleField(fDipoleFieldPos);
         fDipoleField->SetField(fDipoleProbe * 1.034);
@@ -302,8 +303,6 @@ namespace TexPPACSim
         // fDipoleFieldMgr->GetChordFinder()->SetDeltaChord(1. * mm);
         // fDipoleFieldMgr->SetAccuraciesWithDeltaOneStep(1. * mm);
         fLogicDipoleField->SetFieldManager(fDipoleFieldMgr, forceToAllDaughters);
-        G4AutoDelete::Register(fDipoleField);
-        G4AutoDelete::Register(fDipoleFieldMgr);
     }
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
