@@ -60,7 +60,7 @@ int main(int argc, char **argv)
     actionInitParameters["EventParameters"] = eventParameters;
 
     // Optionally: choose a different Random engine...
-    G4Random::setTheEngine(new CLHEP::MTwistEngine);
+    G4Random::setTheEngine(new CLHEP::RanecuEngine);
     // set random seed with system time
     G4long seed = time(NULL);
     seed += 473879 * processNumber;
@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 
     // Construct the default run manager
     //
-    auto *runManager = G4RunManagerFactory::CreateRunManager(G4RunManagerType::Serial);
+    auto *runManager = G4RunManagerFactory::CreateRunManager(G4RunManagerType::SerialOnly);
 
     // Set mandatory initialization classes
     //
