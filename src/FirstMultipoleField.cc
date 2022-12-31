@@ -25,15 +25,14 @@ namespace TexPPACSim
         fG3 = fBOR / std::pow(kFirstMultipoleAperture * 0.1, 3.);
         fG4 = fBDR / std::pow(kFirstMultipoleAperture * 0.1, 4.);
         fG5 = fBDDR / std::pow(kFirstMultipoleAperture * 0.1, 5.);
-        f1S = new TF1("f1S", "1./(1.+std::exp([0]+[1]*x+[2]*x**2.+[3]*x**3.+[4]*x**4.+[5]*x**5.))", -kFirstMultipoleLength / kFirstMultipoleAperture, kFirstMultipoleLength / kFirstMultipoleAperture);
-        f1S->SetParameters(kFirstMultipoleCoefficients);
+        fEngeFunc = std::make_unique<TF1>("fEngeFunc", "1./(1.+std::exp([0]+[1]*x+[2]*x**2.+[3]*x**3.+[4]*x**4.+[5]*x**5.))", -kFirstMultipoleLength / kFirstMultipoleAperture, kFirstMultipoleLength / kFirstMultipoleAperture);
+        fEngeFunc->SetParameters(kFirstMultipoleCoefficients);
     }
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
     FirstMultipoleField::~FirstMultipoleField()
     {
-        delete f1S;
     }
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -104,7 +103,7 @@ namespace TexPPACSim
         G4double *par = 0;
         // printf("\n---> FirstMultipoleField::GetEntranceFringingField(): pos.z()=%.4e\n", pos.z());
         // printf("\n---> FirstMultipoleField::GetEntranceFringingField(): ss[0]=%.4e\n", ss[0]);
-        // printf("---> FirstMultipoleField::GetEntranceFringingField(): f1S(ss[0])=%.4e\n", f1S->Eval(ss[0]));
+        // printf("---> FirstMultipoleField::GetEntranceFringingField(): fEngeFunc(ss[0])=%.4e\n", fEngeFunc->Eval(ss[0]));
 
         // Gnm = G_{n}^{(m)}
         // Quadrupole
@@ -151,7 +150,7 @@ namespace TexPPACSim
         G4double *par = 0;
         // printf("\n---> FirstMultipoleField::GetEntranceFringingField(): pos.z()=%.4e\n", pos.z());
         // printf("\n---> FirstMultipoleField::GetEntranceFringingField(): ss[0]=%.4e\n", ss[0]);
-        // printf("---> FirstMultipoleField::GetEntranceFringingField(): f1S(ss[0])=%.4e\n", f1S->Eval(ss[0]));
+        // printf("---> FirstMultipoleField::GetEntranceFringingField(): fEngeFunc(ss[0])=%.4e\n", fEngeFunc->Eval(ss[0]));
 
         // Hexapole
         G4double G20 = fG2 * S0(ss, par);
@@ -217,7 +216,7 @@ namespace TexPPACSim
             G4double *par = 0;
             // printf("\n---> FirstMultipoleField::GetEntranceFringingField(): pos.z()=%.4e\n", pos.z());
             // printf("\n---> FirstMultipoleField::GetEntranceFringingField(): ss[0]=%.4e\n", ss[0]);
-            // printf("---> FirstMultipoleField::GetEntranceFringingField(): f1S(ss[0])=%.4e\n", f1S->Eval(ss[0]));
+            // printf("---> FirstMultipoleField::GetEntranceFringingField(): fEngeFunc(ss[0])=%.4e\n", fEngeFunc->Eval(ss[0]));
 
             // Gnm = G_{n}^{(m)}
             // Quadrupole
@@ -370,10 +369,10 @@ namespace TexPPACSim
     */
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-    G4double FirstMultipoleField::S0(G4double *x, G4double *par) const { return f1S->Eval(x[0]); }
-    G4double FirstMultipoleField::S1(G4double *x, G4double *par) const { return f1S->Derivative(x[0]); }
-    G4double FirstMultipoleField::S2(G4double *x, G4double *par) const { return f1S->Derivative2(x[0]); }
-    G4double FirstMultipoleField::S3(G4double *x, G4double *par) const { return f1S->Derivative3(x[0]); }
+    G4double FirstMultipoleField::S0(G4double *x, G4double *par) const { return fEngeFunc->Eval(x[0]); }
+    G4double FirstMultipoleField::S1(G4double *x, G4double *par) const { return fEngeFunc->Derivative(x[0]); }
+    G4double FirstMultipoleField::S2(G4double *x, G4double *par) const { return fEngeFunc->Derivative2(x[0]); }
+    G4double FirstMultipoleField::S3(G4double *x, G4double *par) const { return fEngeFunc->Derivative3(x[0]); }
     G4double FirstMultipoleField::S4(G4double *x, G4double *par) const
     {
         TF1 f1(

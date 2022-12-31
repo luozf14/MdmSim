@@ -55,7 +55,7 @@ namespace TexPPACSim
         G4double fG3;       // qctapole
         G4double fG4;       // decapole
         G4double fG5;       // dodecapole
-        TF1 *f1S = nullptr; // f1S(s) = 1/(1+exp(S(s)))
+        std::unique_ptr<TF1> fEngeFunc;
     };
 
 }
