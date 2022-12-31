@@ -39,7 +39,8 @@ namespace TexPPACSim
         // G4ThreeVector GetEntranceFringingField(G4ThreeVector pos) const;
         // G4ThreeVector GetUniformZoneField(G4ThreeVector pos) const;
         // G4ThreeVector GetExitFringingField(G4ThreeVector pos) const;
-        G4ThreeVector GetCompleteField(G4ThreeVector pos) const;
+        G4ThreeVector GetQuadrupoleField(G4ThreeVector pos) const;
+        G4ThreeVector GetHighOrderField(G4ThreeVector pos) const;
 
         G4double fMultipoleProbe;
         G4ThreeVector fFirstMultipolePos;

@@ -49,6 +49,7 @@ namespace TexPPACSim
         // G4cout << "\n---> FirstMultipoleField::GetFieldValue: rotatedR.z()= " << z << G4endl;
         G4ThreeVector posInPole;
 
+        // quadrupole
         if (z < -3. * cm) // entrance fringing field
         {
             posInPole[0] = rotatedR.x();
@@ -61,7 +62,25 @@ namespace TexPPACSim
             posInPole[1] = rotatedR.y();
             posInPole[2] = rotatedR.z() - 130.;
         }
-        G4ThreeVector field = GetCompleteField(posInPole);
+        G4ThreeVector quadrupoleField = GetQuadrupoleField(posInPole);
+
+        // high order field entrance
+        posInPole[2] = -65. - rotatedR.z();
+        G4ThreeVector highOrderFieldEntrance = GetHighOrderField(posInPole);
+
+        // high order field exit
+        posInPole[2] = rotatedR.z() - 65.;
+        G4ThreeVector highOrderFieldExit = GetHighOrderField(posInPole);
+
+        // high order field offset
+        posInPole[2] = -65.;
+        G4ThreeVector highOrderFieldOffSet = GetHighOrderField(posInPole);
+
+        G4ThreeVector highOrderField = 0.5 * (highOrderFieldEntrance + highOrderFieldExit - highOrderFieldOffSet);
+
+        G4ThreeVector field = quadrupoleField + highOrderField;
+        // G4ThreeVector field = highOrderField;
+        // G4ThreeVector field = quadrupoleField;
         bField[0] = field.x();
         bField[1] = field.y();
         bField[2] = field.z();
@@ -69,7 +88,7 @@ namespace TexPPACSim
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-    G4ThreeVector FirstMultipoleField::GetCompleteField(G4ThreeVector pos) const
+    G4ThreeVector FirstMultipoleField::GetQuadrupoleField(G4ThreeVector pos) const
     {
         G4double x = pos.x() * 0.1; // convert from mm to cm
         G4double y = pos.y() * 0.1;
@@ -96,8 +115,8 @@ namespace TexPPACSim
         G4double G14 = fG1 * S4(ss, par);
         G4double G15 = fG1 * S5(ss, par);
         G4double G16 = fG1 * S6(ss, par);
-        G4double B1x = G10 * y - 1. / 12. * G12 * (3. * std::pow(x, 2.) * y + std::pow(y, 3.)) + 1. / 384. * G14 * (5. * std::pow(x, 4.) * y + 6. * std::pow(x, 2.) * std::pow(y, 3.) + std::pow(y, 5.)) /*- 1. / 23040. * G16 * (7. * std::pow(x, 6.) * y + 15. * std::pow(x, 4.) * std::pow(y, 3.) + 9. * std::pow(x, 2.) * std::pow(y, 5.) + std::pow(y, 7.))*/;
-        G4double B1y = G10 * x - 1. / 12. * G12 * (3. * std::pow(y, 2.) * x + std::pow(x, 3.)) + 1. / 384. * G14 * (5. * std::pow(y, 4.) * x + 6. * std::pow(y, 2.) * std::pow(x, 3.) + std::pow(x, 5.)) /*- 1. / 23040. * G16 * (7. * std::pow(y, 6.) * x + 15. * std::pow(y, 4.) * std::pow(x, 3.) + 9. * std::pow(y, 2.) * std::pow(x, 5.) + std::pow(x, 7.))*/;
+        G4double B1x = G10 * y - 1. / 12. * G12 * (3. * std::pow(x, 2.) * y + std::pow(y, 3.)) /*+ 1. / 384. * G14 * (5. * std::pow(x, 4.) * y + 6. * std::pow(x, 2.) * std::pow(y, 3.) + std::pow(y, 5.)) - 1. / 23040. * G16 * (7. * std::pow(x, 6.) * y + 15. * std::pow(x, 4.) * std::pow(y, 3.) + 9. * std::pow(x, 2.) * std::pow(y, 5.) + std::pow(y, 7.))*/;
+        G4double B1y = G10 * x - 1. / 12. * G12 * (3. * std::pow(y, 2.) * x + std::pow(x, 3.)) /*+ 1. / 384. * G14 * (5. * std::pow(y, 4.) * x + 6. * std::pow(y, 2.) * std::pow(x, 3.) + std::pow(x, 5.)) - 1. / 23040. * G16 * (7. * std::pow(y, 6.) * x + 15. * std::pow(y, 4.) * std::pow(x, 3.) + 9. * std::pow(y, 2.) * std::pow(x, 5.) + std::pow(x, 7.))*/;
         G4double B1z = G11 * x * y - 1. / 12. * G13 * (std::pow(x, 3.) * y + x * std::pow(y, 3.)) + 1. / 384. * G15 * (std::pow(x, 5.) * y + 2. * std::pow(x, 3.) * std::pow(y, 3.) + x * std::pow(y, 5.));
         // printf("\n---> FirstMultipoleField::GetEntranceFringingField(): G10=%.4e\n", G10);
         // printf("---> FirstMultipoleField::GetEntranceFringingField(): |B1x_B1y|=%.4e\n", std::sqrt(B1x*B1x+B1y*B1y));
@@ -107,6 +126,32 @@ namespace TexPPACSim
         // printf("---> FirstMultipoleField::GetEntranceFringingField(): G15=%.4e\n", G15/fG1);
         // printf("---> FirstMultipoleField::GetEntranceFringingField(): G16=%.4e\n", G16/fG1);
 
+        bField[0] = B1x;
+        bField[1] = B1y;
+        bField[2] = B1z;
+
+        bField *= 1. * tesla;
+        return bField;
+    }
+
+    //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+    G4ThreeVector FirstMultipoleField::GetHighOrderField(G4ThreeVector pos) const
+    {
+        G4double x = pos.x() * 0.1; // convert from mm to cm
+        G4double y = pos.y() * 0.1;
+        G4double z = pos.z() * 0.1;
+        G4ThreeVector bField;
+        // bField[0] = fG1 * y + fG2 * (2. * x * y) + fG3 * (3. * std::pow(x, 2.) * y - std::pow(y, 3.)) + fG4 * 4. * (std::pow(x, 3.) * y - x * std::pow(y, 3.)) + fG5 * (5. * std::pow(x, 4.) * y - 10. * std::pow(x, 2.) * std::pow(y, 3.) + std::pow(y, 5.));
+        // bField[1] = fG1 * x + fG2 * (std::pow(x, 2.) - std::pow(y, 2.)) + fG3 * (std::pow(x, 3.) - 3. * x * std::pow(y, 2.)) + fG4 * (std::pow(x, 4.) - 6. * std::pow(x * y, 2.) + std::pow(y, 4.)) + fG5 * (std::pow(x, 5.) - 10. * std::pow(x, 3.) * std::pow(y, 2.) + 5. * x * std::pow(y, 4.));
+        // bField[2] = 0.;
+        // printf("x = %.4e cm\n", x);
+        // printf("y = %.4e cm\n", y);
+        // printf("r = %.4e cm\n", std::sqrt(x*x+y*y));
+        G4double ss[1] = {z / (kFirstMultipoleAperture * 0.1)};
+        G4double *par = 0;
+        // printf("\n---> FirstMultipoleField::GetEntranceFringingField(): pos.z()=%.4e\n", pos.z());
+        // printf("\n---> FirstMultipoleField::GetEntranceFringingField(): ss[0]=%.4e\n", ss[0]);
+        // printf("---> FirstMultipoleField::GetEntranceFringingField(): f1S(ss[0])=%.4e\n", f1S->Eval(ss[0]));
 
         // Hexapole
         G4double G20 = fG2 * S0(ss, par);
@@ -151,18 +196,15 @@ namespace TexPPACSim
         G4double B5x = G50 * (5. * std::pow(x, 4.) * y - 10. * std::pow(x, 2.) * std::pow(y, 3.) + std::pow(y, 5.));
         G4double B5y = G50 * (5. * std::pow(y, 4.) * x - 10. * std::pow(y, 2.) * std::pow(x, 3.) + std::pow(x, 5.));
         G4double B5z = 0.;
-        bField[0] = B1x + B2x + B3x + B4x + B5x;
-        bField[1] = B1y + B2y + B3y + B4y + B5y;
-        bField[2] = B1z + B2z + B3z + B4z + B5z;
-        // bField[0] = B1x;
-        // bField[1] = B1y;
-        // bField[2] = B1z;
-        // bField[0] = B2x + B3x + B4x + B5x;
-        // bField[1] = B2y + B3y + B4y + B5y;
-        // bField[2] = B2z + B3z + B4z + B5z;
+
+        bField[0] = B2x + B3x + B4x + B5x;
+        bField[1] = B2y + B3y + B4y + B5y;
+        bField[2] = B2z + B3z + B4z + B5z;
+
         bField *= 1. * tesla;
         return bField;
     }
+
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
     /*
         G4ThreeVector FirstMultipoleField::GetEntranceFringingField(G4ThreeVector pos) const
