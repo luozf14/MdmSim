@@ -24,6 +24,7 @@
 #include "G4Trd.hh"
 #include "G4LogicalVolume.hh"
 #include "G4PVPlacement.hh"
+#include "G4RotationMatrix.hh"
 
 #include "G4SystemOfUnits.hh"
 #include "G4UnitsTable.hh"
@@ -295,8 +296,7 @@ namespace TexPPACSim
         G4bool forceToAllDaughters = true;
         fLogicFirstMultipoleField->SetFieldManager(fFirstMultipoleFieldMgr, forceToAllDaughters);
         // Dipole
-        fDipoleField = new DipoleField(fDipoleFieldPos);
-        fDipoleField->SetField(fDipoleProbe * 1.034);
+        fDipoleField = new DipoleField(fDipoleProbe * 1.034, fDipoleFieldPos, fMdmAngle);
         fDipoleFieldMgr = new G4FieldManager();
         fDipoleFieldMgr->SetDetectorField(fDipoleField);
         fDipoleFieldMgr->CreateChordFinder(fDipoleField);

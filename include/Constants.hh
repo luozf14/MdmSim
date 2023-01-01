@@ -25,11 +25,12 @@ namespace TexPPACSim
     constexpr G4double kFirstMultipoleEntrancePos = kSlitBoxPos + 0.5 * kSlitBoxDz;
     constexpr G4double kFirstMultipoleAperture = 6.5 * cm;
     constexpr G4double kFirstMultipoleLength = (20. + 10. + 6. + 10. + 20.) * cm;
-    constexpr G4double kFirstMultipoleCoefficients[6] = {.1122, 6.2671, -1.4982, 3.5882, -2.1209, 1.723};
+    constexpr G4double kFirstMultipoleCoefficients[6] = {0.1122, 6.2671, -1.4982, 3.5882, -2.1209, 1.723};
 
     constexpr G4double kDipoleFieldRadius = 1600. * mm;
     constexpr G4double kDipoleFieldWidth = 60. * cm;
     constexpr G4double kDipoleFieldHeight = 11.5 * cm;
+    constexpr G4double kDipoleDG = 5 * cm;
     constexpr G4double kDipoleNDX = 0.191;
     constexpr G4double kDipoleBET1 = -0.04;
     constexpr G4double kDipoleGAMA = 0.;
