@@ -25,12 +25,13 @@
 #include "G4LogicalVolume.hh"
 #include "G4PVPlacement.hh"
 #include "G4RotationMatrix.hh"
+#include "G4UnionSolid.hh"
+#include "G4SubtractionSolid.hh"
 
 #include "G4SystemOfUnits.hh"
 #include "G4UnitsTable.hh"
 #include "G4UserLimits.hh"
 #include "G4SDManager.hh"
-#include "G4SubtractionSolid.hh"
 
 namespace TexPPACSim
 {
@@ -242,7 +243,17 @@ namespace TexPPACSim
         //
         // Dipole field
         //
-        G4VSolid *solidDipoleField = new G4Tubs("DipoleFieldTubs", kDipoleFieldRadius - 0.5 * kDipoleFieldWidth, kDipoleFieldRadius + 0.5 * kDipoleFieldWidth, 0.5 * kDipoleFieldHeight, 0., kDipoleDeflectionAngle);
+        G4VSolid *solidDipoleFieldEntrace = new G4Box("DipoleFieldEntrance", 0.5 * kDipoleFieldWidth, 0.5 * kDipoleZ11, 0.5 * kDipoleFieldHeight);
+        G4ThreeVector solidDipoleFieldEntraceTrans(kDipoleFieldRadius, -0.5 * kDipoleZ11, 0.);
+        G4VSolid *solidDipoleFieldExit = new G4Box("DipoleFieldEntrance", 0.5 * kDipoleFieldWidth, 0.5 * kDipoleZ22, 0.5 * kDipoleFieldHeight);
+        G4RotationMatrix *solidDipoleFieldExitRot = new G4RotationMatrix;
+        solidDipoleFieldExitRot->rotateZ(kDipoleDeflectionAngle);
+        G4ThreeVector solidDipoleFieldExitTrans1(-kDipoleFieldRadius * std::cos(M_PI - kDipoleDeflectionAngle), kDipoleFieldRadius * std::sin(M_PI - kDipoleDeflectionAngle), 0.);
+        G4ThreeVector solidDipoleFieldExitTrans2(-0.5 * kDipoleZ22 * std::cos(kDipoleDeflectionAngle - M_PI / 2.), -0.5 * kDipoleZ22 * std::sin(kDipoleDeflectionAngle - M_PI / 2.), 0.);
+        G4ThreeVector solidDipoleFieldExitTrans = solidDipoleFieldExitTrans1 + solidDipoleFieldExitTrans2;
+        G4VSolid *solidDipoleFieldUniform = new G4Tubs("DipoleFieldUniform", kDipoleFieldRadius - 0.5 * kDipoleFieldWidth, kDipoleFieldRadius + 0.5 * kDipoleFieldWidth, 0.5 * kDipoleFieldHeight, 0., kDipoleDeflectionAngle);
+        G4UnionSolid *solidDipoleFieldTemp = new G4UnionSolid("solidDipoleFieldTemp", solidDipoleFieldUniform, solidDipoleFieldEntrace, nullptr, solidDipoleFieldEntraceTrans);
+        G4UnionSolid *solidDipoleField = new G4UnionSolid("solidDipoleField", solidDipoleFieldTemp, solidDipoleFieldExit, G4Transform3D(*solidDipoleFieldExitRot, solidDipoleFieldExitTrans));
         fLogicDipoleField = new G4LogicalVolume(solidDipoleField, nist->FindOrBuildMaterial("G4_Galactic"), "DipoleFieldLogical");
         fDipoleFieldPos.setX(-kDipoleFieldRadius);
         fDipoleFieldPos.setY(0.);
@@ -259,7 +270,7 @@ namespace TexPPACSim
         //
         // Dipole magnet
         //
-        auto solidDipoleMagnetShape = new G4Tubs("DipoleMagnetShape", 0., kDipoleMagnetRadius, 0.5 * m, 0., kDipoleDeflectionAngle);
+        auto solidDipoleMagnetShape = new G4Tubs("DipoleMagnetShape", 30. * cm, kDipoleMagnetRadius, 0.5 * m, 0., kDipoleDeflectionAngle);
         auto solidDipoleMagnet = new G4SubtractionSolid("DipoleMagnetSolid", solidDipoleMagnetShape, solidDipoleField);
         fLogicDipoleMagnet = new G4LogicalVolume(solidDipoleMagnet, nist->FindOrBuildMaterial("G4_Cu"), "DipoleMagnetLogical");
         fPhysicDipoleMagnet = new G4PVPlacement(G4Transform3D(*dipoleRot, fDipoleFieldPos), fLogicDipoleMagnet,
@@ -296,7 +307,7 @@ namespace TexPPACSim
         G4bool forceToAllDaughters = true;
         fLogicFirstMultipoleField->SetFieldManager(fFirstMultipoleFieldMgr, forceToAllDaughters);
         // Dipole
-        fDipoleField = new DipoleField(fDipoleProbe * 1.034, fDipoleFieldPos, fMdmAngle);
+        fDipoleField = new DipoleField(fDipoleProbe * 1.034, fMdmAngle, fDipoleFieldPos);
         fDipoleFieldMgr = new G4FieldManager();
         fDipoleFieldMgr->SetDetectorField(fDipoleField);
         fDipoleFieldMgr->CreateChordFinder(fDipoleField);
