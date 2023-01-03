@@ -17,34 +17,35 @@ using namespace TexPPACSim;
 int main(int argc, char **argv)
 {
     // TApplication app("app", &argc, argv);
-
+    double multipoleProbe = 2780.84;
     G4RotationMatrix *rot = new G4RotationMatrix();
-    auto *firstMultipoleField = new FirstMultipoleField(2780.84, G4ThreeVector(), rot);
+    auto *firstMultipoleField = new FirstMultipoleField(multipoleProbe, G4ThreeVector(), rot);
 
     TGraph *gr1 = new TGraph(1000);
     gr1->SetName("gr1");
-    gr1->SetTitle("B_{x} vs z");
+    gr1->SetTitle("B_{x} [B_{0}] vs z [mm]");
     TGraph *gr2 = new TGraph(1000);
     gr2->SetName("gr2");
-    gr2->SetTitle("B_{y} vs z");
+    gr2->SetTitle("B_{y} [B_{0}] vs z [mm]");
     TGraph *gr3 = new TGraph(1000);
     gr3->SetName("gr3");
-    gr3->SetTitle("B_{z} vs z");
+    gr3->SetTitle("B_{z} [B_{0}] vs z [mm]");
     TGraph *gr4 = new TGraph(1000);
     gr4->SetName("gr4");
-    gr4->SetTitle("B_{trans} vs z");
+    gr4->SetTitle("B_{trans} [B_{0}] vs z [mm]");
     for (int i = 0; i < 1000; i++)
     {
-        double x = 11.*std::sin(45./180.*3.1415926);
-        double y = 11.*std::cos(45./180.*3.1415926);
+        double x = 64. * std::sin(30. / 180. * 3.1415926);
+        double y = 64. * std::cos(30. / 180. * 3.1415926);
         double z = -330. + 660. / 1000. * (double)i;
         const G4double point[4] = {x, y, z, 4};
         double bField[3];
         firstMultipoleField->GetFieldValue(point, bField);
-        gr1->SetPoint(i, z, bField[0] * 1000.);
-        gr2->SetPoint(i, z, bField[1] * 1000.);
-        gr3->SetPoint(i, z, bField[2] * 1000.);
-        gr4->SetPoint(i, z, std::sqrt(bField[0] * 1000. *bField[0] * 1000. + bField[1] * 1000.* bField[1] * 1000.));
+        printf("%.4e\n",bField[0] * 1e7 / (multipoleProbe * kJeffParameters[5]));
+        gr1->SetPoint(i, z, bField[0] * 1e7 / (multipoleProbe * kJeffParameters[5]));
+        gr2->SetPoint(i, z, bField[1] * 1e7 / (multipoleProbe * kJeffParameters[5]));
+        gr3->SetPoint(i, z, bField[2] * 1e7 / (multipoleProbe * kJeffParameters[5]));
+        gr4->SetPoint(i, z, std::sqrt(std::pow(bField[0] * 1e7 / (multipoleProbe * kJeffParameters[5]), 2.) + std::pow(bField[1] * 1e7 / (multipoleProbe * kJeffParameters[5]), 2.)));
     }
     /*
         double x, y, Bx, P = 330.;
