@@ -30,11 +30,18 @@ namespace TexPPACSim
     constexpr G4double kDipoleFieldRadius = 1600. * mm;
     constexpr G4double kDipoleFieldWidth = 60. * cm;
     constexpr G4double kDipoleFieldHeight = 11.5 * cm;
-    constexpr G4double kDipoleDG = 5 * cm;
+    constexpr G4double kDipoleDG = 0.3 * kDipoleFieldHeight;
     constexpr G4double kDipoleNDX = 0.191;
     constexpr G4double kDipoleBET1 = -0.04;
     constexpr G4double kDipoleGAMA = 0.;
     constexpr G4double kDipoleDELT = 0.;
+    constexpr G4double kDipoleZ11 = 46. * cm;
+    constexpr G4double kDipoleZ12 = -33. * cm;
+    constexpr G4double kDipoleZ21 = -23. * cm;
+    constexpr G4double kDipoleZ22 = 50. * cm;
+    constexpr G4double kDipoleJeffsFrngs[6] = {.048, 3.70, .0125, -.299, .016, .020};
+    constexpr G4double kDipoleDrawingEntrance[7] = {1.242, -3.11, 4.142, -1.06, 0., 0., 0.};
+    constexpr G4double kDipoleDrawingExit[7] = {-1.579, 1.719, -13.43, -24.58, 779.35, 821.26, -21410.};
     constexpr G4double kDipoleMagnetRadius = 1600. * 9.2 / 5.5 * mm;
     constexpr G4double kDipoleDeflectionAngle = 100. * deg;
 
