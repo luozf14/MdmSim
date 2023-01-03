@@ -228,7 +228,7 @@ namespace TexPPACSim
         fPhysicFirstMultipoleField = new G4PVPlacement(G4Transform3D(*firstMultipoleFieldRot, fMultipoleFieldPos), fLogicFirstMultipoleField,
                                                        "FirstMultipoleFieldPhysical", logicWorld,
                                                        false, 0, checkOverlaps);
-        fLogicFirstMultipoleField->SetUserLimits(new G4UserLimits(1. * cm));
+        // fLogicFirstMultipoleField->SetUserLimits(new G4UserLimits(1e-3 * mm));
 
         //
         // First multipole magnet
@@ -265,7 +265,7 @@ namespace TexPPACSim
         fPhysicDipoleField = new G4PVPlacement(G4Transform3D(*dipoleRot, fDipoleFieldPos), fLogicDipoleField,
                                                "DipoleFieldPhysical", logicWorld,
                                                false, 0, checkOverlaps);
-        fLogicDipoleField->SetUserLimits(new G4UserLimits(1. * cm));
+        // fLogicDipoleField->SetUserLimits(new G4UserLimits(1e-3 * mm));
 
         //
         // Dipole magnet
@@ -302,8 +302,8 @@ namespace TexPPACSim
         fFirstMultipoleFieldMgr = new G4FieldManager();
         fFirstMultipoleFieldMgr->SetDetectorField(fFirstMultipoleField);
         fFirstMultipoleFieldMgr->CreateChordFinder(fFirstMultipoleField);
-        // fFirstMultipoleFieldMgr->GetChordFinder()->SetDeltaChord(1. * mm);
-        // fFirstMultipoleFieldMgr->SetAccuraciesWithDeltaOneStep(1. * mm);
+        // fFirstMultipoleFieldMgr->GetChordFinder()->SetDeltaChord(1e-3 * mm);
+        fFirstMultipoleFieldMgr->SetAccuraciesWithDeltaOneStep(1e-3 * mm);
         G4bool forceToAllDaughters = true;
         fLogicFirstMultipoleField->SetFieldManager(fFirstMultipoleFieldMgr, forceToAllDaughters);
         // Dipole
@@ -311,8 +311,8 @@ namespace TexPPACSim
         fDipoleFieldMgr = new G4FieldManager();
         fDipoleFieldMgr->SetDetectorField(fDipoleField);
         fDipoleFieldMgr->CreateChordFinder(fDipoleField);
-        // fDipoleFieldMgr->GetChordFinder()->SetDeltaChord(1. * mm);
-        // fDipoleFieldMgr->SetAccuraciesWithDeltaOneStep(1. * mm);
+        // fDipoleFieldMgr->GetChordFinder()->SetDeltaChord(1e-3 * mm);
+        fDipoleFieldMgr->SetAccuraciesWithDeltaOneStep(1e-3 * mm);
         fLogicDipoleField->SetFieldManager(fDipoleFieldMgr, forceToAllDaughters);
     }
 
