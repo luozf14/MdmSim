@@ -17,42 +17,42 @@ namespace TexPPACSim
     DipoleField::DipoleField(G4double By0, G4double mdmAng, G4ThreeVector dipolePos) : fBy0(By0), fMdmAngle(mdmAng), fDipolePos(dipolePos)
     {
         G4ThreeVector dCO(-kDipoleFieldRadius * std::cos(M_PI - kDipoleDeflectionAngle), 0., kDipoleFieldRadius * std::sin(M_PI - kDipoleDeflectionAngle));
-        G4cout << "\ndCO= " << G4BestUnit(dCO, "Length") << G4endl;
+        // G4cout << "\ndCO= " << G4BestUnit(dCO, "Length") << G4endl;
 
         std::unique_ptr<G4RotationMatrix> dipoleRot = std::make_unique<G4RotationMatrix>();
         dipoleRot->rotateY(fMdmAngle);
 
         G4ThreeVector rotateddCO = dipoleRot->operator()(dCO);
-        G4cout << "rotateddCO= " << G4BestUnit(rotateddCO, "Length") << G4endl;
+        // G4cout << "rotateddCO= " << G4BestUnit(rotateddCO, "Length") << G4endl;
 
         fCoordinateCPos = fDipolePos + rotateddCO;
-        G4cout << "fDipolePos= " << G4BestUnit(fDipolePos, "Length") << G4endl;
-        G4cout << "fCoordinateCPos= " << G4BestUnit(fCoordinateCPos, "Length") << G4endl;
+        // G4cout << "fDipolePos= " << G4BestUnit(fDipolePos, "Length") << G4endl;
+        // G4cout << "fCoordinateCPos= " << G4BestUnit(fCoordinateCPos, "Length") << G4endl;
 
         fCoordinateCRot = std::make_unique<G4RotationMatrix>();
         fCoordinateCRot->rotateY(-(kDipoleDeflectionAngle - fMdmAngle));
         fDipolePosInC = fCoordinateCRot->inverse().operator()(fDipolePos - fCoordinateCPos);
 
-        G4cout << "fDipolePosInC= " << G4BestUnit(fDipolePosInC, "Length") << G4endl;
+        // G4cout << "fDipolePosInC= " << G4BestUnit(fDipolePosInC, "Length") << G4endl;
 
         G4ThreeVector dBO(kDipoleFieldRadius, 0., 0.);
-        G4cout << "\ndBO= " << G4BestUnit(dBO, "Length") << G4endl;
+        // G4cout << "\ndBO= " << G4BestUnit(dBO, "Length") << G4endl;
 
         G4ThreeVector rotateddBO = dipoleRot->operator()(dBO);
-        G4cout << "rotateddBO= " << G4BestUnit(rotateddBO, "Length") << G4endl;
+        // G4cout << "rotateddBO= " << G4BestUnit(rotateddBO, "Length") << G4endl;
 
         fCoordinateBPos = fDipolePos + rotateddBO;
-        G4cout << "fDipolePos= " << G4BestUnit(fDipolePos, "Length") << G4endl;
-        G4cout << "fCoordinateBPos= " << G4BestUnit(fCoordinateBPos, "Length") << G4endl;
+        // G4cout << "fDipolePos= " << G4BestUnit(fDipolePos, "Length") << G4endl;
+        // G4cout << "fCoordinateBPos= " << G4BestUnit(fCoordinateBPos, "Length") << G4endl;
 
         fCoordinateBRot = std::make_unique<G4RotationMatrix>();
         fCoordinateBRot->rotateY(fMdmAngle);
         fDipolePosInB = fCoordinateBRot->inverse().operator()(fDipolePos - fCoordinateBPos);
 
-        G4cout << "fDipolePosInB= " << G4BestUnit(fDipolePosInB, "Length") << G4endl;
+        // G4cout << "fDipolePosInB= " << G4BestUnit(fDipolePosInB, "Length") << G4endl;
 
-        fEngeFunc = std::make_unique<TF1>("fEngeFunc", "1./(1.+std::exp([0]+[1]*x+[2]*x**2.+[3]*x**3.+[4]*x**4.+[5]*x**5.))", -kFirstMultipoleLength / kFirstMultipoleAperture, kFirstMultipoleLength / kFirstMultipoleAperture);
-        fEngeFunc->SetParameters(kFirstMultipoleCoefficients);
+        fEngeFunc = std::make_unique<TF1>("fEngeFunc", "1./(1.+std::exp([0]+[1]*x+[2]*x**2.+[3]*x**3.+[4]*x**4.+[5]*x**5.))", -60. * cm / kDipoleFieldHeight, 60. * cm / kFirstMultipoleAperture);
+        fEngeFunc->SetParameters(kDipoleJeffsFrngs);
     }
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -74,6 +74,7 @@ namespace TexPPACSim
         }
         else
         {
+            pos = G4ThreeVector(PositionAndTime[0], PositionAndTime[1], PositionAndTime[2]);
             G4ThreeVector fieldVec = GetFieldInC(pos);
             bField[0] = fieldVec.x();
             bField[1] = fieldVec.y();
@@ -110,7 +111,9 @@ namespace TexPPACSim
         G4double By = B[2][2] + By2nd + By4th;
         G4double Bz = y / kDipoleDG * (2. / 3. * (B[3][2] - B[1][2]) - 1. / 12. * (B[4][2] - B[0][2])) + std::pow(y / kDipoleDG, 3.) * (1. / 6. * (B[3][2] - B[1][2]) - 1. / 12. * (B[4][2] - B[0][2]) - 1. / 12. * (B[3][3] + B[3][1] - B[1][3] - B[1][1] - 2. * B[3][2] + 2. * B[1][2]));
 
-        return G4ThreeVector(Bx, By, Bz);
+        G4ThreeVector field(Bx, By, Bz);
+
+        return fCoordinateCRot->operator()(field);
     }
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -130,6 +133,7 @@ namespace TexPPACSim
                 G4ThreeVector posInB(xx, 0., zz);
                 deltaRInB = posInB - fDipolePosInB;
                 dR = (zz < 0) ? xx : (deltaRInB.mag() - kDipoleFieldRadius);
+                // printf("zz=%.4f, xx=%.4f, dR=%.4f\n", zz, xx, deltaRInB.mag() - kDipoleFieldRadius);
                 B[i][j] = fEngeFunc->Eval(-zz / kDipoleFieldHeight) * fBy0 * gauss * (1. - kDipoleNDX * (dR / kDipoleFieldRadius) + kDipoleBET1 * std::pow(dR / kDipoleFieldRadius, 2.) + kDipoleGAMA * std::pow(dR / kDipoleFieldRadius, 3.) + kDipoleDELT * std::pow(dR / kDipoleFieldRadius, 4.));
             }
         }
@@ -142,7 +146,9 @@ namespace TexPPACSim
         G4double By = B[2][2] + By2nd + By4th;
         G4double Bz = y / kDipoleDG * (2. / 3. * (B[3][2] - B[1][2]) - 1. / 12. * (B[4][2] - B[0][2])) + std::pow(y / kDipoleDG, 3.) * (1. / 6. * (B[3][2] - B[1][2]) - 1. / 12. * (B[4][2] - B[0][2]) - 1. / 12. * (B[3][3] + B[3][1] - B[1][3] - B[1][1] - 2. * B[3][2] + 2. * B[1][2]));
 
-        return G4ThreeVector(Bx, By, Bz);
+        G4ThreeVector field(Bx, By, Bz);
+
+        return fCoordinateBRot->operator()(field);
     }
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
