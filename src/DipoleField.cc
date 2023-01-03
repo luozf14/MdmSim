@@ -98,8 +98,23 @@ namespace TexPPACSim
                 zz = particlePosInC.z() + (G4double)(i - 2) * kDipoleDG;
                 G4ThreeVector posInC(xx, 0., zz);
                 deltaRInC = posInC - fDipolePosInC;
-                dR = (zz < 0) ? (deltaRInC.mag() - kDipoleFieldRadius) : xx;
-                B[i][j] = fEngeFunc->Eval(zz / kDipoleFieldHeight) * fBy0 * gauss * (1. - kDipoleNDX * (dR / kDipoleFieldRadius) + kDipoleBET1 * std::pow(dR / kDipoleFieldRadius, 2.) + kDipoleGAMA * std::pow(dR / kDipoleFieldRadius, 3.) + kDipoleDELT * std::pow(dR / kDipoleFieldRadius, 4.));
+                if (zz < kDipoleZ21) // uniform region
+                {
+                    dR = deltaRInC.mag() - kDipoleFieldRadius;
+                    B[i][j] = fBy0 * gauss * (1. - kDipoleNDX * (dR / kDipoleFieldRadius) + kDipoleBET1 * std::pow(dR / kDipoleFieldRadius, 2.) + kDipoleGAMA * std::pow(dR / kDipoleFieldRadius, 3.) + kDipoleDELT * std::pow(dR / kDipoleFieldRadius, 4.));
+                }
+                else // exit fringe region
+                {
+                    dR = (zz < 0) ? (deltaRInC.mag() - kDipoleFieldRadius) : xx;
+                    G4double deltaZ = 0.;
+                    for (int k = 0; k < 7; k++)
+                    {
+                        deltaZ += kDipoleDrawingExit[k] * std::pow(xx / kDipoleFieldRadius, (double)(k + 2));
+                    }
+                    deltaZ = -kDipoleFieldRadius * deltaZ;
+                    G4double S = (zz + deltaZ) / kDipoleFieldHeight;
+                    B[i][j] = fEngeFunc->Eval(S) * fBy0 * gauss * (1. - kDipoleNDX * (dR / kDipoleFieldRadius) + kDipoleBET1 * std::pow(dR / kDipoleFieldRadius, 2.) + kDipoleGAMA * std::pow(dR / kDipoleFieldRadius, 3.) + kDipoleDELT * std::pow(dR / kDipoleFieldRadius, 4.));
+                }
             }
         }
 
@@ -132,9 +147,23 @@ namespace TexPPACSim
                 zz = particlePosInB.z() + (G4double)(i - 2) * kDipoleDG;
                 G4ThreeVector posInB(xx, 0., zz);
                 deltaRInB = posInB - fDipolePosInB;
-                dR = (zz < 0) ? xx : (deltaRInB.mag() - kDipoleFieldRadius);
-                // printf("zz=%.4f, xx=%.4f, dR=%.4f\n", zz, xx, deltaRInB.mag() - kDipoleFieldRadius);
-                B[i][j] = fEngeFunc->Eval(-zz / kDipoleFieldHeight) * fBy0 * gauss * (1. - kDipoleNDX * (dR / kDipoleFieldRadius) + kDipoleBET1 * std::pow(dR / kDipoleFieldRadius, 2.) + kDipoleGAMA * std::pow(dR / kDipoleFieldRadius, 3.) + kDipoleDELT * std::pow(dR / kDipoleFieldRadius, 4.));
+                if (zz > -kDipoleZ12) // uniform region
+                {
+                    dR = deltaRInB.mag() - kDipoleFieldRadius;
+                    B[i][j] = fBy0 * gauss * (1. - kDipoleNDX * (dR / kDipoleFieldRadius) + kDipoleBET1 * std::pow(dR / kDipoleFieldRadius, 2.) + kDipoleGAMA * std::pow(dR / kDipoleFieldRadius, 3.) + kDipoleDELT * std::pow(dR / kDipoleFieldRadius, 4.));
+                }
+                else // entrance fringe region
+                {
+                    dR = (zz < 0) ? xx : (deltaRInB.mag() - kDipoleFieldRadius);
+                    G4double deltaZ = 0.;
+                    for (int k = 0; k < 7; k++)
+                    {
+                        deltaZ += kDipoleDrawingEntrance[k] * std::pow(xx / kDipoleFieldRadius, (double)(k + 2));
+                    }
+                    deltaZ = -kDipoleFieldRadius * deltaZ;
+                    G4double S = (zz + deltaZ) / kDipoleFieldHeight;
+                    B[i][j] = fEngeFunc->Eval(-S) * fBy0 * gauss * (1. - kDipoleNDX * (dR / kDipoleFieldRadius) + kDipoleBET1 * std::pow(dR / kDipoleFieldRadius, 2.) + kDipoleGAMA * std::pow(dR / kDipoleFieldRadius, 3.) + kDipoleDELT * std::pow(dR / kDipoleFieldRadius, 4.));
+                }
             }
         }
 

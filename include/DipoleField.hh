@@ -40,7 +40,6 @@ namespace TexPPACSim
         std::unique_ptr<G4RotationMatrix> fCoordinateBRot;
         std::unique_ptr<G4RotationMatrix> fCoordinateCRot;
         std::unique_ptr<TF1> fEngeFunc;
-
     };
 
 }
