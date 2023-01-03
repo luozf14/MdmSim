@@ -14,7 +14,7 @@ class G4Box;
 /// The default kinematic is a 6 MeV gamma, randomly distribued
 /// in front of the phantom across 80% of the (X,Y) phantom size.
 
-namespace TexPPACSim
+namespace MdmSim
 {
 
 class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction

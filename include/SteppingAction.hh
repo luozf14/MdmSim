@@ -1,5 +1,5 @@
-#ifndef TexPPACSimSteppingAction_h
-#define TexPPACSimSteppingAction_h 1
+#ifndef MdmSimSteppingAction_h
+#define MdmSimSteppingAction_h 1
 
 #include "G4UserSteppingAction.hh"
 #include "globals.hh"
@@ -9,7 +9,7 @@ class G4LogicalVolume;
 /// Stepping action class
 ///
 
-namespace TexPPACSim
+namespace MdmSim
 {
 
     class EventAction;

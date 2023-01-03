@@ -5,7 +5,7 @@
 #include "G4SDManager.hh"
 #include "G4ios.hh"
 
-namespace TexPPACSim
+namespace MdmSim
 {
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

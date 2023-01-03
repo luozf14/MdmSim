@@ -4,7 +4,7 @@
 #include "EventAction.hh"
 #include "SteppingAction.hh"
 
-namespace TexPPACSim
+namespace MdmSim
 {
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------
 # Setup the project
 cmake_minimum_required(VERSION 3.16...3.21)
-project(TexPPACSim)
+project(MdmSim)
 
 # ----------------------------------------------------------------------------
 # Setup the compiler
@@ -49,8 +49,8 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 # ----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
-add_executable(TexPPACSim TexPPACSim.cc ${sources} ${headers})
-target_link_libraries(TexPPACSim ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
+add_executable(MdmSim MdmSim.cc ${sources} ${headers})
+target_link_libraries(MdmSim ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
 
 add_executable(plotFirstMultipoleField PlotFirstMultipoleField.cc ${sources} ${headers})
 target_link_libraries(plotFirstMultipoleField ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
@@ -60,15 +60,13 @@ target_link_libraries(plotFirstMultipoleField ${Geant4_LIBRARIES} ${ROOT_LIBRARI
 # build B1. This is so that we can run the executable directly because it
 # relies on these scripts being in the current working directory.
 #
-set(TexPPACSim_SCRIPTS
-    TexPPACSim.in
-    TexPPACSim.out
+set(MdmSim_SCRIPTS
     init_vis.mac
     run.mac
     vis.mac
 )
 
-foreach(_script ${TexPPACSim_SCRIPTS})
+foreach(_script ${MdmSim_SCRIPTS})
     configure_file(
         ${PROJECT_SOURCE_DIR}/${_script}
         ${PROJECT_BINARY_DIR}/${_script}

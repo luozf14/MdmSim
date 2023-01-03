@@ -1,5 +1,5 @@
-#ifndef TexPPACSimSiDetectorSD_h
-#define TexPPACSimSiDetectorSD_h 1
+#ifndef MdmSimSiDetectorSD_h
+#define MdmSimSiDetectorSD_h 1
 
 #include "G4VSensitiveDetector.hh"
 
@@ -10,7 +10,7 @@
 class G4Step;
 class G4HCofThisEvent;
 
-namespace TexPPACSim
+namespace MdmSim
 {
 
     /// SiDetector sensitive detector class

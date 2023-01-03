@@ -8,7 +8,7 @@
 
 #include "TF1.h"
 
-namespace TexPPACSim
+namespace MdmSim
 {
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

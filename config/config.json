@@ -8,7 +8,7 @@
     "UseDeltaE": false,
     "SiDetectorAngleInDeg": 90.0,
     "SiDetectorEnergyResolution": 0.1,
-    "MdmAngleInDeg": 60.0,
+    "MdmAngleInDeg": 0.0,
     "FirstMultipoleProbe": 2780.84,
     "DipoleProbe": 3916.68
 }

@@ -11,7 +11,7 @@
 #include "G4SystemOfUnits.hh"
 #include "G4UnitsTable.hh"
 
-namespace TexPPACSim
+namespace MdmSim
 {
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -48,7 +48,7 @@ namespace TexPPACSim
             G4ExceptionDescription msg;
             msg << "No hits collection of this event found.\n";
             // G4Exception("\n---> EventAction::EndOfEventAction()",
-            //             "TexPPACSimCode01", JustWarning, msg);
+            //             "MdmSimCode01", JustWarning, msg);
             return;
         }
 
@@ -61,7 +61,7 @@ namespace TexPPACSim
             G4ExceptionDescription msg;
             msg << "No hits in Si detector Delta-E of this event found.\n";
             // G4Exception("\n---> EventAction::EndOfEventAction()",
-            //             "TexPPACSimCode01", JustWarning, msg);
+            //             "MdmSimCode01", JustWarning, msg);
             return;
         }
         std::vector<G4int> siDeltaEHitTrackId;
@@ -114,7 +114,7 @@ namespace TexPPACSim
             G4ExceptionDescription msg;
             msg << "No hits in Si detector E of this event found.\n";
             // G4Exception("\n---> EventAction::EndOfEventAction()",
-            //             "TexPPACSimCode01", JustWarning, msg);
+            //             "MdmSimCode01", JustWarning, msg);
             return;
         }
         std::vector<G4int> siEHitTrackId;

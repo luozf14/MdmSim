@@ -1,5 +1,5 @@
-#ifndef TexPPACSimDipoleField_H
-#define TexPPACSimDipoleField_H 1
+#ifndef MdmSimDipoleField_H
+#define MdmSimDipoleField_H 1
 
 #include "globals.hh"
 #include "G4MagneticField.hh"
@@ -11,7 +11,7 @@
 class G4GenericMessenger;
 class TF1;
 
-namespace TexPPACSim
+namespace MdmSim
 {
     /// Dipole field
 

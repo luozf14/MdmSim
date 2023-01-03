@@ -1,5 +1,5 @@
-#ifndef TexPPACSimRunAction_h
-#define TexPPACSimRunAction_h 1
+#ifndef MdmSimRunAction_h
+#define MdmSimRunAction_h 1
 
 #include "G4UserRunAction.hh"
 #include "G4Accumulable.hh"
@@ -13,7 +13,7 @@ class G4Run;
 /// from the energy deposit accumulated via stepping and event actions.
 /// The computed dose is then printed on the screen.
 
-namespace TexPPACSim
+namespace MdmSim
 {
 
     class RunAction : public G4UserRunAction

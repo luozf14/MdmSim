@@ -1,5 +1,5 @@
-#ifndef TexPPACSimAnalysis_h
-#define TexPPACSimAnalysis_h 1
+#ifndef MdmSimAnalysis_h
+#define MdmSimAnalysis_h 1
 
 #include "globals.hh"
 
@@ -7,7 +7,7 @@ class TFile;
 class TTree;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-namespace TexPPACSim
+namespace MdmSim
 {
 
     class Analysis

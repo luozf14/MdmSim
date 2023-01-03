@@ -1,5 +1,5 @@
-#ifndef TexPPACSimEventAction_h
-#define TexPPACSimEventAction_h 1
+#ifndef MdmSimEventAction_h
+#define MdmSimEventAction_h 1
 
 #include "G4UserEventAction.hh"
 #include "globals.hh"
@@ -7,7 +7,7 @@
 /// Event action class
 ///
 
-namespace TexPPACSim
+namespace MdmSim
 {
 
     class RunAction;

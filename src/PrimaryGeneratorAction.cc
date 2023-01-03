@@ -10,7 +10,7 @@
 #include "G4SystemOfUnits.hh"
 #include "Randomize.hh"
 
-namespace TexPPACSim
+namespace MdmSim
 {
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

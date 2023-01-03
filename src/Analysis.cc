@@ -6,7 +6,7 @@
 #include <TTree.h>
 #include <TVector3.h>
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-namespace TexPPACSim
+namespace MdmSim
 {
 
     Analysis *Analysis::fInstance = nullptr;

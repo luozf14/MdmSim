@@ -33,7 +33,7 @@
 #include "G4UserLimits.hh"
 #include "G4SDManager.hh"
 
-namespace TexPPACSim
+namespace MdmSim
 {
     G4ThreadLocal DipoleField *DetectorConstruction::fDipoleField = nullptr;
     G4ThreadLocal G4FieldManager *DetectorConstruction::fDipoleFieldMgr = nullptr;
@@ -288,11 +288,11 @@ namespace TexPPACSim
     void DetectorConstruction::ConstructSDandField()
     {
         // Sensitive detector
-        SiDetectorSD *aSiDetectorESD = new SiDetectorSD("TexPPACSim/SiDetectorESD", "SiDetectorEHitsCollection");
+        SiDetectorSD *aSiDetectorESD = new SiDetectorSD("MdmSim/SiDetectorESD", "SiDetectorEHitsCollection");
         G4SDManager::GetSDMpointer()->AddNewDetector(aSiDetectorESD);
         SetSensitiveDetector("SiDetectorE", aSiDetectorESD, true);
 
-        SiDetectorSD *aSiDetectorDeltaESD = new SiDetectorSD("TexPPACSim/SiDetectorDeltaESD", "SiDetectorDeltaEHitsCollection");
+        SiDetectorSD *aSiDetectorDeltaESD = new SiDetectorSD("MdmSim/SiDetectorDeltaESD", "SiDetectorDeltaEHitsCollection");
         G4SDManager::GetSDMpointer()->AddNewDetector(aSiDetectorDeltaESD);
         SetSensitiveDetector("SiDetectorDeltaE", aSiDetectorDeltaESD, true);
 
@@ -365,9 +365,9 @@ namespace TexPPACSim
     /*
         void DetectorConstruction::DefineCommands()
         {
-            // Define /TexPPACSim/detector command directory using generic messenger class
+            // Define /MdmSim/detector command directory using generic messenger class
             fMessenger = new G4GenericMessenger(this,
-                                                "/TexPPACSim/detector/",
+                                                "/MdmSim/detector/",
                                                 "Detector control");
 
             // MdmAngle command

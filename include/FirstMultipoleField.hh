@@ -1,5 +1,5 @@
-#ifndef TexPPACSimFirstMultipoleField_H
-#define TexPPACSimFirstMultipoleField_H 1
+#ifndef MdmSimFirstMultipoleField_H
+#define MdmSimFirstMultipoleField_H 1
 
 #include "globals.hh"
 #include "G4MagneticField.hh"
@@ -11,7 +11,7 @@
 class G4GenericMessenger;
 class TF1;
 
-namespace TexPPACSim
+namespace MdmSim
 {
 
     /// FirstMultipole field

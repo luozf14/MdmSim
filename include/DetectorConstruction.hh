@@ -1,5 +1,5 @@
-#ifndef TexPPACSimDetectorConstruction_h
-#define TexPPACSimDetectorConstruction_h 1
+#ifndef MdmSimDetectorConstruction_h
+#define MdmSimDetectorConstruction_h 1
 
 #include "G4FieldManager.hh"
 #include "G4VUserDetectorConstruction.hh"
@@ -14,7 +14,7 @@ class G4VisAttributes;
 class G4GenericMessenger;
 /// Detector construction class to define materials and geometry.
 
-namespace TexPPACSim
+namespace MdmSim
 {
     class DipoleField;
     class FirstMultipoleField;

@@ -13,13 +13,13 @@
 #include "TStyle.h"
 #include "TApplication.h"
 
-using namespace TexPPACSim;
+using namespace MdmSim;
 int main(int argc, char **argv)
 {
     // TApplication app("app", &argc, argv);
     double multipoleProbe = 2780.84;
-    G4RotationMatrix *rot = new G4RotationMatrix();
-    auto *firstMultipoleField = new FirstMultipoleField(multipoleProbe, G4ThreeVector(), rot);
+    G4double mdmAngle = 0.;
+    auto *firstMultipoleField = new FirstMultipoleField(multipoleProbe, mdmAngle, G4ThreeVector());
 
     TGraph *gr1 = new TGraph(1000);
     gr1->SetName("gr1");
@@ -41,7 +41,7 @@ int main(int argc, char **argv)
         const G4double point[4] = {x, y, z, 4};
         double bField[3];
         firstMultipoleField->GetFieldValue(point, bField);
-        printf("%.4e\n",bField[0] * 1e7 / (multipoleProbe * kJeffParameters[5]));
+        printf("%.4e\n", bField[0] * 1e7 / (multipoleProbe * kJeffParameters[5]));
         gr1->SetPoint(i, z, bField[0] * 1e7 / (multipoleProbe * kJeffParameters[5]));
         gr2->SetPoint(i, z, bField[1] * 1e7 / (multipoleProbe * kJeffParameters[5]));
         gr3->SetPoint(i, z, bField[2] * 1e7 / (multipoleProbe * kJeffParameters[5]));
@@ -91,7 +91,6 @@ int main(int argc, char **argv)
     // app.Run();
 
     delete firstMultipoleField;
-    delete rot;
     delete gr1;
     delete gr2;
     delete gr3;

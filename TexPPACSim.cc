@@ -15,7 +15,7 @@
 #include <map>
 #include <variant>
 
-using namespace TexPPACSim;
+using namespace MdmSim;
 using json = nlohmann::json;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -27,7 +27,7 @@ int main(int argc, char **argv)
     if (argc != 2)
     {
         G4cerr << "--->Error: wrong input parameters!"
-               << "\n--->Usage: ./TexPPACSim <config.json>" << G4endl;
+               << "\n--->Usage: ./MdmSim <config.json>" << G4endl;
         return 0;
     }
 

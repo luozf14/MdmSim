@@ -1,5 +1,5 @@
-#ifndef TexPPACSimSiDetectorHit_h
-#define TexPPACSimSiDetectorHit_h 1
+#ifndef MdmSimSiDetectorHit_h
+#define MdmSimSiDetectorHit_h 1
 
 #include "G4VHit.hh"
 #include "G4THitsCollection.hh"
@@ -7,7 +7,7 @@
 #include "G4ThreeVector.hh"
 #include "tls.hh"
 
-namespace TexPPACSim
+namespace MdmSim
 {
 
     /// SiDetector hit class

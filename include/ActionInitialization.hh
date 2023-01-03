@@ -1,5 +1,5 @@
-#ifndef TexPPACSimActionInitialization_h
-#define TexPPACSimActionInitialization_h 1
+#ifndef MdmSimActionInitialization_h
+#define MdmSimActionInitialization_h 1
 
 #include "G4VUserActionInitialization.hh"
 #include "globals.hh"
@@ -8,7 +8,7 @@
 #include <variant>
 /// Action initialization class.
 
-namespace TexPPACSim
+namespace MdmSim
 {
 
     class ActionInitialization : public G4VUserActionInitialization

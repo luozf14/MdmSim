@@ -7,13 +7,13 @@
 // * conditions of the Geant4 Software License,  included in the file *
 // * LICENSE and available at  http://cern.ch/geant4/license .  These *
 // * include a list of copyright holders.                             *
-#ifndef TexPPACSimConstants_h
-#define TexPPACSimConstants_h 1
+#ifndef MdmSimConstants_h
+#define MdmSimConstants_h 1
 
 #include "globals.hh"
 #include "G4SystemOfUnits.hh"
 
-namespace TexPPACSim
+namespace MdmSim
 {
     constexpr G4double kJeffParameters[6] = {-0.51927, 0.038638, 0.028404, -0.022797, -0.019275, 0.755583};
 

@@ -7,7 +7,7 @@
 
 #include <iomanip>
 
-namespace TexPPACSim
+namespace MdmSim
 {
 
     G4ThreadLocal G4Allocator<SiDetectorHit> *SiDetectorHitAllocator = nullptr;
