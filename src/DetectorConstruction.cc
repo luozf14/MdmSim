@@ -298,7 +298,7 @@ namespace TexPPACSim
 
         // Magnetic field ----------------------------------------------------------
         // First multipole
-        fFirstMultipoleField = new FirstMultipoleField(fFirstMultipoleProbe, fMultipoleFieldPos, fPhysicFirstMultipoleField->GetObjectRotation());
+        fFirstMultipoleField = new FirstMultipoleField(fFirstMultipoleProbe, fMdmAngle, fMultipoleFieldPos);
         fFirstMultipoleFieldMgr = new G4FieldManager();
         fFirstMultipoleFieldMgr->SetDetectorField(fFirstMultipoleField);
         fFirstMultipoleFieldMgr->CreateChordFinder(fFirstMultipoleField);

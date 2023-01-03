@@ -13,8 +13,10 @@ namespace TexPPACSim
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-    FirstMultipoleField::FirstMultipoleField(G4double pole, G4ThreeVector pos, G4RotationMatrix *rot) : fMultipoleProbe(pole), fFirstMultipolePos(pos), fFirstMultipoleRot(rot)
+    FirstMultipoleField::FirstMultipoleField(G4double pole, G4double mdmAngle, G4ThreeVector pos) : fMultipoleProbe(pole), fMdmAngle(mdmAngle), fFirstMultipolePos(pos)
     {
+        fFirstMultipoleRot = std::make_unique<G4RotationMatrix>();
+        fFirstMultipoleRot->rotateY(fMdmAngle);
         fBQR = -1. * fMultipoleProbe * 1e-4 * kJeffParameters[5];
         fBHR = fBQR * kJeffParameters[1] / kJeffParameters[0];
         fBOR = fBQR * kJeffParameters[2] / kJeffParameters[0];
@@ -27,6 +29,7 @@ namespace TexPPACSim
         fG5 = fBDDR / std::pow(kFirstMultipoleAperture * 0.1, 5.);
         fEngeFunc = std::make_unique<TF1>("fEngeFunc", "1./(1.+std::exp([0]+[1]*x+[2]*x**2.+[3]*x**3.+[4]*x**4.+[5]*x**5.))", -kFirstMultipoleLength / kFirstMultipoleAperture, kFirstMultipoleLength / kFirstMultipoleAperture);
         fEngeFunc->SetParameters(kFirstMultipoleCoefficients);
+        G4cout << "\n---> FirstMultipoleField::FirstMultipoleField(): fFirstMultipolePos= " << G4BestUnit(fFirstMultipolePos, "Length") << G4endl;
     }
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -80,6 +83,7 @@ namespace TexPPACSim
         G4ThreeVector field = quadrupoleField + highOrderField;
         // G4ThreeVector field = highOrderField;
         // G4ThreeVector field = quadrupoleField;
+        field.rotateY(fMdmAngle);
         bField[0] = field.x();
         bField[1] = field.y();
         bField[2] = field.z();

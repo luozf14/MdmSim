@@ -19,12 +19,12 @@ namespace TexPPACSim
     class FirstMultipoleField : public G4MagneticField
     {
     public:
-        FirstMultipoleField(G4double, G4ThreeVector, G4RotationMatrix *);
+        FirstMultipoleField(G4double, G4double, G4ThreeVector);
         ~FirstMultipoleField() override;
 
         void GetFieldValue(const G4double point[4], double *bField) const override;
         // void SetField(G4double multipoleProbe);
-        
+
         // 0th to 6th order derivatives of f1S
         double S0(double *x, double *par) const;
         double S1(double *x, double *par) const;
@@ -43,18 +43,19 @@ namespace TexPPACSim
         G4ThreeVector GetHighOrderField(G4ThreeVector pos) const;
 
         G4double fMultipoleProbe;
+        G4double fMdmAngle;
         G4ThreeVector fFirstMultipolePos;
-        G4RotationMatrix *fFirstMultipoleRot;
-        G4double fBQR;      // quadrupole at r=R;
-        G4double fBHR;      // hexapole
-        G4double fBOR;      // qctapole
-        G4double fBDR;      // decapole
-        G4double fBDDR;     // dodecapole
-        G4double fG1;       // quadrupole at r=R;
-        G4double fG2;       // hexapole
-        G4double fG3;       // qctapole
-        G4double fG4;       // decapole
-        G4double fG5;       // dodecapole
+        std::unique_ptr<G4RotationMatrix> fFirstMultipoleRot;
+        G4double fBQR;  // quadrupole at r=R;
+        G4double fBHR;  // hexapole
+        G4double fBOR;  // qctapole
+        G4double fBDR;  // decapole
+        G4double fBDDR; // dodecapole
+        G4double fG1;   // quadrupole at r=R;
+        G4double fG2;   // hexapole
+        G4double fG3;   // qctapole
+        G4double fG4;   // decapole
+        G4double fG5;   // dodecapole
         std::unique_ptr<TF1> fEngeFunc;
     };
 
