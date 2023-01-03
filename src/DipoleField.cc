@@ -51,7 +51,7 @@ namespace TexPPACSim
 
         // G4cout << "fDipolePosInB= " << G4BestUnit(fDipolePosInB, "Length") << G4endl;
 
-        fEngeFunc = std::make_unique<TF1>("fEngeFunc", "1./(1.+std::exp([0]+[1]*x+[2]*x**2.+[3]*x**3.+[4]*x**4.+[5]*x**5.))", -60. * cm / kDipoleFieldHeight, 60. * cm / kFirstMultipoleAperture);
+        fEngeFunc = std::make_unique<TF1>("fEngeFunc", "1./(1.+std::exp([0]+[1]*x+[2]*x**2.+[3]*x**3.+[4]*x**4.+[5]*x**5.))", -100., 100.);
         fEngeFunc->SetParameters(kDipoleJeffsFrngs);
     }
 

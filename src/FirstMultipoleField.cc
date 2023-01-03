@@ -27,7 +27,7 @@ namespace TexPPACSim
         fG3 = fBOR / std::pow(kFirstMultipoleAperture * 0.1, 3.);
         fG4 = fBDR / std::pow(kFirstMultipoleAperture * 0.1, 4.);
         fG5 = fBDDR / std::pow(kFirstMultipoleAperture * 0.1, 5.);
-        fEngeFunc = std::make_unique<TF1>("fEngeFunc", "1./(1.+std::exp([0]+[1]*x+[2]*x**2.+[3]*x**3.+[4]*x**4.+[5]*x**5.))", -kFirstMultipoleLength / kFirstMultipoleAperture, kFirstMultipoleLength / kFirstMultipoleAperture);
+        fEngeFunc = std::make_unique<TF1>("fEngeFunc", "1./(1.+std::exp([0]+[1]*x+[2]*x**2.+[3]*x**3.+[4]*x**4.+[5]*x**5.))", -100., 100.);
         fEngeFunc->SetParameters(kFirstMultipoleCoefficients);
         G4cout << "\n---> FirstMultipoleField::FirstMultipoleField(): fFirstMultipolePos= " << G4BestUnit(fFirstMultipolePos, "Length") << G4endl;
     }
@@ -80,7 +80,7 @@ namespace TexPPACSim
 
         G4ThreeVector highOrderField = 0.5 * (highOrderFieldEntrance + highOrderFieldExit - highOrderFieldOffSet);
 
-        G4ThreeVector field = fFirstMultipoleRot->operator()( quadrupoleField + highOrderField);
+        G4ThreeVector field = fFirstMultipoleRot->operator()(quadrupoleField + highOrderField);
         // G4ThreeVector field = highOrderField;
         // G4ThreeVector field = quadrupoleField;
         bField[0] = field.x();
