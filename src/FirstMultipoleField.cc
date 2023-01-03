@@ -80,10 +80,9 @@ namespace TexPPACSim
 
         G4ThreeVector highOrderField = 0.5 * (highOrderFieldEntrance + highOrderFieldExit - highOrderFieldOffSet);
 
-        G4ThreeVector field = quadrupoleField + highOrderField;
+        G4ThreeVector field = fFirstMultipoleRot->operator()( quadrupoleField + highOrderField);
         // G4ThreeVector field = highOrderField;
         // G4ThreeVector field = quadrupoleField;
-        field.rotateY(fMdmAngle);
         bField[0] = field.x();
         bField[1] = field.y();
         bField[2] = field.z();
