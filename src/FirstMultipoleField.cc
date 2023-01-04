@@ -117,9 +117,19 @@ namespace MdmSim
         G4double G14 = fG1 * S4(ss, par);
         G4double G15 = fG1 * S5(ss, par);
         G4double G16 = fG1 * S6(ss, par);
-        G4double B1x = G10 * y - 1. / 12. * G12 * (3. * std::pow(x, 2.) * y + std::pow(y, 3.)) /*+ 1. / 384. * G14 * (5. * std::pow(x, 4.) * y + 6. * std::pow(x, 2.) * std::pow(y, 3.) + std::pow(y, 5.)) - 1. / 23040. * G16 * (7. * std::pow(x, 6.) * y + 15. * std::pow(x, 4.) * std::pow(y, 3.) + 9. * std::pow(x, 2.) * std::pow(y, 5.) + std::pow(y, 7.))*/;
-        G4double B1y = G10 * x - 1. / 12. * G12 * (3. * std::pow(y, 2.) * x + std::pow(x, 3.)) /*+ 1. / 384. * G14 * (5. * std::pow(y, 4.) * x + 6. * std::pow(y, 2.) * std::pow(x, 3.) + std::pow(x, 5.)) - 1. / 23040. * G16 * (7. * std::pow(y, 6.) * x + 15. * std::pow(y, 4.) * std::pow(x, 3.) + 9. * std::pow(y, 2.) * std::pow(x, 5.) + std::pow(x, 7.))*/;
-        G4double B1z = G11 * x * y - 1. / 12. * G13 * (std::pow(x, 3.) * y + x * std::pow(y, 3.)) + 1. / 384. * G15 * (std::pow(x, 5.) * y + 2. * std::pow(x, 3.) * std::pow(y, 3.) + x * std::pow(y, 5.));
+        G4double B1x, B1y, B1z;
+        if (z < -10.) // uniform zone
+        {
+            B1x = G10 * y;
+            B1y = G10 * x;
+            B1z = 0.;
+        }
+        else
+        {
+            B1x = G10 * y - 1. / 12. * G12 * (3. * std::pow(x, 2.) * y + std::pow(y, 3.)) /*+ 1. / 384. * G14 * (5. * std::pow(x, 4.) * y + 6. * std::pow(x, 2.) * std::pow(y, 3.) + std::pow(y, 5.)) - 1. / 23040. * G16 * (7. * std::pow(x, 6.) * y + 15. * std::pow(x, 4.) * std::pow(y, 3.) + 9. * std::pow(x, 2.) * std::pow(y, 5.) + std::pow(y, 7.))*/;
+            B1y = G10 * x - 1. / 12. * G12 * (3. * std::pow(y, 2.) * x + std::pow(x, 3.)) /*+ 1. / 384. * G14 * (5. * std::pow(y, 4.) * x + 6. * std::pow(y, 2.) * std::pow(x, 3.) + std::pow(x, 5.)) - 1. / 23040. * G16 * (7. * std::pow(y, 6.) * x + 15. * std::pow(y, 4.) * std::pow(x, 3.) + 9. * std::pow(y, 2.) * std::pow(x, 5.) + std::pow(x, 7.))*/;
+            B1z = G11 * x * y - 1. / 12. * G13 * (std::pow(x, 3.) * y + x * std::pow(y, 3.)) + 1. / 384. * G15 * (std::pow(x, 5.) * y + 2. * std::pow(x, 3.) * std::pow(y, 3.) + x * std::pow(y, 5.));
+        }
         // printf("\n---> FirstMultipoleField::GetEntranceFringingField(): G10=%.4e\n", G10);
         // printf("---> FirstMultipoleField::GetEntranceFringingField(): |B1x_B1y|=%.4e\n", std::sqrt(B1x*B1x+B1y*B1y));
         // printf("\n---> FirstMultipoleField::GetEntranceFringingField(): G12=%.4e\n", G12/fG1);
