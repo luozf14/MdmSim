@@ -201,7 +201,7 @@ namespace MdmSim
         slitBoxRot->rotateY(-1. * fMdmAngle);
 
         G4VSolid *solidSlitBoxVoid = new G4Box("SlitBoxVoid", 2.27965 * cm, 2.27965 * cm, 0.5 * kSlitBoxDz); // measured on 1/26/2022
-        G4VSolid *solidSlitBoxShape = new G4Box("SlitBoxShape", (2.27965 + 5.) * cm, (2.27965 + 5.) * cm, 0.5 * kSlitBoxDz);
+        G4VSolid *solidSlitBoxShape = new G4Box("SlitBoxShape", (2.27965 + 50.) * cm, (2.27965 + 10.) * cm, 0.5 * kSlitBoxDz);
         G4VSolid *solidSlitBox = new G4SubtractionSolid("SlitBox", solidSlitBoxShape, solidSlitBoxVoid);
         G4LogicalVolume *logicSlitBox = new G4LogicalVolume(solidSlitBox, nist->FindOrBuildMaterial("G4_Cu"), "SlitBox");
         new G4PVPlacement(slitBoxRot,     // rotation
