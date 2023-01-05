@@ -13,6 +13,7 @@
 #include "TRandom3.h"
 #include "TStyle.h"
 #include "TApplication.h"
+#include "TLegend.h"
 
 using namespace MdmSim;
 int main(int argc, char **argv)
@@ -26,11 +27,9 @@ int main(int argc, char **argv)
     auto h2Bx = std::make_unique<TH2D>("h2Bx", "", 80, -600., 2500., 80, -600., 2500.);
     auto h2By = std::make_unique<TH2D>("h2By", "", 80, -600., 2500., 80, -600., 2500.);
     auto h2Bz = std::make_unique<TH2D>("h2Bz", "", 80, -600., 2500., 80, -600., 2500.);
-    auto gr1 = std::make_unique<TGraph>();
     h2Bx->SetTitle("B_{x} [#times B_{0}]; -x [mm]; z [mm]");
     h2By->SetTitle("B_{y} [#times B_{0}]; -x [mm]; z [mm]");
     h2Bz->SetTitle("B_{z} [#times B_{0}]; -x [mm]; z [mm]");
-    gr1->SetTitle("B_{z} vs s; s [mm]; B_{z} [#times B_{0}]");
     auto ran = std::make_unique<TRandom3>();
     // y = 0.3 * kDipoleFieldHeight;
     y = 0;
@@ -76,63 +75,126 @@ int main(int argc, char **argv)
     }
 
     // Bz vs s
+    auto gr1 = std::make_unique<TGraph>();
+    gr1->SetName("gr1");
+    gr1->SetTitle("B_{y} vs s; s [mm]; B_{y} [#times B_{0}]");
+    auto gr2 = std::make_unique<TGraph>();
+    gr2->SetName("gr2");
+    auto gr3 = std::make_unique<TGraph>();
+    gr3->SetName("gr3");
+
     G4double s = 0.;
     // G4double dx = 0.;
-    G4double dx = 0.3 * kDipoleFieldWidth;
     for (int i = 0; i < 100; i++)
     {
-        x = dx;
         z = -kDipoleZ11 + (double)i * kDipoleZ11 / 100.;
-        const G4double point[4] = {x, y, z, 0};
         double bField[3];
-        dipoleField->GetFieldValue(point, bField);
+        //
+        const G4double point1[4] = {0.1 * kDipoleFieldRadius, 0., z, 0};
+        dipoleField->GetFieldValue(point1, bField);
         gr1->AddPoint(s, bField[1] * 1e7 / (dipoleProbe * 1.034));
+        //
+        const G4double point2[4] = {0., 0., z, 0};
+        dipoleField->GetFieldValue(point2, bField);
+        gr2->AddPoint(s, bField[1] * 1e7 / (dipoleProbe * 1.034));
+        //
+        const G4double point3[4] = {-0.1 * kDipoleFieldRadius, 0., z, 0};
+        dipoleField->GetFieldValue(point3, bField);
+        gr3->AddPoint(s, bField[1] * 1e7 / (dipoleProbe * 1.034));
         s += (kDipoleZ11 / 100.);
     }
+
     for (int i = 0; i < 1000; i++)
     {
+        double bField[3];
         double theta = kDipoleDeflectionAngle / 1000. * (double)i;
-        double radii = kDipoleFieldRadius + dx;
+        //
+        double radii = 1.1 * kDipoleFieldRadius;
         x = radii * std::cos(theta) - kDipoleFieldRadius;
         z = radii * std::sin(theta);
-        const G4double point[4] = {x, y, z, 0};
-        double bField[3];
-        dipoleField->GetFieldValue(point, bField);
+        const G4double point1[4] = {x, 0., z, 0};
+        dipoleField->GetFieldValue(point1, bField);
         gr1->AddPoint(s, bField[1] * 1e7 / (dipoleProbe * 1.034));
+        //
+        radii = 1.0 * kDipoleFieldRadius;
+        x = radii * std::cos(theta) - kDipoleFieldRadius;
+        z = radii * std::sin(theta);
+        const G4double point2[4] = {x, 0., z, 0};
+        dipoleField->GetFieldValue(point2, bField);
+        gr2->AddPoint(s, bField[1] * 1e7 / (dipoleProbe * 1.034));
+        //
+        radii = 0.9 * kDipoleFieldRadius;
+        x = radii * std::cos(theta) - kDipoleFieldRadius;
+        z = radii * std::sin(theta);
+        const G4double point3[4] = {x, 0., z, 0};
+        dipoleField->GetFieldValue(point3, bField);
+        gr3->AddPoint(s, bField[1] * 1e7 / (dipoleProbe * 1.034));
         s += (kDipoleFieldRadius * kDipoleDeflectionAngle / 1000.);
     }
+
+    G4ThreeVector solidDipoleFieldExitTrans1(-kDipoleFieldRadius - kDipoleFieldRadius * std::cos(M_PI - kDipoleDeflectionAngle), 0., kDipoleFieldRadius * std::sin(M_PI - kDipoleDeflectionAngle));
+    G4ThreeVector solidDipoleFieldExitTrans2(-0.5 * kDipoleZ22 * std::cos(kDipoleDeflectionAngle - M_PI / 2.), 0., -0.5 * kDipoleZ22 * std::sin(kDipoleDeflectionAngle - M_PI / 2.));
+    G4ThreeVector solidDipoleFieldExitTrans = solidDipoleFieldExitTrans1 + solidDipoleFieldExitTrans2;
     for (int i = 0; i < 100; i++)
     {
-        x = dx;
         z = -0.5 * kDipoleZ22 + (double)i * kDipoleZ22 / 100.;
-        G4ThreeVector pos(x, y, z);
-        pos.rotateY(-kDipoleDeflectionAngle);
-        G4ThreeVector solidDipoleFieldExitTrans1(-kDipoleFieldRadius - kDipoleFieldRadius * std::cos(M_PI - kDipoleDeflectionAngle), 0., kDipoleFieldRadius * std::sin(M_PI - kDipoleDeflectionAngle));
-        G4ThreeVector solidDipoleFieldExitTrans2(-0.5 * kDipoleZ22 * std::cos(kDipoleDeflectionAngle - M_PI / 2.), 0., -0.5 * kDipoleZ22 * std::sin(kDipoleDeflectionAngle - M_PI / 2.));
-        G4ThreeVector solidDipoleFieldExitTrans = solidDipoleFieldExitTrans1 + solidDipoleFieldExitTrans2;
-        pos += solidDipoleFieldExitTrans;
-        const G4double point[4] = {pos[0], pos[1], pos[2], 0};
         double bField[3];
-        dipoleField->GetFieldValue(point, bField);
+        //
+        G4ThreeVector pos1(0.1 * kDipoleFieldRadius, 0., z);
+        pos1.rotateY(-kDipoleDeflectionAngle);
+        pos1 += solidDipoleFieldExitTrans;
+        const G4double point1[4] = {pos1[0], pos1[1], pos1[2], 0};
+        dipoleField->GetFieldValue(point1, bField);
         gr1->AddPoint(s, bField[1] * 1e7 / (dipoleProbe * 1.034));
+        //
+        G4ThreeVector pos2(0., 0., z);
+        pos2.rotateY(-kDipoleDeflectionAngle);
+        pos2 += solidDipoleFieldExitTrans;
+        const G4double point2[4] = {pos2[0], pos2[1], pos2[2], 0};
+        dipoleField->GetFieldValue(point2, bField);
+        gr2->AddPoint(s, bField[1] * 1e7 / (dipoleProbe * 1.034));
+        //
+        G4ThreeVector pos3(-0.1 * kDipoleFieldRadius, 0., z);
+        pos3.rotateY(-kDipoleDeflectionAngle);
+        pos3 += solidDipoleFieldExitTrans;
+        const G4double point3[4] = {pos3[0], pos3[1], pos3[2], 0};
+        dipoleField->GetFieldValue(point3, bField);
+        gr3->AddPoint(s, bField[1] * 1e7 / (dipoleProbe * 1.034));
         s += (kDipoleZ22 / 100.);
     }
+
     gStyle->SetPalette(1);
+    gStyle->SetNumberContours(40);
 
     auto c1 = std::make_unique<TCanvas>("c1", "", 2048, 768);
     c1->Divide(3, 1);
     c1->cd(1);
     h2Bx->Draw("surf1");
     c1->cd(2);
-    h2By->Draw("surf1");
+    h2By->Draw("cont1");
     c1->cd(3);
     h2Bz->Draw("surf1");
     c1->SaveAs("DipoleField.png");
 
-    auto c2 = std::make_unique<TCanvas>("c2", "", 768, 768);
+    auto c2 = std::make_unique<TCanvas>("c2", "", 1024, 768);
     c2->cd();
-    gr1->Draw("alp");
-
+    gr1->SetLineColor(kRed);
+    gr1->SetLineWidth(2);
+    gr1->GetXaxis()->SetRangeUser(0., 3800.);
+    gr1->GetYaxis()->SetRangeUser(0., 1.25);
+    gr1->Draw("al");
+    gr2->SetLineColor(kBlue);
+    gr2->SetLineWidth(2);
+    gr2->Draw("same");
+    gr3->SetLineColor(8);
+    gr3->SetLineWidth(2);
+    gr3->Draw("same");
+    auto legend = std::make_unique<TLegend>(0.75,0.75, 0.9,0.9);
+    legend->AddEntry("gr1","r = 1.1 R_{0}","l");
+    legend->AddEntry("gr2","r = 1.0 R_{0}","l");
+    legend->AddEntry("gr3","r = 0.9 R_{0}","l");
+    legend->Draw("same");
+    c2->SaveAs("ByvsS.png");
     app.Run();
 
     return 0;
