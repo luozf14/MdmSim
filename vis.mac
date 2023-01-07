@@ -27,7 +27,7 @@
 # Add axes, trajectories and hits
 #
 /vis/scene/add/trajectories smooth # smooth, rich
-/vis/scene/add/axes 0 0 0 400 cm # axes [x0] [y0] [z0] [length] [unit]
+/vis/scene/add/axes 0 0 0 100 cm # axes [x0] [y0] [z0] [length] [unit]
 /vis/scene/add/hits
 
 #
@@ -97,9 +97,18 @@
 #
 /vis/geometry/set/visibility World 0 false # Make "World" invisible
 /vis/geometry/set/colour Target 0 1 1 0 1 # colour [logical-volume-name] [depth] [red] [green] [blue] [opacity]
-/vis/geometry/set/colour SlitBox 0 0 0 1 1 # colour [logical-volume-name] [depth] [red] [green] [blue] [opacity]
+/vis/geometry/set/colour SlitBox 0 0.879 0.754 0.430 1 # colour [logical-volume-name] [depth] [red] [green] [blue] [opacity]
+/vis/geometry/set/visibility FirstMultipoleFieldLogical 0 false # Make "FirstMultipoleFieldLogical" invisible
+/vis/geometry/set/colour FirstMultipoleMagnetLogical 0 0.531 0.543 0.551 0.5 # colour [logical-volume-name] [depth] [red] [green] [blue] [opacity]
 /vis/geometry/set/colour SiDetectorDeltaE 0 0 1 0 1 # colour [logical-volume-name] [depth] [red] [green] [blue] [opacity]
 /vis/geometry/set/colour SiDetectorE 0 0 1 0 1 # colour [logical-volume-name] [depth] [red] [green] [blue] [opacity]
+/vis/geometry/set/visibility DipoleFieldLogical 0 false # Make "DipoleFieldLogical" invisible
+/vis/geometry/set/colour DipoleMagnetLogical 0 1 0 0 0.5 # colour [logical-volume-name] [depth] [red] [green] [blue] [opacity]
+/vis/geometry/set/colour PpacChamberLogical 0 0.531 0.543 0.551 0.1 # colour [logical-volume-name] [depth] [red] [green] [blue] [opacity]
+/vis/geometry/set/colour EntranceWindowLogical 0 1 1 1 0.5 # colour [logical-volume-name] [depth] [red] [green] [blue] [opacity]
+/vis/geometry/set/colour CathodeMylarLogical 0 0 1 0 1 # colour [logical-volume-name] [depth] [red] [green] [blue] [opacity]
+/vis/geometry/set/visibility CathodeAlLogical 0 false # Make "CathodeAlLogical" invisible
+
 
 
 /vis/viewer/set/autoRefresh true
