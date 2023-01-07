@@ -45,7 +45,16 @@ namespace MdmSim
     constexpr G4double kDipoleMagnetRadius = 1600. * 9.2 / 5.5 * mm;
     constexpr G4double kDipoleDeflectionAngle = 100. * deg;
 
-    constexpr G4double kSecondArmLength = 1295. * mm;
+    constexpr G4double kSecondArmLength = (32.55 + 0.2 + 35. + 1.5 + 96.13 - 1.5) * cm; // CD(dipole) + [A + L + B](MULT) + 96.13-B
+
+    constexpr G4double kPpacWidth = 40. * cm;
+    constexpr G4double kPpacHeight = 10. * cm;
+    constexpr G4double kPpacChamberLength = 100. * cm;
+    constexpr G4double kPpacSpacingWindowCathode = 1. * cm;
+    constexpr G4double kPpacEntranceWindowThickness = 2.5 * um;
+    constexpr G4double kPpacCathodeMylarThickness = 220. * 1e-6 * g / cm2;
+    constexpr G4double kPpacCathodeAlThickness = 80. * 1e-6 * g / cm2;
+
 }
 
 #endif

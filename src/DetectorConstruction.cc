@@ -278,6 +278,67 @@ namespace MdmSim
                                                 false, 0, checkOverlaps);
 
         //
+        // PPAC
+        //
+        // PPAC chamber
+        G4Material *ppacChamberMaterial = new G4Material("Pentane", (0.00385 * fPpacVacuum / (133.32236842 * pascal) + 1.666e-5) * kg / m3, nist->FindOrBuildMaterial("G4_N-PENTANE"), kStateGas, 300. * kelvin, fPpacVacuum);
+        G4VSolid *solidPpacChamber = new G4Box("PpacChamberSolid", kPpacWidth / 2., kPpacHeight / 2., kPpacChamberLength / 2.);
+        G4LogicalVolume *logicPpacChamber = new G4LogicalVolume(solidPpacChamber, ppacChamberMaterial, "PpacChamberLogical");
+        G4ThreeVector solidPpacChamberTrans1(-kDipoleFieldRadius - kDipoleFieldRadius * std::cos(M_PI - kDipoleDeflectionAngle), 0., kDipoleFieldRadius * std::sin(M_PI - kDipoleDeflectionAngle));
+        solidPpacChamberTrans1 += G4ThreeVector(0., 0., kFirstArmLength);
+        G4ThreeVector solidPpacChamberTrans2(-(kSecondArmLength + 60. * cm) * std::cos(kDipoleDeflectionAngle - M_PI / 2.), 0., -(kSecondArmLength + 60. * cm) * std::sin(kDipoleDeflectionAngle - M_PI / 2.));
+        G4ThreeVector solidPpacChamberTrans = solidPpacChamberTrans1 + solidPpacChamberTrans2;
+        solidPpacChamberTrans.rotateY(fMdmAngle);
+        G4RotationMatrix *ppacChamberRot = new G4RotationMatrix;
+        ppacChamberRot->rotateY(-kDipoleDeflectionAngle + fMdmAngle);
+        new G4PVPlacement(G4Transform3D(*ppacChamberRot, solidPpacChamberTrans), logicPpacChamber,
+                          "PpacChamberPhysical", logicWorld,
+                          false, 0, checkOverlaps);
+
+        // PPAC entrance window
+        G4VSolid *solidEntranceWindow = new G4Box("EntranceWindowSolid", kPpacWidth / 2., kPpacHeight / 2., kPpacEntranceWindowThickness / 2.);
+        G4LogicalVolume *logicEntranceWindow = new G4LogicalVolume(solidEntranceWindow, nist->FindOrBuildMaterial("G4_MYLAR"), "EntranceWindowLogical");
+        G4PVPlacement *physicalEntranceWindow = new G4PVPlacement(nullptr, G4ThreeVector(0., 0., 0.5 * (-kPpacChamberLength + kPpacEntranceWindowThickness)), logicEntranceWindow,
+                                                                  "EntranceWindowPhysical", logicPpacChamber,
+                                                                  false, 0, checkOverlaps);
+        // G4cout << "physicalEntranceWindow->Pos(): " << G4BestUnit(physicalEntranceWindow->GetObjectTranslation(), "Length") << G4endl;
+
+        // PPAC cathode Al layer
+        G4Material *cathodeAlMaterial = new G4Material("Al", 2.70 * g / cm3, nist->FindOrBuildMaterial("G4_Al"));
+        G4double cathodeAlDz = kPpacCathodeAlThickness / (2.70 * g / cm3);
+        G4VSolid *solidCathodeAl = new G4Box("CathodeAlSolid", kPpacWidth / 2., kPpacHeight / 2., cathodeAlDz / 2. * cm);
+        G4LogicalVolume *logicCathodeAl = new G4LogicalVolume(solidCathodeAl, cathodeAlMaterial, "CathodeAlLogical");
+
+        // PPAC cathode mylar layer
+        G4Material *cathodeMylarMaterial = new G4Material("Mylar", 1.38 * g / cm3, nist->FindOrBuildMaterial("G4_MYLAR"));
+        G4double cathodeMylarDz = kPpacCathodeMylarThickness / (1.38 * g / cm3);
+        G4VSolid *solidCathodeMylar = new G4Box("CathodeMylarSolid", kPpacWidth / 2., kPpacHeight / 2., cathodeMylarDz / 2.);
+        G4LogicalVolume *logicCathodeMylar = new G4LogicalVolume(solidCathodeMylar, cathodeMylarMaterial, "CathodeMylarLogical");
+
+        // place PPAC cathode 1 (Al_0 + Mylar_0 + Al_1)
+        G4ThreeVector cathodeMylar0Pos(0., 0., physicalEntranceWindow->GetObjectTranslation().z() + kPpacSpacingWindowCathode);
+        new G4PVPlacement(nullptr, cathodeMylar0Pos, logicCathodeMylar,
+                          "CathodeMylarPhysical",
+                          logicPpacChamber, false, 0, checkOverlaps);
+        new G4PVPlacement(0, G4ThreeVector(0., 0., cathodeMylar0Pos.z() - 0.5 * (cathodeAlDz + cathodeMylarDz)), logicCathodeAl,
+                          "CathodeAlPhysical",
+                          logicPpacChamber, false, 0, checkOverlaps);
+        new G4PVPlacement(0, G4ThreeVector(0., 0., cathodeMylar0Pos.z() + 0.5 * (cathodeAlDz + cathodeMylarDz)), logicCathodeAl,
+                          "CathodeAlPhysical",
+                          logicPpacChamber, false, 1, checkOverlaps);
+
+        // place PPAC cathode 2 (Al_2 + Mylar_1 + Al_3)
+        G4ThreeVector cathodeMylar1Pos(0., 0., cathodeMylar0Pos.z() + fPpacLength);
+        new G4PVPlacement(nullptr, cathodeMylar1Pos, logicCathodeMylar,
+                          "CathodeMylarPhysical",
+                          logicPpacChamber, false, 1, checkOverlaps);
+        new G4PVPlacement(0, G4ThreeVector(0., 0., cathodeMylar1Pos.z() - 0.5 * (cathodeAlDz + cathodeMylarDz)), logicCathodeAl,
+                          "CathodeAlPhysical",
+                          logicPpacChamber, false, 2, checkOverlaps);
+        new G4PVPlacement(0, G4ThreeVector(0., 0., cathodeMylar1Pos.z() + 0.5 * (cathodeAlDz + cathodeMylarDz)), logicCathodeAl,
+                          "CathodeAlPhysical",
+                          logicPpacChamber, false, 3, checkOverlaps);
+        //
         // always return the physical World
         //
         return physWorld;
@@ -357,6 +418,16 @@ namespace MdmSim
             {
                 fDipoleProbe = it.second;
                 G4cout << "Set: Dipole probe = " << fDipoleProbe << " Gauss" << G4endl;
+            }
+            else if (it.first == "PpacVacuumInTorr")
+            {
+                fPpacVacuum = it.second * 133.32236842 * pascal;
+                G4cout << "Set: PPAC vacuum = " << G4BestUnit(fPpacVacuum, "Pressure") << G4endl;
+            }
+            else if (it.first == "PpacLengthInCm")
+            {
+                fPpacLength = it.second * cm;
+                G4cout << "Set: PPAC length = " << G4BestUnit(fPpacLength, "Length") << G4endl;
             }
         }
     }

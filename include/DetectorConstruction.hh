@@ -58,6 +58,9 @@ namespace MdmSim
 
         G4LogicalVolume *fLogicDipoleMagnet = nullptr;
         G4VPhysicalVolume *fPhysicDipoleMagnet = nullptr;
+
+        G4double fPpacVacuum;
+        G4double fPpacLength;
     };
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
