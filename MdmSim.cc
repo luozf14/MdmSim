@@ -49,6 +49,8 @@ int main(int argc, char **argv)
     detectorParameters["MdmAngleInDeg"] = config["MdmAngleInDeg"].get<G4double>();
     detectorParameters["FirstMultipoleProbe"] = config["FirstMultipoleProbe"].get<G4double>();
     detectorParameters["DipoleProbe"] = config["DipoleProbe"].get<G4double>();
+    detectorParameters["PpacVacuumInTorr"] = config["PpacVacuumInTorr"].get<G4double>();
+    detectorParameters["PpacLengthInCm"] = config["PpacLengthInCm"].get<G4double>();
 
 
     std::map<std::string, G4double> eventParameters; // parameters for EventAction
