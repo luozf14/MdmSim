@@ -52,8 +52,11 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 add_executable(MdmSim MdmSim.cc ${sources} ${headers})
 target_link_libraries(MdmSim ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
 
-add_executable(plotFirstMultipoleField PlotFirstMultipoleField.cc ${sources} ${headers})
+add_executable(plotFirstMultipoleField PlotFirstMultipoleField.cc ${PROJECT_SOURCE_DIR}/include/FirstMultipoleField.hh ${PROJECT_SOURCE_DIR}/src/FirstMultipoleField.cc)
 target_link_libraries(plotFirstMultipoleField ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
+
+add_executable(plotDipoleField PlotDipoleField.cc ${PROJECT_SOURCE_DIR}/include/DipoleField.hh ${PROJECT_SOURCE_DIR}/src/DipoleField.cc)
+target_link_libraries(plotDipoleField ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
 
 # ----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we

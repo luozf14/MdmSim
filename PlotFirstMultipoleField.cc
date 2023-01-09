@@ -23,25 +23,24 @@ int main(int argc, char **argv)
 
     TGraph *gr1 = new TGraph(1000);
     gr1->SetName("gr1");
-    gr1->SetTitle("B_{x} [B_{0}] vs z [mm]");
+    gr1->SetTitle("B_{x} [#times B_{R}] vs z [mm]");
     TGraph *gr2 = new TGraph(1000);
     gr2->SetName("gr2");
-    gr2->SetTitle("B_{y} [B_{0}] vs z [mm]");
+    gr2->SetTitle("B_{y} [#times B_{R}] vs z [mm]");
     TGraph *gr3 = new TGraph(1000);
     gr3->SetName("gr3");
-    gr3->SetTitle("B_{z} [B_{0}] vs z [mm]");
+    gr3->SetTitle("B_{z} [#times B_{R}] vs z [mm]");
     TGraph *gr4 = new TGraph(1000);
     gr4->SetName("gr4");
-    gr4->SetTitle("B_{trans} [B_{0}] vs z [mm]");
+    gr4->SetTitle("B_{trans} [#times B_{R}] vs z [mm]");
     for (int i = 0; i < 1000; i++)
     {
-        double x = 64. * std::sin(30. / 180. * 3.1415926);
-        double y = 64. * std::cos(30. / 180. * 3.1415926);
+        double x = 0.3 * kFirstMultipoleAperture * std::sin(30. / 180. * 3.1415926);
+        double y = 0.3 * kFirstMultipoleAperture * std::cos(30. / 180. * 3.1415926);
         double z = -330. + 660. / 1000. * (double)i;
         const G4double point[4] = {x, y, z, 4};
         double bField[3];
         firstMultipoleField->GetFieldValue(point, bField);
-        printf("%.4e\n", bField[0] * 1e7 / (multipoleProbe * kJeffParameters[5]));
         gr1->SetPoint(i, z, bField[0] * 1e7 / (multipoleProbe * kJeffParameters[5]));
         gr2->SetPoint(i, z, bField[1] * 1e7 / (multipoleProbe * kJeffParameters[5]));
         gr3->SetPoint(i, z, bField[2] * 1e7 / (multipoleProbe * kJeffParameters[5]));
@@ -72,13 +71,13 @@ int main(int argc, char **argv)
     TCanvas *c1 = new TCanvas("c1", "", 2048, 768);
     c1->Divide(2, 2);
     c1->cd(1);
-    gr1->Draw("alp");
+    gr1->Draw("al");
     c1->cd(2);
-    gr2->Draw("alp");
+    gr2->Draw("al");
     c1->cd(3);
-    gr3->Draw("alp");
+    gr3->Draw("al");
     c1->cd(4);
-    gr4->Draw("alp");
+    gr4->Draw("al");
     c1->SaveAs("c1.png");
     c1->Update();
     // TCanvas *c2 = new TCanvas("c2", "", 768, 768);
