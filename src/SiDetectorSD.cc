@@ -53,6 +53,21 @@ namespace MdmSim
         // Track ID
         newHit->SetTrackID(aStep->GetTrack()->GetTrackID());
 
+        // Energy deposition
+        newHit->SetEnergyDeposit(edep);
+
+        // Hit time
+        newHit->SetTime(aStep->GetTrack()->GetGlobalTime());
+
+        // Particle mass
+        newHit->SetMass(aStep->GetTrack()->GetParticleDefinition()->GetAtomicMass());
+
+        // Particle charge
+        newHit->SetCharge(aStep->GetTrack()->GetParticleDefinition()->GetAtomicNumber());
+
+        // Particle kinetic energy
+        newHit->SetKineticEnergy(aStep->GetTrack()->GetDynamicParticle()->GetKineticEnergy());
+
         // Hit position
         newHit->SetGlobalPosition(aStep->GetPreStepPoint()->GetPosition());
         G4ThreeVector translatedPosition = aStep->GetPreStepPoint()->GetPosition() - aStep->GetPreStepPoint()->GetPhysicalVolume()->GetObjectTranslation();
@@ -63,12 +78,6 @@ namespace MdmSim
         newHit->SetGlobalMomentum(aStep->GetTrack()->GetMomentum());
         G4ThreeVector rotatedMomentum = aStep->GetPreStepPoint()->GetPhysicalVolume()->GetObjectRotation()->inverse().operator()(aStep->GetTrack()->GetMomentum());
         newHit->SetLocalMomentum(rotatedMomentum);
-
-        // Energy deposition
-        newHit->SetEnergyDeposit(edep);
-
-        // Hit time
-        newHit->SetTime(aStep->GetTrack()->GetGlobalTime());
 
         fHitsCollection->insert(newHit);
 
