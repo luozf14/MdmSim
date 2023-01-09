@@ -10,6 +10,9 @@ SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 SET(CMAKE_BUILD_TYPE "debug")
 SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -O0 -Wall -g2 -ggdb")
 SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -Wall")
+enable_language(Fortran)
+set(CMAKE_Fortran_FLAGS "-fPIC -finit-local-zero -falign-commons -fno-automatic")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 
 # ----------------------------------------------------------------------------
 # Find Geant4 package, activating all available UI and Vis drivers by default
@@ -43,7 +46,7 @@ link_directories(${ROOT_LIBRARY_DIR})
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
 #
-file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc)
+file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc ${PROJECT_SOURCE_DIR}/src/*.F)
 file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 
 # ----------------------------------------------------------------------------
@@ -67,6 +70,7 @@ set(MdmSim_SCRIPTS
     init_vis.mac
     run.mac
     vis.mac
+    rayin.dat
 )
 
 foreach(_script ${MdmSim_SCRIPTS})
