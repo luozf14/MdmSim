@@ -106,7 +106,8 @@
 /vis/geometry/set/colour DipoleMagnetLogical 0 1 0 0 0.5 # colour [logical-volume-name] [depth] [red] [green] [blue] [opacity]
 /vis/geometry/set/colour PpacChamberLogical 0 0.531 0.543 0.551 0.1 # colour [logical-volume-name] [depth] [red] [green] [blue] [opacity]
 /vis/geometry/set/colour EntranceWindowLogical 1 1 1 1 0.5 # colour [logical-volume-name] [depth] [red] [green] [blue] [opacity]
-/vis/geometry/set/colour CathodeMylarLogical 1 0 1 0 1 # colour [logical-volume-name] [depth] [red] [green] [blue] [opacity]
+/vis/geometry/set/colour Cathode0MylarLogical 1 0 1 0 1 # colour [logical-volume-name] [depth] [red] [green] [blue] [opacity]
+/vis/geometry/set/colour Cathode1MylarLogical 1 0 1 0 1 # colour [logical-volume-name] [depth] [red] [green] [blue] [opacity]
 /vis/geometry/set/visibility CathodeAlLogical 0 false # Make "CathodeAlLogical" invisible
 
 
