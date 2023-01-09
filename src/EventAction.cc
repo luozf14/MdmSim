@@ -294,18 +294,18 @@ namespace MdmSim
             ppac1HitTrackId.push_back(-99);
             ppac1HitEDep.push_back(-99.);
             ppac1HitTime.push_back(-99.);
-            ppac1HitGlobalPosX.push_back(-99.);
-            ppac1HitGlobalPosY.push_back(-99.);
-            ppac1HitGlobalPosZ.push_back(-99.);
-            ppac1HitLocalPosX.push_back(-99.);
-            ppac1HitLocalPosY.push_back(-99.);
-            ppac1HitLocalPosZ.push_back(-99.);
-            ppac1HitGlobalMomentumX.push_back(-99.);
-            ppac1HitGlobalMomentumY.push_back(-99.);
-            ppac1HitGlobalMomentumZ.push_back(-99.);
-            ppac1HitLocalMomentumX.push_back(-99.);
-            ppac1HitLocalMomentumY.push_back(-99.);
-            ppac1HitLocalMomentumZ.push_back(-99.);
+            ppac1HitGlobalPosX.push_back(-999.);
+            ppac1HitGlobalPosY.push_back(-999.);
+            ppac1HitGlobalPosZ.push_back(-999.);
+            ppac1HitLocalPosX.push_back(-999.);
+            ppac1HitLocalPosY.push_back(-999.);
+            ppac1HitLocalPosZ.push_back(-999.);
+            ppac1HitGlobalMomentumX.push_back(-999.);
+            ppac1HitGlobalMomentumY.push_back(-999.);
+            ppac1HitGlobalMomentumZ.push_back(-999.);
+            ppac1HitLocalMomentumX.push_back(-999.);
+            ppac1HitLocalMomentumY.push_back(-999.);
+            ppac1HitLocalMomentumZ.push_back(-999.);
         }
         else
         {
@@ -370,12 +370,12 @@ namespace MdmSim
             ppac1HitLocalMomentumX.push_back(ppac1LocalMomentum.x() / (double)itTimes);
             ppac1HitLocalMomentumY.push_back(ppac1LocalMomentum.y() / (double)itTimes);
             ppac1HitLocalMomentumZ.push_back(ppac1LocalMomentum.z() / (double)itTimes);
-            G4cout << "ppac1HitGlobalPosX=" << G4BestUnit(ppac1HitGlobalPosX[0], "Length") << G4endl;
-            G4cout << "ppac1HitGlobalPosY=" << G4BestUnit(ppac1HitGlobalPosY[0], "Length") << G4endl;
-            G4cout << "ppac1HitGlobalPosZ=" << G4BestUnit(ppac1HitGlobalPosZ[0], "Length") << G4endl;
-            G4cout << "ppac1HitLocalPosX=" << G4BestUnit(ppac1HitLocalPosX[0], "Length") << G4endl;
-            G4cout << "ppac1HitLocalPosY=" << G4BestUnit(ppac1HitLocalPosY[0], "Length") << G4endl;
-            G4cout << "ppac1HitLocalPosZ=" << G4BestUnit(ppac1HitLocalPosZ[0], "Length") << G4endl;
+            // G4cout << "ppac1HitGlobalPosX=" << G4BestUnit(ppac1HitGlobalPosX[0], "Length") << G4endl;
+            // G4cout << "ppac1HitGlobalPosY=" << G4BestUnit(ppac1HitGlobalPosY[0], "Length") << G4endl;
+            // G4cout << "ppac1HitGlobalPosZ=" << G4BestUnit(ppac1HitGlobalPosZ[0], "Length") << G4endl;
+            // G4cout << "ppac1HitLocalPosX=" << G4BestUnit(ppac1HitLocalPosX[0], "Length") << G4endl;
+            // G4cout << "ppac1HitLocalPosY=" << G4BestUnit(ppac1HitLocalPosY[0], "Length") << G4endl;
+            // G4cout << "ppac1HitLocalPosZ=" << G4BestUnit(ppac1HitLocalPosZ[0], "Length") << G4endl;
         }
         analysis->SetPpac1Accepted(ppac1HitAccepted);
         analysis->SetPpac1HitTrackId(ppac1HitTrackId);
@@ -424,18 +424,18 @@ namespace MdmSim
             ppac2HitTrackId.push_back(-99);
             ppac2HitEDep.push_back(-99.);
             ppac2HitTime.push_back(-99.);
-            ppac2HitGlobalPosX.push_back(-99.);
-            ppac2HitGlobalPosY.push_back(-99.);
-            ppac2HitGlobalPosZ.push_back(-99.);
-            ppac2HitLocalPosX.push_back(-99.);
-            ppac2HitLocalPosY.push_back(-99.);
-            ppac2HitLocalPosZ.push_back(-99.);
-            ppac2HitGlobalMomentumX.push_back(-99.);
-            ppac2HitGlobalMomentumY.push_back(-99.);
-            ppac2HitGlobalMomentumZ.push_back(-99.);
-            ppac2HitLocalMomentumX.push_back(-99.);
-            ppac2HitLocalMomentumY.push_back(-99.);
-            ppac2HitLocalMomentumZ.push_back(-99.);
+            ppac2HitGlobalPosX.push_back(-999.);
+            ppac2HitGlobalPosY.push_back(-999.);
+            ppac2HitGlobalPosZ.push_back(-999.);
+            ppac2HitLocalPosX.push_back(-999.);
+            ppac2HitLocalPosY.push_back(-999.);
+            ppac2HitLocalPosZ.push_back(-999.);
+            ppac2HitGlobalMomentumX.push_back(-999.);
+            ppac2HitGlobalMomentumY.push_back(-999.);
+            ppac2HitGlobalMomentumZ.push_back(-999.);
+            ppac2HitLocalMomentumX.push_back(-999.);
+            ppac2HitLocalMomentumY.push_back(-999.);
+            ppac2HitLocalMomentumZ.push_back(-999.);
         }
         else
         {
