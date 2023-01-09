@@ -35,7 +35,6 @@ namespace MdmSim
         {
             step->GetTrack()->SetTrackStatus(fKillTrackAndSecondaries);
         }
-        // G4cout << "\n---> SteppingAction::UserSteppingAction: stepPos= " << G4BestUnit(step->GetPreStepPoint()->GetPosition(), "Length") << G4endl;
 
     }
 
