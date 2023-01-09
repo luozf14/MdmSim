@@ -1,5 +1,6 @@
 #include "DetectorConstruction.hh"
 #include "SiDetectorSD.hh"
+#include "PpacSD.hh"
 #include "DipoleField.hh"
 #include "FirstMultipoleField.hh"
 #include "Constants.hh"
@@ -53,6 +54,7 @@ namespace MdmSim
         delete fDipoleFieldMgr;
         delete fFirstMultipoleField;
         delete fFirstMultipoleFieldMgr;
+        delete fPpacChamberRot;
     }
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -287,11 +289,11 @@ namespace MdmSim
         G4ThreeVector solidPpacChamberTrans1(-kDipoleFieldRadius - kDipoleFieldRadius * std::cos(M_PI - kDipoleDeflectionAngle), 0., kDipoleFieldRadius * std::sin(M_PI - kDipoleDeflectionAngle));
         solidPpacChamberTrans1 += G4ThreeVector(0., 0., kFirstArmLength);
         G4ThreeVector solidPpacChamberTrans2(-(kSecondArmLength + 60. * cm) * std::cos(kDipoleDeflectionAngle - M_PI / 2.), 0., -(kSecondArmLength + 60. * cm) * std::sin(kDipoleDeflectionAngle - M_PI / 2.));
-        G4ThreeVector solidPpacChamberTrans = solidPpacChamberTrans1 + solidPpacChamberTrans2;
-        solidPpacChamberTrans.rotateY(fMdmAngle);
-        G4RotationMatrix *ppacChamberRot = new G4RotationMatrix;
-        ppacChamberRot->rotateY(-kDipoleDeflectionAngle + fMdmAngle);
-        new G4PVPlacement(G4Transform3D(*ppacChamberRot, solidPpacChamberTrans), logicPpacChamber,
+        fPpacChamberPos = solidPpacChamberTrans1 + solidPpacChamberTrans2;
+        fPpacChamberPos.rotateY(fMdmAngle);
+        fPpacChamberRot = new G4RotationMatrix;
+        fPpacChamberRot->rotateY(-kDipoleDeflectionAngle + fMdmAngle);
+        new G4PVPlacement(G4Transform3D(*fPpacChamberRot, fPpacChamberPos), logicPpacChamber,
                           "PpacChamberPhysical", logicWorld,
                           false, 0, checkOverlaps);
 
@@ -306,36 +308,39 @@ namespace MdmSim
         // PPAC cathode Al layer
         G4Material *cathodeAlMaterial = new G4Material("Al", 2.70 * g / cm3, nist->FindOrBuildMaterial("G4_Al"));
         G4double cathodeAlDz = kPpacCathodeAlThickness / (2.70 * g / cm3);
-        G4VSolid *solidCathodeAl = new G4Box("CathodeAlSolid", kPpacWidth / 2., kPpacHeight / 2., cathodeAlDz / 2. * cm);
+        G4VSolid *solidCathodeAl = new G4Box("CathodeAlSolid", kPpacWidth / 2., kPpacHeight / 2., cathodeAlDz / 2.);
         G4LogicalVolume *logicCathodeAl = new G4LogicalVolume(solidCathodeAl, cathodeAlMaterial, "CathodeAlLogical");
 
         // PPAC cathode mylar layer
-        G4Material *cathodeMylarMaterial = new G4Material("Mylar", 1.38 * g / cm3, nist->FindOrBuildMaterial("G4_MYLAR"));
-        G4double cathodeMylarDz = kPpacCathodeMylarThickness / (1.38 * g / cm3);
-        G4VSolid *solidCathodeMylar = new G4Box("CathodeMylarSolid", kPpacWidth / 2., kPpacHeight / 2., cathodeMylarDz / 2.);
-        G4LogicalVolume *logicCathodeMylar = new G4LogicalVolume(solidCathodeMylar, cathodeMylarMaterial, "CathodeMylarLogical");
+        G4Material *cathodeMylarMaterial = nist->FindOrBuildMaterial("G4_MYLAR");
+        G4double cathodeMylarDz = kPpacCathodeMylarThickness / cathodeMylarMaterial->GetDensity();
+        G4cout << "cathodeMylarDz=" << G4BestUnit(cathodeMylarDz, "Length") << G4endl;
+        G4VSolid *solidCathode0Mylar = new G4Box("Cathode0MylarSolid", kPpacWidth / 2., kPpacHeight / 2., cathodeMylarDz / 2.);
+        G4LogicalVolume *logicCathode0Mylar = new G4LogicalVolume(solidCathode0Mylar, cathodeMylarMaterial, "Cathode0MylarLogical");
+        G4VSolid *solidCathode1Mylar = new G4Box("Cathode1MylarSolid", kPpacWidth / 2., kPpacHeight / 2., cathodeMylarDz / 2.);
+        G4LogicalVolume *logicCathode1Mylar = new G4LogicalVolume(solidCathode1Mylar, cathodeMylarMaterial, "Cathode1MylarLogical");
 
         // place PPAC cathode 1 (Al_0 + Mylar_0 + Al_1)
         G4ThreeVector cathodeMylar0Pos(0., 0., physicalEntranceWindow->GetObjectTranslation().z() + kPpacSpacingWindowCathode);
-        new G4PVPlacement(nullptr, cathodeMylar0Pos, logicCathodeMylar,
-                          "CathodeMylarPhysical",
+        new G4PVPlacement(nullptr, cathodeMylar0Pos, logicCathode0Mylar,
+                          "Cathode0MylarPhysical",
                           logicPpacChamber, false, 0, checkOverlaps);
-        new G4PVPlacement(0, G4ThreeVector(0., 0., cathodeMylar0Pos.z() - 0.5 * (cathodeAlDz + cathodeMylarDz)), logicCathodeAl,
+        new G4PVPlacement(nullptr, G4ThreeVector(0., 0., cathodeMylar0Pos.z() - 0.5 * (cathodeAlDz + cathodeMylarDz)), logicCathodeAl,
                           "CathodeAlPhysical",
                           logicPpacChamber, false, 0, checkOverlaps);
-        new G4PVPlacement(0, G4ThreeVector(0., 0., cathodeMylar0Pos.z() + 0.5 * (cathodeAlDz + cathodeMylarDz)), logicCathodeAl,
+        new G4PVPlacement(nullptr, G4ThreeVector(0., 0., cathodeMylar0Pos.z() + 0.5 * (cathodeAlDz + cathodeMylarDz)), logicCathodeAl,
                           "CathodeAlPhysical",
                           logicPpacChamber, false, 1, checkOverlaps);
 
         // place PPAC cathode 2 (Al_2 + Mylar_1 + Al_3)
         G4ThreeVector cathodeMylar1Pos(0., 0., cathodeMylar0Pos.z() + fPpacLength);
-        new G4PVPlacement(nullptr, cathodeMylar1Pos, logicCathodeMylar,
-                          "CathodeMylarPhysical",
-                          logicPpacChamber, false, 1, checkOverlaps);
-        new G4PVPlacement(0, G4ThreeVector(0., 0., cathodeMylar1Pos.z() - 0.5 * (cathodeAlDz + cathodeMylarDz)), logicCathodeAl,
+        new G4PVPlacement(nullptr, cathodeMylar1Pos, logicCathode1Mylar,
+                          "Cathode1MylarPhysical",
+                          logicPpacChamber, false, 0, checkOverlaps);
+        new G4PVPlacement(nullptr, G4ThreeVector(0., 0., cathodeMylar1Pos.z() - 0.5 * (cathodeAlDz + cathodeMylarDz)), logicCathodeAl,
                           "CathodeAlPhysical",
                           logicPpacChamber, false, 2, checkOverlaps);
-        new G4PVPlacement(0, G4ThreeVector(0., 0., cathodeMylar1Pos.z() + 0.5 * (cathodeAlDz + cathodeMylarDz)), logicCathodeAl,
+        new G4PVPlacement(nullptr, G4ThreeVector(0., 0., cathodeMylar1Pos.z() + 0.5 * (cathodeAlDz + cathodeMylarDz)), logicCathodeAl,
                           "CathodeAlPhysical",
                           logicPpacChamber, false, 3, checkOverlaps);
         //
@@ -356,6 +361,16 @@ namespace MdmSim
         SiDetectorSD *aSiDetectorDeltaESD = new SiDetectorSD("MdmSim/SiDetectorDeltaESD", "SiDetectorDeltaEHitsCollection");
         G4SDManager::GetSDMpointer()->AddNewDetector(aSiDetectorDeltaESD);
         SetSensitiveDetector("SiDetectorDeltaE", aSiDetectorDeltaESD, true);
+
+        PpacSD *aPpac1SD = new PpacSD("MdmSim/Ppac1SD", "Ppac1HitsCollection");
+        aPpac1SD->SetPpacChamberPosRot(fPpacChamberRot, fPpacChamberPos);
+        G4SDManager::GetSDMpointer()->AddNewDetector(aPpac1SD);
+        SetSensitiveDetector("Cathode0MylarLogical", aPpac1SD, true);
+
+        PpacSD *aPpac2SD = new PpacSD("MdmSim/Ppac2SD", "Ppac2HitsCollection");
+        aPpac2SD->SetPpacChamberPosRot(fPpacChamberRot, fPpacChamberPos);
+        G4SDManager::GetSDMpointer()->AddNewDetector(aPpac2SD);
+        SetSensitiveDetector("Cathode1MylarLogical", aPpac2SD, true);
 
         // Magnetic field ----------------------------------------------------------
         // First multipole
