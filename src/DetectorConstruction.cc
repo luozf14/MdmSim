@@ -194,26 +194,22 @@ namespace MdmSim
         logicE->SetUserLimits(new G4UserLimits(0.5 * EZ));
 
         //
-        // MDM slit box
+        // MDM slit and slit box
         //
         G4ThreeVector slitBoxPos = G4ThreeVector(kSlitBoxPos, 0., 0.); // position in mother frame
-        slitBoxPos.setTheta(-1. * fMdmAngle);
+        slitBoxPos.setTheta(fMdmAngle);
         slitBoxPos.setPhi(0. * deg);
         G4RotationMatrix *slitBoxRot = new G4RotationMatrix;
-        slitBoxRot->rotateY(-1. * fMdmAngle);
+        slitBoxRot->rotateY(fMdmAngle);
 
-        G4VSolid *solidSlitBoxVoid = new G4Box("SlitBoxVoid", 2.27965 * cm, 2.27965 * cm, 0.5 * kSlitBoxDz); // measured on 1/26/2022
+        G4VSolid *solidSlit = new G4Box("SlitSolid", 2.27965 * cm, 2.27965 * cm, 0.5 * kSlitBoxDz); // measured on 1/26/2022
+        G4LogicalVolume *logicSlit = new G4LogicalVolume(solidSlit, nist->FindOrBuildMaterial("G4_Galactic"), "SlitLogical");
+        new G4PVPlacement(G4Transform3D(*slitBoxRot, slitBoxPos), logicSlit, "SlitPhysical", logicWorld, false, 0, checkOverlaps);
+
         G4VSolid *solidSlitBoxShape = new G4Box("SlitBoxShape", (2.27965 + 50.) * cm, (2.27965 + 10.) * cm, 0.5 * kSlitBoxDz);
-        G4VSolid *solidSlitBox = new G4SubtractionSolid("SlitBox", solidSlitBoxShape, solidSlitBoxVoid);
-        G4LogicalVolume *logicSlitBox = new G4LogicalVolume(solidSlitBox, nist->FindOrBuildMaterial("G4_Cu"), "SlitBox");
-        new G4PVPlacement(slitBoxRot,     // rotation
-                          slitBoxPos,     // at position
-                          logicSlitBox,   // its logical volume
-                          "SlitBox",      // its name
-                          logicWorld,     // its mother  volume
-                          false,          // no boolean operation
-                          0,              // copy number-m ""
-                          checkOverlaps); // overlaps checking
+        G4VSolid *solidSlitBox = new G4SubtractionSolid("SlitBox", solidSlitBoxShape, solidSlit);
+        G4LogicalVolume *logicSlitBox = new G4LogicalVolume(solidSlitBox, nist->FindOrBuildMaterial("G4_Cu"), "SlitBoxLogical");
+        new G4PVPlacement(G4Transform3D(*slitBoxRot, slitBoxPos), logicSlitBox, "SlitBoxPhysical", logicWorld, false, 0, checkOverlaps);
 
         //
         // First multipole field
@@ -361,6 +357,10 @@ namespace MdmSim
         SiDetectorSD *aSiDetectorDeltaESD = new SiDetectorSD("MdmSim/SiDetectorDeltaESD", "SiDetectorDeltaEHitsCollection");
         G4SDManager::GetSDMpointer()->AddNewDetector(aSiDetectorDeltaESD);
         SetSensitiveDetector("SiDetectorDeltaE", aSiDetectorDeltaESD, true);
+
+        SiDetectorSD *aSlitSD = new SiDetectorSD("MdmSim/SlitSD", "SlitHitsCollection");
+        G4SDManager::GetSDMpointer()->AddNewDetector(aSlitSD);
+        SetSensitiveDetector("SlitLogical", aSlitSD, true);
 
         PpacSD *aPpac1SD = new PpacSD("MdmSim/Ppac1SD", "Ppac1HitsCollection");
         aPpac1SD->SetPpacChamberPosRot(fPpacChamberRot, fPpacChamberPos);
