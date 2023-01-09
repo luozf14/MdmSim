@@ -25,12 +25,15 @@ namespace MdmSim
 
     private:
         RunAction *fRunAction = nullptr;
-        G4int fHCID_SiDetectorE;
         G4int fHCID_SiDetectorDeltaE;
+        G4int fHCID_SiDetectorE;
+        G4int fHCID_Slit;
         G4int fHCID_Ppac1;
         G4int fHCID_Ppac2;
         G4double fSiDetectorEnergyResolution;
         G4double fTdcResolution;
+        G4double fFirstMultipoleProbe;
+        G4double fDipoleProbe;
     };
 
 }

@@ -4,6 +4,8 @@
 #include "SiDetectorHit.hh"
 #include "PpacHit.hh"
 
+#include "MdmTrace.hh"
+
 #include "G4SDManager.hh"
 #include "G4Event.hh"
 #include "G4RunManager.hh"
@@ -33,10 +35,17 @@ namespace MdmSim
     void EventAction::BeginOfEventAction(const G4Event *)
     {
         G4SDManager *sdManager = G4SDManager::GetSDMpointer();
-        fHCID_SiDetectorE = sdManager->GetCollectionID("SiDetectorEHitsCollection");
         fHCID_SiDetectorDeltaE = sdManager->GetCollectionID("SiDetectorDeltaEHitsCollection");
+        fHCID_SiDetectorE = sdManager->GetCollectionID("SiDetectorEHitsCollection");
+        fHCID_Slit = sdManager->GetCollectionID("SlitHitsCollection");
         fHCID_Ppac1 = sdManager->GetCollectionID("Ppac1HitsCollection");
         fHCID_Ppac2 = sdManager->GetCollectionID("Ppac2HitsCollection");
+
+        MDMTrace *mdm = MDMTrace::Instance();
+        mdm->SetMDMAngle(0.0); // deg
+        mdm->SetMDMProbe(fDipoleProbe, fFirstMultipoleProbe);
+        mdm->SetScatteredMass(1);   // ALWAYS
+        mdm->SetScatteredCharge(1); // ALWAYS
     }
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -54,6 +63,126 @@ namespace MdmSim
                         "MdmSimCode01", JustWarning, msg);
             return;
         }
+
+        //
+        // Slit
+        //
+        SiDetectorHitsCollection *hcSlit = (SiDetectorHitsCollection *)hce->GetHC(fHCID_Slit);
+        G4int nofHitsSlit = hcSlit->GetSize();
+        G4bool slitHitAccepted;
+        G4bool slitHitTransmitted;
+        std::vector<G4int> slitHitTrackId;
+        std::vector<G4double> slitHitLocalPosX;
+        std::vector<G4double> slitHitLocalPosY;
+        std::vector<G4double> slitHitLocalPosZ;
+        std::vector<G4double> mdmTracePositionX;
+        std::vector<G4double> mdmTracePositionY;
+        std::vector<G4double> mdmTraceAngleX;
+        std::vector<G4double> mdmTraceAngleY;
+        if (nofHitsSlit == 0)
+        {
+            G4ExceptionDescription msg;
+            msg << "No hits in slit of this event found.\n";
+            G4Exception("\n---> EventAction::EndOfEventAction()",
+                        "MdmSimCode01", JustWarning, msg);
+            slitHitAccepted = false;
+            slitHitTransmitted = false;
+            slitHitTrackId.push_back(-999);
+            slitHitLocalPosX.push_back(-999.);
+            slitHitLocalPosY.push_back(-999.);
+            slitHitLocalPosZ.push_back(-999.);
+            mdmTracePositionX.push_back(-999.);
+            mdmTracePositionY.push_back(-999.);
+            mdmTraceAngleX.push_back(-999.);
+            mdmTraceAngleY.push_back(-999.);
+        }
+        else
+        {
+            slitHitAccepted = true;
+            slitHitTrackId.push_back((*hcSlit)[0]->GetTrackID());
+            G4ThreeVector slitLocalPos(0., 0., 0.);
+            G4double mdmPosX = 0.;
+            G4double mdmPosY = 0.;
+            G4double mdmAngX = 0.;
+            G4double mdmAngY = 0.;
+            G4int itTimes = 0;
+            for (int i = 0; i < nofHitsSlit; i++)
+            {
+                if ((*hcSlit)[i]->GetTrackID() == slitHitTrackId.back())
+                {
+                    slitLocalPos += (*hcSlit)[i]->GetLocalPosition();
+                    G4ThreeVector momentum = (*hcSlit)[i]->GetLocalMomentum();
+                    G4ThreeVector direction = momentum / momentum.mag();
+                    G4double xAngle = std::atan(direction.x() / direction.z()) * 180. / M_PI;
+                    G4double yAngle = std::atan(direction.y() / std::sqrt(std::pow(direction.x(), 2.) + std::pow(direction.z(), 2.))) * 180. / M_PI;
+                    MDMTrace *mdm = MDMTrace::Instance();
+                    mdm->SetScatteredAngle(xAngle, yAngle);
+                    mdm->SetScatteredMass((*hcSlit)[i]->GetMass());
+                    mdm->SetScatteredCharge((*hcSlit)[i]->GetCharge());
+                    mdm->SetScatteredEnergy((*hcSlit)[i]->GetKineticEnergy());
+                    mdm->SendRay();
+                    G4cout << "Mass=" << mdm->GetScatteredMass() << G4endl;
+                    G4cout << "Charge=" << mdm->GetScatteredCharge() << G4endl;
+                    mdmPosX += mdm->GetFirstWireX() * 10.;
+                    mdmPosY += mdm->GetFirstWireY() * 10.;
+                    mdmAngX += mdm->GetFirstWireXAngle();
+                    mdmAngY += mdm->GetFirstWireYAngle();
+                    if (std::abs(mdmPosX) < 200. && std::abs(mdmPosY) < 50.)
+                    {
+                        slitHitTransmitted = true;
+                    }
+                    else
+                    {
+                        slitHitTransmitted = false;
+                    }
+                    itTimes += 1;
+                }
+                else
+                {
+                    slitHitTrackId.push_back((*hcSlit)[i]->GetTrackID());
+                    slitHitLocalPosX.push_back(slitLocalPos.x() / (double)itTimes);
+                    slitHitLocalPosY.push_back(slitLocalPos.y() / (double)itTimes);
+                    slitHitLocalPosZ.push_back(slitLocalPos.z() / (double)itTimes);
+                    mdmTracePositionX.push_back(mdmPosX / (double)itTimes);
+                    mdmTracePositionY.push_back(mdmPosY / (double)itTimes);
+                    mdmTraceAngleX.push_back(mdmAngX / (double)itTimes);
+                    mdmTraceAngleY.push_back(mdmAngY / (double)itTimes);
+                    slitLocalPos = (*hcSlit)[i]->GetLocalPosition();
+                    G4ThreeVector momentum = (*hcSlit)[i]->GetLocalMomentum();
+                    G4ThreeVector direction = momentum / momentum.mag();
+                    G4double xAngle = std::atan(direction.x() / direction.z()) * 180. / M_PI;
+                    G4double yAngle = std::atan(direction.y() / std::sqrt(std::pow(direction.x(), 2.) + std::pow(direction.z(), 2.))) * 180. / M_PI;
+                    MDMTrace *mdm = MDMTrace::Instance();
+                    mdm->SetScatteredAngle(xAngle, yAngle);
+                    mdm->SetScatteredMass((*hcSlit)[i]->GetMass());
+                    mdm->SetScatteredCharge((*hcSlit)[i]->GetCharge());
+                    mdm->SetScatteredEnergy((*hcSlit)[i]->GetKineticEnergy());
+                    mdm->SendRay();
+                    mdmPosX = mdm->GetFirstWireX() * 10.;
+                    mdmPosY = mdm->GetFirstWireY() * 10.;
+                    mdmAngX = mdm->GetFirstWireXAngle();
+                    mdmAngY = mdm->GetFirstWireYAngle();
+                    itTimes = 1;
+                }
+            }
+            slitHitLocalPosX.push_back(slitLocalPos.x() / (double)itTimes);
+            slitHitLocalPosY.push_back(slitLocalPos.y() / (double)itTimes);
+            slitHitLocalPosZ.push_back(slitLocalPos.z() / (double)itTimes);
+            mdmTracePositionX.push_back(mdmPosX / (double)itTimes);
+            mdmTracePositionY.push_back(mdmPosY / (double)itTimes);
+            mdmTraceAngleX.push_back(mdmAngX / (double)itTimes);
+            mdmTraceAngleY.push_back(mdmAngY / (double)itTimes);
+        }
+        analysis->SetSlitHitAccepted(slitHitAccepted);
+        analysis->SetSlitHitTransmitted(slitHitTransmitted);
+        analysis->SetSlitHitTrackId(slitHitTrackId);
+        analysis->SetSlitHitLocalPosX(slitHitLocalPosX);
+        analysis->SetSlitHitLocalPosY(slitHitLocalPosY);
+        analysis->SetSlitHitLocalPosZ(slitHitLocalPosZ);
+        analysis->SetMdmTracePositionX(mdmTracePositionX);
+        analysis->SetMdmTracePositionY(mdmTracePositionY);
+        analysis->SetMdmTracePositionX(mdmTraceAngleX);
+        analysis->SetMdmTracePositionY(mdmTraceAngleY);
 
         //
         // Delta E
@@ -104,7 +233,7 @@ namespace MdmSim
                 }
             }
             siDeltaEHitEDep.push_back(siDeltaEeDep);
-            siDeltaEHitTime.push_back(siDeltaETime);
+            siDeltaEHitTime.push_back(siDeltaETime / (double)itTimes);
             for (int i = 0; i < siDeltaEHitTrackId.size(); i++)
             {
                 siDeltaEHitEDepExp.push_back(G4RandGauss::shoot(siDeltaEHitEDep[i], fSiDetectorEnergyResolution * siDeltaEHitEDep[i] / 2.355));
@@ -373,9 +502,8 @@ namespace MdmSim
             // G4cout << "ppac1HitGlobalPosX=" << G4BestUnit(ppac1HitGlobalPosX[0], "Length") << G4endl;
             // G4cout << "ppac1HitGlobalPosY=" << G4BestUnit(ppac1HitGlobalPosY[0], "Length") << G4endl;
             // G4cout << "ppac1HitGlobalPosZ=" << G4BestUnit(ppac1HitGlobalPosZ[0], "Length") << G4endl;
-            // G4cout << "ppac1HitLocalPosX=" << G4BestUnit(ppac1HitLocalPosX[0], "Length") << G4endl;
-            // G4cout << "ppac1HitLocalPosY=" << G4BestUnit(ppac1HitLocalPosY[0], "Length") << G4endl;
-            // G4cout << "ppac1HitLocalPosZ=" << G4BestUnit(ppac1HitLocalPosZ[0], "Length") << G4endl;
+            // G4cout << "ppac1HitLocalPosX=" << ppac1HitLocalPosX[0] << G4endl;
+            // G4cout << "ppac1HitLocalPosY=" << ppac1HitLocalPosY[0] << G4endl;
         }
         analysis->SetPpac1Accepted(ppac1HitAccepted);
         analysis->SetPpac1HitTrackId(ppac1HitTrackId);
@@ -545,6 +673,16 @@ namespace MdmSim
             {
                 fTdcResolution = it.second * ns;
                 G4cout << "Set: TDC resolution = " << G4BestUnit(fTdcResolution, "Time") << G4endl;
+            }
+            else if (it.first == "FirstMultipoleProbe")
+            {
+                fFirstMultipoleProbe = it.second;
+                printf("Set: First multipole probe = %.4f%\n", fFirstMultipoleProbe);
+            }
+            else if (it.first == "DipoleProbe")
+            {
+                fDipoleProbe = it.second;
+                printf("Set: Dipole probe = %.4f%\n", fDipoleProbe);
             }
         }
     }

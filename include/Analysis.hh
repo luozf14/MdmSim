@@ -23,6 +23,17 @@ namespace MdmSim
         void FillTreeAccurate();
         void FillTreeExperiment();
 
+        void SetSlitHitAccepted(G4bool acc) { fSlitHitAccepted = acc; };
+        void SetSlitHitTransmitted(G4bool tra) { fSlitHitTransmitted = tra; };
+        void SetSlitHitTrackId(std::vector<G4int> &v) { fSlitHitTrackId = v; };
+        void SetSlitHitLocalPosX(std::vector<G4double> &v) { fSlitHitLocalPosX = v; };
+        void SetSlitHitLocalPosY(std::vector<G4double> &v) { fSlitHitLocalPosY = v; };
+        void SetSlitHitLocalPosZ(std::vector<G4double> &v) { fSlitHitLocalPosZ = v; };
+        void SetMdmTracePositionX(std::vector<G4double> &v) { fMdmTracePositionX = v; };
+        void SetMdmTracePositionY(std::vector<G4double> &v) { fMdmTracePositionY = v; };
+        void SetMdmTraceAngleX(std::vector<G4double> &v) { fMdmTraceAngleX = v; };
+        void SetMdmTraceAngleY(std::vector<G4double> &v) { fMdmTraceAngleY = v; };
+
         void SetSiDeltaEHitAccepted(G4bool acc) { fSiDeltaEHitAccepted = acc; };
         void SetSiDeltaEHitTrackId(std::vector<G4int> &v) { fSiDeltaEHitTrackId = v; };
         void SetSiDeltaEHitEDep(std::vector<G4double> &v) { fSiDeltaEHitEDep = v; };
@@ -93,6 +104,17 @@ namespace MdmSim
         TFile *fFile = nullptr;
         TTree *fTreeAccurate = nullptr;
         TTree *fTreeExperiment = nullptr;
+        
+        G4bool fSlitHitAccepted;
+        G4bool fSlitHitTransmitted;
+        std::vector<G4int> fSlitHitTrackId;
+        std::vector<G4double> fSlitHitLocalPosX;
+        std::vector<G4double> fSlitHitLocalPosY;
+        std::vector<G4double> fSlitHitLocalPosZ;
+        std::vector<G4double> fMdmTracePositionX;
+        std::vector<G4double> fMdmTracePositionY;
+        std::vector<G4double> fMdmTraceAngleX;
+        std::vector<G4double> fMdmTraceAngleY;
 
         G4bool fSiDeltaEHitAccepted;
         std::vector<G4int> fSiDeltaEHitTrackId;

@@ -57,6 +57,17 @@ namespace MdmSim
             fTreeExperiment = new TTree("ExperimentalData", "Experimental data recorded by DAQ");
 
             // Add branches to trees
+            fTreeAccurate->Branch("SlitHitAccepted", &fSlitHitAccepted);
+            fTreeAccurate->Branch("SlitHitTransmitted", &fSlitHitTransmitted);
+            fTreeAccurate->Branch("SlitHitTrackId", &fSlitHitTrackId);
+            fTreeAccurate->Branch("SlitHitLocalPosX", &fSlitHitLocalPosX);
+            fTreeAccurate->Branch("SlitHitLocalPosY", &fSlitHitLocalPosY);
+            fTreeAccurate->Branch("SlitHitLocalPosZ", &fSlitHitLocalPosZ);
+            fTreeAccurate->Branch("MdmTracePositionX", &fMdmTracePositionX);
+            fTreeAccurate->Branch("MdmTracePositionY", &fMdmTracePositionY);
+            fTreeAccurate->Branch("MdmTraceAngleX", &fMdmTraceAngleX);
+            fTreeAccurate->Branch("MdmTraceAngleX", &fMdmTraceAngleX);
+
             fTreeAccurate->Branch("SiDeltaEHitAccepted", &fSiDeltaEHitAccepted);
             fTreeAccurate->Branch("SiDeltaEHitTrackId", &fSiDeltaEHitTrackId);
             fTreeAccurate->Branch("SiDeltaEHitEDep", &fSiDeltaEHitEDep);
