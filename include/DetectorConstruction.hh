@@ -61,6 +61,8 @@ namespace MdmSim
 
         G4double fPpacVacuum;
         G4double fPpacLength;
+        G4RotationMatrix *fPpacChamberRot;
+        G4ThreeVector fPpacChamberPos;
     };
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
