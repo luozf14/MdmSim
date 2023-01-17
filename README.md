@@ -6,7 +6,7 @@ This program provides simulation of using the MDM sprectrometer and a focal plan
 
 ## Prerequisites
 - Geant4 v11 (v10 does not work!)
-- ROOT V6
+- ROOT6
 - C++17
 - CMake>=3.16
 
