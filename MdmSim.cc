@@ -12,11 +12,35 @@
 
 #include "Randomize.hh"
 
+#include <filesystem>
+#include <fstream>
 #include <map>
+#include <string>
 #include <variant>
 
 using namespace MdmSim;
 using json = nlohmann::json;
+
+namespace
+{
+    std::filesystem::path ResolvePath(const std::filesystem::path &base, const std::filesystem::path &path)
+    {
+        if (path.is_absolute())
+        {
+            return path.lexically_normal();
+        }
+        return (base / path).lexically_normal();
+    }
+
+    std::string ResolveMapPath(const json &config,
+                               const char *key,
+                               const char *defaultName,
+                               const std::filesystem::path &mapDirectory)
+    {
+        const std::filesystem::path configured = config.contains(key) ? config[key].get<std::string>() : defaultName;
+        return ResolvePath(mapDirectory, configured).string();
+    }
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -36,6 +60,8 @@ int main(int argc, char **argv)
     std::string configFile = argv[1];
     std::ifstream configStream(configFile.c_str());
     json config = json::parse(configStream);
+    const std::filesystem::path configDirectory = std::filesystem::absolute(std::filesystem::path(configFile)).parent_path();
+    const std::filesystem::path fieldMapDirectory = ResolvePath(configDirectory, config.value("FieldMapDirectory", std::string("../field")));
 
     G4bool interactive = config["Interactive"].get<G4bool>();
     G4String macroName = config["MarcoName"].get<std::string>();
@@ -52,10 +78,18 @@ int main(int argc, char **argv)
     detectorParameters["PpacVacuumInTorr"] = config["PpacVacuumInTorr"].get<G4double>();
     detectorParameters["PpacLengthInCm"] = config["PpacLengthInCm"].get<G4double>();
 
+    MdmFieldMapPaths fieldMapPaths;
+    fieldMapPaths.multipole = ResolveMapPath(config, "MultipoleFieldMap", "Multipole.bin", fieldMapDirectory);
+    fieldMapPaths.dipoleEntrance = ResolveMapPath(config, "DipoleEntranceFieldMap", "DipoleEntrance.bin", fieldMapDirectory);
+    fieldMapPaths.dipoleSector = ResolveMapPath(config, "DipoleSectorFieldMap", "DipoleSector.bin", fieldMapDirectory);
+    fieldMapPaths.dipoleExit = ResolveMapPath(config, "DipoleExitFieldMap", "DipoleExit.bin", fieldMapDirectory);
 
     std::map<std::string, G4double> eventParameters; // parameters for EventAction
     eventParameters["SiDetectorEnergyResolution"] = config["SiDetectorEnergyResolution"].get<G4double>();
     eventParameters["TdcResolutionInNs"] = config["TdcResolutionInNs"].get<G4double>();
+    eventParameters["MdmAngleInDeg"] = config["MdmAngleInDeg"].get<G4double>();
+    eventParameters["FirstMultipoleProbe"] = config["FirstMultipoleProbe"].get<G4double>();
+    eventParameters["DipoleProbe"] = config["DipoleProbe"].get<G4double>();
 
     std::map<std::string, std::variant<G4int, std::map<std::string, G4double>>> actionInitParameters; // parameters for ActionInitialization
     actionInitParameters["ProcessNumber"] = processNumber;
@@ -80,6 +114,7 @@ int main(int argc, char **argv)
     //
     // Detector construction
     DetectorConstruction *detector = new DetectorConstruction();
+    detector->SetFieldMapPaths(fieldMapPaths);
     detector->ParseParams(detectorParameters);
     runManager->SetUserInitialization(detector);
 

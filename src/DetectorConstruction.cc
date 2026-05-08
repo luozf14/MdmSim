@@ -1,8 +1,6 @@
 #include "DetectorConstruction.hh"
 #include "SiDetectorSD.hh"
 #include "PpacSD.hh"
-#include "DipoleField.hh"
-#include "FirstMultipoleField.hh"
 #include "Constants.hh"
 
 #include "G4FieldManager.hh"
@@ -36,9 +34,9 @@
 
 namespace MdmSim
 {
-    G4ThreadLocal DipoleField *DetectorConstruction::fDipoleField = nullptr;
+    G4ThreadLocal MdmFieldMapMagneticField *DetectorConstruction::fDipoleField = nullptr;
     G4ThreadLocal G4FieldManager *DetectorConstruction::fDipoleFieldMgr = nullptr;
-    G4ThreadLocal FirstMultipoleField *DetectorConstruction::fFirstMultipoleField = nullptr;
+    G4ThreadLocal MdmFieldMapMagneticField *DetectorConstruction::fFirstMultipoleField = nullptr;
     G4ThreadLocal G4FieldManager *DetectorConstruction::fFirstMultipoleFieldMgr = nullptr;
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -196,9 +194,8 @@ namespace MdmSim
         //
         // MDM slit and slit box
         //
-        G4ThreeVector slitBoxPos = G4ThreeVector(kSlitBoxPos, 0., 0.); // position in mother frame
-        slitBoxPos.setTheta(fMdmAngle);
-        slitBoxPos.setPhi(0. * deg);
+        G4ThreeVector slitBoxPos = G4ThreeVector(0., 0., kSlitBoxPos); // position in mother frame
+        slitBoxPos.rotateY(fMdmAngle);
         G4RotationMatrix *slitBoxRot = new G4RotationMatrix;
         slitBoxRot->rotateY(fMdmAngle);
 
@@ -216,11 +213,8 @@ namespace MdmSim
         //
         G4VSolid *solidFirstMultipoleField = new G4Tubs("FirstMultipoleFieldTubs", 0., kFirstMultipoleAperture, 0.5 * kFirstMultipoleLength, 0., 360. * deg);
         fLogicFirstMultipoleField = new G4LogicalVolume(solidFirstMultipoleField, nist->FindOrBuildMaterial("G4_Galactic"), "FirstMultipoleFieldLogical");
-        fMultipoleFieldPos.setX(kFirstMultipoleEntrancePos + 0.5 * kFirstMultipoleLength);
-        fMultipoleFieldPos.setY(0.);
-        fMultipoleFieldPos.setZ(0.);
-        fMultipoleFieldPos.setTheta(fMdmAngle);
-        fMultipoleFieldPos.setPhi(0. * deg);
+        fMultipoleFieldPos = G4ThreeVector(0., 0., kFirstMultipoleEntrancePos + 0.5 * kFirstMultipoleLength);
+        fMultipoleFieldPos.rotateY(fMdmAngle);
         G4RotationMatrix *firstMultipoleFieldRot = new G4RotationMatrix;
         firstMultipoleFieldRot->rotateY(fMdmAngle);
         fPhysicFirstMultipoleField = new G4PVPlacement(G4Transform3D(*firstMultipoleFieldRot, fMultipoleFieldPos), fLogicFirstMultipoleField,
@@ -374,7 +368,7 @@ namespace MdmSim
 
         // Magnetic field ----------------------------------------------------------
         // First multipole
-        fFirstMultipoleField = new FirstMultipoleField(fFirstMultipoleProbe, fMdmAngle, fMultipoleFieldPos);
+        fFirstMultipoleField = MdmFieldMapMagneticField::CreateMultipole(fFieldMapPaths.multipole, fMdmAngle, fMultipoleFieldPos, fDipoleProbe, fFirstMultipoleProbe);
         fFirstMultipoleFieldMgr = new G4FieldManager();
         fFirstMultipoleFieldMgr->SetDetectorField(fFirstMultipoleField);
         fFirstMultipoleFieldMgr->CreateChordFinder(fFirstMultipoleField);
@@ -383,13 +377,24 @@ namespace MdmSim
         G4bool forceToAllDaughters = true;
         fLogicFirstMultipoleField->SetFieldManager(fFirstMultipoleFieldMgr, forceToAllDaughters);
         // Dipole
-        fDipoleField = new DipoleField(fDipoleProbe * 1.034, fMdmAngle, fDipoleFieldPos);
+        fDipoleField = MdmFieldMapMagneticField::CreateDipole(fFieldMapPaths, fMdmAngle, fDipoleProbe, fFirstMultipoleProbe);
         fDipoleFieldMgr = new G4FieldManager();
         fDipoleFieldMgr->SetDetectorField(fDipoleField);
         fDipoleFieldMgr->CreateChordFinder(fDipoleField);
         // fDipoleFieldMgr->GetChordFinder()->SetDeltaChord(1e-3 * mm);
         fDipoleFieldMgr->SetAccuraciesWithDeltaOneStep(1e-3 * mm);
         fLogicDipoleField->SetFieldManager(fDipoleFieldMgr, forceToAllDaughters);
+    }
+
+    //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+    void DetectorConstruction::SetFieldMapPaths(const MdmFieldMapPaths &paths)
+    {
+        fFieldMapPaths = paths;
+        G4cout << "Set: Multipole field map = " << fFieldMapPaths.multipole << G4endl;
+        G4cout << "Set: Dipole entrance field map = " << fFieldMapPaths.dipoleEntrance << G4endl;
+        G4cout << "Set: Dipole sector field map = " << fFieldMapPaths.dipoleSector << G4endl;
+        G4cout << "Set: Dipole exit field map = " << fFieldMapPaths.dipoleExit << G4endl;
     }
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

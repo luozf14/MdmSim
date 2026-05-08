@@ -4,6 +4,7 @@
 #include "G4FieldManager.hh"
 #include "G4VUserDetectorConstruction.hh"
 #include "G4RotationMatrix.hh"
+#include "MdmFieldMapMagneticField.hh"
 
 #include "globals.hh"
 
@@ -16,9 +17,6 @@ class G4GenericMessenger;
 
 namespace MdmSim
 {
-    class DipoleField;
-    class FirstMultipoleField;
-
     class DetectorConstruction : public G4VUserDetectorConstruction
     {
     public:
@@ -26,13 +24,14 @@ namespace MdmSim
         ~DetectorConstruction() override;
 
         G4VPhysicalVolume *Construct() override;
-        virtual void ConstructSDandField();
+        void ConstructSDandField() override;
         void ParseParams(std::map<std::string, G4double> params);
+        void SetFieldMapPaths(const MdmFieldMapPaths &paths);
         // void SetMdmAngle(G4double ang);
 
     private:
-        static G4ThreadLocal DipoleField *fDipoleField;
-        static G4ThreadLocal FirstMultipoleField *fFirstMultipoleField;
+        static G4ThreadLocal MdmFieldMapMagneticField *fDipoleField;
+        static G4ThreadLocal MdmFieldMapMagneticField *fFirstMultipoleField;
 
         static G4ThreadLocal G4FieldManager *fDipoleFieldMgr;
         static G4ThreadLocal G4FieldManager *fFirstMultipoleFieldMgr;
@@ -47,6 +46,7 @@ namespace MdmSim
 
         G4double fFirstMultipoleProbe;
         G4double fDipoleProbe;
+        MdmFieldMapPaths fFieldMapPaths;
 
         G4LogicalVolume *fLogicFirstMultipoleField = nullptr;
         G4VPhysicalVolume *fPhysicFirstMultipoleField = nullptr;
@@ -61,7 +61,7 @@ namespace MdmSim
 
         G4double fPpacVacuum;
         G4double fPpacLength;
-        G4RotationMatrix *fPpacChamberRot;
+        G4RotationMatrix *fPpacChamberRot = nullptr;
         G4ThreeVector fPpacChamberPos;
     };
 

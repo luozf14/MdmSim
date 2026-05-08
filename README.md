@@ -1,6 +1,6 @@
 This program is under developing!
 # MdmSim
-This program provides simulation of using the MDM sprectrometer and a focal plane detector. The MDM spectrometer' s geometry and fields are precisely migrated from the original RAYTRACE ``rayin.dat``.
+This program provides simulation of using the MDM sprectrometer and a focal plane detector. The MDM spectrometer geometry is based on the original RAYTRACE ``rayin.dat`` and the Geant4 magnetic fields are loaded from MDMTrace field-map binaries.
 
 <img src="https://github.com/luozf14/MdmSim/raw/main/Demo2.jpg" width="800" alt="Demo"/><br/>
 
@@ -38,6 +38,11 @@ This program takes JSON file as configuration (it is mandatory!). The example co
     "MdmAngleInDeg": 0.0,
     "FirstMultipoleProbe": 2780.84,
     "DipoleProbe": 3916.68,
+    "FieldMapDirectory": "../field",
+    "MultipoleFieldMap": "Multipole.bin",
+    "DipoleEntranceFieldMap": "DipoleEntrance.bin",
+    "DipoleSectorFieldMap": "DipoleSector.bin",
+    "DipoleExitFieldMap": "DipoleExit.bin",
     "PpacVacuumInTorr": 4.0,
     "PpacLengthInCm": 42.0
 }
@@ -52,8 +57,13 @@ This program takes JSON file as configuration (it is mandatory!). The example co
 - SiDetectorAngleInDeg: Rotation (rotate along Y-axis using left-hand rule) angle of the silicon detectors. Double.
 - SiDetectorEnergyResolution: Energy resulution of the silicon detector in %. Double.
 - MdmAngleInDeg: MDM rotation (rotate along Y-axis using right-hand rule) angle. Double.
-- FirstMultipoleProbe: Multipole hall probe value. Double.
-- DipoleProbe: Dipole hall probe value. Double.
+- FirstMultipoleProbe: Multipole hall probe value. This must match the field-map metadata. Double.
+- DipoleProbe: Dipole hall probe value. This must match the field-map metadata. Double.
+- FieldMapDirectory: Directory containing MDMTrace field maps. Optional; defaults to ``../field`` relative to the JSON config file.
+- MultipoleFieldMap: Multipole field-map file or path. Optional; defaults to ``Multipole.bin`` under ``FieldMapDirectory``.
+- DipoleEntranceFieldMap: Dipole entrance field-map file or path. Optional; defaults to ``DipoleEntrance.bin`` under ``FieldMapDirectory``.
+- DipoleSectorFieldMap: Dipole sector field-map file or path. Optional; defaults to ``DipoleSector.bin`` under ``FieldMapDirectory``.
+- DipoleExitFieldMap: Dipole exit field-map file or path. Optional; defaults to ``DipoleExit.bin`` under ``FieldMapDirectory``.
 - PpacVacuumInTorr: PPAC chamber pressure in Torr. Double.
 - PpacLengthInCm: Distance between the two PPACs in cm. Double.
 
