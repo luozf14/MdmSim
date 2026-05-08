@@ -15,11 +15,17 @@
 
 namespace MdmSim
 {
-    constexpr G4double kFirstArmLength = 2420. * mm;
+    // Target to the DIPO local origin for the active rayin.dat deck:
+    // DRIF 63.5 + DRIF 18.075 + POLE(A + L + B) + DIPO A.
+    constexpr G4double kFirstArmLength = (63.5 + 18.075 + 1.925 + 113.2 + 26.0 + 26.0) * cm;
 
     constexpr G4double kSlitBoxPos = 63.5 * cm;
     constexpr G4double kSlitBoxDz = 1. * mm;
 
+    // Multipole.bin spans z = -33..+33 cm around the POLE center.
+    // For the active deck, DRIF 18.075 + POLE A 1.925 backs up by Z11=20,
+    // so the map starts at the collimator plane. Use the downstream slit face
+    // to avoid overlapping the slit aperture volume.
     constexpr G4double kFirstMultipoleEntrancePos = kSlitBoxPos + 0.5 * kSlitBoxDz;
     constexpr G4double kFirstMultipoleAperture = 6.5 * cm;
     constexpr G4double kFirstMultipoleLength = (20. + 10. + 6. + 10. + 20.) * cm;
@@ -34,7 +40,9 @@ namespace MdmSim
     constexpr G4double kDipoleMagnetRadius = 1600. * 9.2 / 5.5 * mm;
     constexpr G4double kDipoleDeflectionAngle = 100. * deg;
 
-    constexpr G4double kSecondArmLength = (32.55 + 0.2 + 35. + 1.5 + 96.13 - 1.5) * cm; // CD(dipole) + [A + L + B](MULT) + 96.13-B
+    // DIPO output to the legacy focal plane for the active rayin.dat deck:
+    // DIPO B + post-dipole MULT (A + L + B) + final DRIF 96.13.
+    constexpr G4double kSecondArmLength = (32.55 + 0.2 + 35. + 1.5 + 96.13) * cm;
 
     constexpr G4double kPpacWidth = 40. * cm;
     constexpr G4double kPpacHeight = 10. * cm;

@@ -3,6 +3,7 @@
 #include "G4Step.hh"
 #include "G4ThreeVector.hh"
 #include "G4SDManager.hh"
+#include "G4SystemOfUnits.hh"
 #include "G4ios.hh"
 
 namespace MdmSim
@@ -59,11 +60,11 @@ namespace MdmSim
         // Hit time
         newHit->SetTime(aStep->GetTrack()->GetGlobalTime());
 
-        // Particle mass
-        newHit->SetMass(aStep->GetTrack()->GetParticleDefinition()->GetAtomicMass());
+        // Particle mass in amu for the legacy MDMTrace interface.
+        newHit->SetMass(aStep->GetTrack()->GetParticleDefinition()->GetPDGMass() / (931.48 * MeV));
 
         // Particle charge
-        newHit->SetCharge(aStep->GetTrack()->GetParticleDefinition()->GetAtomicNumber());
+        newHit->SetCharge(aStep->GetTrack()->GetParticleDefinition()->GetPDGCharge() / eplus);
 
         // Particle kinetic energy
         newHit->SetKineticEnergy(aStep->GetTrack()->GetDynamicParticle()->GetKineticEnergy());

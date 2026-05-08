@@ -4,9 +4,10 @@
 #include "Constants.hh"
 
 #include "G4FieldManager.hh"
-#include "G4TransportationManager.hh"
-#include "G4Mag_UsualEqRhs.hh"
 #include "G4ChordFinder.hh"
+#include "G4ClassicalRK4.hh"
+#include "G4Mag_UsualEqRhs.hh"
+#include "G4TransportationManager.hh"
 #include "G4Field.hh"
 #include "G4AutoDelete.hh"
 
@@ -220,7 +221,7 @@ namespace MdmSim
         fPhysicFirstMultipoleField = new G4PVPlacement(G4Transform3D(*firstMultipoleFieldRot, fMultipoleFieldPos), fLogicFirstMultipoleField,
                                                        "FirstMultipoleFieldPhysical", logicWorld,
                                                        false, 0, checkOverlaps);
-        // fLogicFirstMultipoleField->SetUserLimits(new G4UserLimits(1e-3 * mm));
+        fLogicFirstMultipoleField->SetUserLimits(new G4UserLimits(1.0 * mm));
 
         //
         // First multipole magnet
@@ -235,9 +236,13 @@ namespace MdmSim
         //
         // Dipole field
         //
+        // The entrance/exit fringe maps overlap the sector map. The field
+        // envelope only needs the parts outside the sector; inside the sector,
+        // the same field object is called by the sector volume and dispatches
+        // to the entrance/exit maps where MDMTrace would.
         G4VSolid *solidDipoleFieldEntrace = new G4Box("DipoleFieldEntrance", 0.5 * kDipoleFieldWidth, 0.5 * kDipoleZ11, 0.5 * kDipoleFieldHeight);
         G4ThreeVector solidDipoleFieldEntraceTrans(kDipoleFieldRadius, -0.5 * kDipoleZ11, 0.);
-        G4VSolid *solidDipoleFieldExit = new G4Box("DipoleFieldEntrance", 0.5 * kDipoleFieldWidth, 0.5 * kDipoleZ22, 0.5 * kDipoleFieldHeight);
+        G4VSolid *solidDipoleFieldExit = new G4Box("DipoleFieldExit", 0.5 * kDipoleFieldWidth, 0.5 * kDipoleZ22, 0.5 * kDipoleFieldHeight);
         G4RotationMatrix *solidDipoleFieldExitRot = new G4RotationMatrix;
         solidDipoleFieldExitRot->rotateZ(kDipoleDeflectionAngle);
         G4ThreeVector solidDipoleFieldExitTrans1(-kDipoleFieldRadius * std::cos(M_PI - kDipoleDeflectionAngle), kDipoleFieldRadius * std::sin(M_PI - kDipoleDeflectionAngle), 0.);
@@ -257,7 +262,7 @@ namespace MdmSim
         fPhysicDipoleField = new G4PVPlacement(G4Transform3D(*dipoleRot, fDipoleFieldPos), fLogicDipoleField,
                                                "DipoleFieldPhysical", logicWorld,
                                                false, 0, checkOverlaps);
-        // fLogicDipoleField->SetUserLimits(new G4UserLimits(1e-3 * mm));
+        fLogicDipoleField->SetUserLimits(new G4UserLimits(1.0 * mm));
 
         //
         // Dipole magnet
@@ -371,8 +376,10 @@ namespace MdmSim
         fFirstMultipoleField = MdmFieldMapMagneticField::CreateMultipole(fFieldMapPaths.multipole, fMdmAngle, fMultipoleFieldPos, fDipoleProbe, fFirstMultipoleProbe);
         fFirstMultipoleFieldMgr = new G4FieldManager();
         fFirstMultipoleFieldMgr->SetDetectorField(fFirstMultipoleField);
-        fFirstMultipoleFieldMgr->CreateChordFinder(fFirstMultipoleField);
-        // fFirstMultipoleFieldMgr->GetChordFinder()->SetDeltaChord(1e-3 * mm);
+        auto *firstMultipoleEquation = new G4Mag_UsualEqRhs(fFirstMultipoleField);
+        auto *firstMultipoleStepper = new G4ClassicalRK4(firstMultipoleEquation);
+        auto *firstMultipoleChordFinder = new G4ChordFinder(fFirstMultipoleField, 0.5 * mm, firstMultipoleStepper);
+        fFirstMultipoleFieldMgr->SetChordFinder(firstMultipoleChordFinder);
         fFirstMultipoleFieldMgr->SetAccuraciesWithDeltaOneStep(1e-3 * mm);
         G4bool forceToAllDaughters = true;
         fLogicFirstMultipoleField->SetFieldManager(fFirstMultipoleFieldMgr, forceToAllDaughters);
@@ -380,8 +387,10 @@ namespace MdmSim
         fDipoleField = MdmFieldMapMagneticField::CreateDipole(fFieldMapPaths, fMdmAngle, fDipoleProbe, fFirstMultipoleProbe);
         fDipoleFieldMgr = new G4FieldManager();
         fDipoleFieldMgr->SetDetectorField(fDipoleField);
-        fDipoleFieldMgr->CreateChordFinder(fDipoleField);
-        // fDipoleFieldMgr->GetChordFinder()->SetDeltaChord(1e-3 * mm);
+        auto *dipoleEquation = new G4Mag_UsualEqRhs(fDipoleField);
+        auto *dipoleStepper = new G4ClassicalRK4(dipoleEquation);
+        auto *dipoleChordFinder = new G4ChordFinder(fDipoleField, 0.5 * mm, dipoleStepper);
+        fDipoleFieldMgr->SetChordFinder(dipoleChordFinder);
         fDipoleFieldMgr->SetAccuraciesWithDeltaOneStep(1e-3 * mm);
         fLogicDipoleField->SetFieldManager(fDipoleFieldMgr, forceToAllDaughters);
     }

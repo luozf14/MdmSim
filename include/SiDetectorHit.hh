@@ -37,8 +37,8 @@ namespace MdmSim
         void SetTrackID(G4int track) { fTrackID = track; };
         void SetEnergyDeposit(G4double de) { fEnergyDeposit = de; };
         void SetTime(G4double t) { fTime = t; };
-        void SetMass(G4int mass) { fMass = mass; };
-        void SetCharge(G4int charge) { fCharge = charge; };
+        void SetMass(G4double mass) { fMass = mass; };
+        void SetCharge(G4double charge) { fCharge = charge; };
         void SetKineticEnergy(G4double e) { fKineticEnergy = e; };
         void SetGlobalPosition(G4ThreeVector xyz) { fGlobalPosition = xyz; };
         void SetLocalPosition(G4ThreeVector xyz) { fLocalPosition = xyz; };
@@ -49,8 +49,8 @@ namespace MdmSim
         G4int GetTrackID() const { return fTrackID; };
         G4double GetEnergyDeposit() const { return fEnergyDeposit; };
         G4double GetTime() const { return fTime; };
-        G4int GetMass() const { return fMass; };
-        G4int GetCharge() const { return fCharge; };
+        G4double GetMass() const { return fMass; };
+        G4double GetCharge() const { return fCharge; };
         G4double GetKineticEnergy() const { return fKineticEnergy; };
         G4ThreeVector GetLocalMomentum() const { return fLocalMomentum; };
         G4ThreeVector GetGlobalMomentum() const { return fGlobalMomentum; };
@@ -61,8 +61,8 @@ namespace MdmSim
         G4int fTrackID;
         G4double fEnergyDeposit;
         G4double fTime;
-        G4int fMass;
-        G4int fCharge;
+        G4double fMass;
+        G4double fCharge;
         G4double fKineticEnergy;
         G4ThreeVector fGlobalPosition;
         G4ThreeVector fLocalPosition;
