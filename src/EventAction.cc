@@ -42,7 +42,7 @@ namespace MdmSim
         fHCID_Ppac2 = sdManager->GetCollectionID("Ppac2HitsCollection");
 
         MDMTrace *mdm = MDMTrace::Instance();
-        mdm->SetMDMAngle(0.0); // deg
+        mdm->SetMDMAngle(fMdmAngle); // deg
         mdm->SetMDMProbe(fDipoleProbe, fFirstMultipoleProbe);
         mdm->SetScatteredMass(1);   // ALWAYS
         mdm->SetScatteredCharge(1); // ALWAYS
@@ -99,6 +99,7 @@ namespace MdmSim
         else
         {
             slitHitAccepted = true;
+            slitHitTransmitted = false;
             slitHitTrackId.push_back((*hcSlit)[0]->GetTrackID());
             G4ThreeVector slitLocalPos(0., 0., 0.);
             G4double mdmPosX = 0.;
@@ -121,19 +122,15 @@ namespace MdmSim
                     mdm->SetScatteredCharge((*hcSlit)[i]->GetCharge());
                     mdm->SetScatteredEnergy((*hcSlit)[i]->GetKineticEnergy());
                     mdm->SendRay();
-                    G4cout << "Mass=" << mdm->GetScatteredMass() << G4endl;
-                    G4cout << "Charge=" << mdm->GetScatteredCharge() << G4endl;
-                    mdmPosX += mdm->GetFirstWireX() * 10.;
-                    mdmPosY += mdm->GetFirstWireY() * 10.;
+                    const G4double legacyPosX = mdm->GetFirstWireX() * 10.;
+                    const G4double legacyPosY = mdm->GetFirstWireY() * 10.;
+                    mdmPosX += legacyPosX;
+                    mdmPosY += legacyPosY;
                     mdmAngX += mdm->GetFirstWireXAngle();
                     mdmAngY += mdm->GetFirstWireYAngle();
-                    if (std::abs(mdmPosX) < 200. && std::abs(mdmPosY) < 50.)
+                    if (std::abs(legacyPosX) < 200. && std::abs(legacyPosY) < 50.)
                     {
                         slitHitTransmitted = true;
-                    }
-                    else
-                    {
-                        slitHitTransmitted = false;
                     }
                     itTimes += 1;
                 }
@@ -181,8 +178,8 @@ namespace MdmSim
         analysis->SetSlitHitLocalPosZ(slitHitLocalPosZ);
         analysis->SetMdmTracePositionX(mdmTracePositionX);
         analysis->SetMdmTracePositionY(mdmTracePositionY);
-        analysis->SetMdmTracePositionX(mdmTraceAngleX);
-        analysis->SetMdmTracePositionY(mdmTraceAngleY);
+        analysis->SetMdmTraceAngleX(mdmTraceAngleX);
+        analysis->SetMdmTraceAngleY(mdmTraceAngleY);
 
         //
         // Delta E
@@ -667,7 +664,7 @@ namespace MdmSim
             if (it.first == "SiDetectorEnergyResolution")
             {
                 fSiDetectorEnergyResolution = it.second;
-                printf("Set: Si detector energy resolution = %.2f%\n", fSiDetectorEnergyResolution * 100.);
+                printf("Set: Si detector energy resolution = %.2f%%\n", fSiDetectorEnergyResolution * 100.);
             }
             else if (it.first == "TdcResolutionInNs")
             {
@@ -677,12 +674,17 @@ namespace MdmSim
             else if (it.first == "FirstMultipoleProbe")
             {
                 fFirstMultipoleProbe = it.second;
-                printf("Set: First multipole probe = %.4f%\n", fFirstMultipoleProbe);
+                printf("Set: First multipole probe = %.4f\n", fFirstMultipoleProbe);
             }
             else if (it.first == "DipoleProbe")
             {
                 fDipoleProbe = it.second;
-                printf("Set: Dipole probe = %.4f%\n", fDipoleProbe);
+                printf("Set: Dipole probe = %.4f\n", fDipoleProbe);
+            }
+            else if (it.first == "MdmAngleInDeg")
+            {
+                fMdmAngle = it.second;
+                printf("Set: MDMTrace angle = %.4f deg\n", fMdmAngle);
             }
         }
     }

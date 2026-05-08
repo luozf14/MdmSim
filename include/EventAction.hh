@@ -32,8 +32,9 @@ namespace MdmSim
         G4int fHCID_Ppac2;
         G4double fSiDetectorEnergyResolution;
         G4double fTdcResolution;
-        G4double fFirstMultipoleProbe;
-        G4double fDipoleProbe;
+        G4double fMdmAngle = 0.;
+        G4double fFirstMultipoleProbe = 0.;
+        G4double fDipoleProbe = 0.;
     };
 
 }

@@ -66,7 +66,7 @@ namespace MdmSim
             fTreeAccurate->Branch("MdmTracePositionX", &fMdmTracePositionX);
             fTreeAccurate->Branch("MdmTracePositionY", &fMdmTracePositionY);
             fTreeAccurate->Branch("MdmTraceAngleX", &fMdmTraceAngleX);
-            fTreeAccurate->Branch("MdmTraceAngleX", &fMdmTraceAngleX);
+            fTreeAccurate->Branch("MdmTraceAngleY", &fMdmTraceAngleY);
 
             fTreeAccurate->Branch("SiDeltaEHitAccepted", &fSiDeltaEHitAccepted);
             fTreeAccurate->Branch("SiDeltaEHitTrackId", &fSiDeltaEHitTrackId);
