@@ -1,3 +1,5 @@
 build/
 .vscode/
 .gitignore
+*.bin
+.DS_Store
