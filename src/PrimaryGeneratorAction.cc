@@ -59,8 +59,8 @@ namespace MdmSim
             fParticleGun->SetParticleDefinition(ion);
         }
 
-        G4double xAngle = G4RandFlat::shoot(-8. * deg, 8. * deg);
-        G4double yAngle = G4RandFlat::shoot(-4. * deg, 4. * deg);
+        G4double xAngle = G4RandFlat::shoot(-2. * deg, 2. * deg);
+        G4double yAngle = G4RandFlat::shoot(-2. * deg, 2. * deg);
         // G4double yAngle = 0.;
         G4ThreeVector direction(std::tan(xAngle), std::tan(yAngle) * std::sqrt(std::tan(xAngle) * std::tan(xAngle) + 1.), 1.);
         // G4ThreeVector direction(0., 0., 1.);
@@ -72,7 +72,7 @@ namespace MdmSim
 
         fParticleGun->SetParticlePosition(G4ThreeVector(0., 0., -1.));
         // fParticleGun->SetParticleEnergy(G4RandGauss::shoot(20. * MeV, 0.005 * 20. * MeV / 2.355));
-        fParticleGun->SetParticleEnergy(20. * MeV);
+        fParticleGun->SetParticleEnergy(40. * MeV);
 
         fParticleGun->GeneratePrimaryVertex(anEvent);
     }
