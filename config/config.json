@@ -11,6 +11,11 @@
     "MdmAngleInDeg": 0.0,
     "FirstMultipoleProbe": 3953.497476,
     "DipoleProbe": 5568.3063039999997,
+    "FieldMapDirectory": "../field",
+    "MultipoleFieldMap": "Multipole.bin",
+    "DipoleEntranceFieldMap": "DipoleEntrance.bin",
+    "DipoleSectorFieldMap": "DipoleSector.bin",
+    "DipoleExitFieldMap": "DipoleExit.bin",
     "PpacVacuumInTorr": 4.0,
     "PpacLengthInCm": 40.0
 }
