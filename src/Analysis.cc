@@ -68,6 +68,22 @@ namespace MdmSim
             fTreeAccurate->Branch("MdmTraceAngleX", &fMdmTraceAngleX);
             fTreeAccurate->Branch("MdmTraceAngleY", &fMdmTraceAngleY);
 
+            fTreeAccurate->Branch("LegacyFocalPlaneAccepted", &fLegacyFocalPlaneAccepted);
+            fTreeAccurate->Branch("LegacyFocalPlaneHitTrackId", &fLegacyFocalPlaneHitTrackId);
+            fTreeAccurate->Branch("LegacyFocalPlaneHitTime", &fLegacyFocalPlaneHitTime);
+            fTreeAccurate->Branch("LegacyFocalPlaneHitGlobalPosX", &fLegacyFocalPlaneHitGlobalPosX);
+            fTreeAccurate->Branch("LegacyFocalPlaneHitGlobalPosY", &fLegacyFocalPlaneHitGlobalPosY);
+            fTreeAccurate->Branch("LegacyFocalPlaneHitGlobalPosZ", &fLegacyFocalPlaneHitGlobalPosZ);
+            fTreeAccurate->Branch("LegacyFocalPlaneHitLocalPosX", &fLegacyFocalPlaneHitLocalPosX);
+            fTreeAccurate->Branch("LegacyFocalPlaneHitLocalPosY", &fLegacyFocalPlaneHitLocalPosY);
+            fTreeAccurate->Branch("LegacyFocalPlaneHitLocalPosZ", &fLegacyFocalPlaneHitLocalPosZ);
+            fTreeAccurate->Branch("LegacyFocalPlaneHitGlobalMomentumX", &fLegacyFocalPlaneHitGlobalMomentumX);
+            fTreeAccurate->Branch("LegacyFocalPlaneHitGlobalMomentumY", &fLegacyFocalPlaneHitGlobalMomentumY);
+            fTreeAccurate->Branch("LegacyFocalPlaneHitGlobalMomentumZ", &fLegacyFocalPlaneHitGlobalMomentumZ);
+            fTreeAccurate->Branch("LegacyFocalPlaneHitLocalMomentumX", &fLegacyFocalPlaneHitLocalMomentumX);
+            fTreeAccurate->Branch("LegacyFocalPlaneHitLocalMomentumY", &fLegacyFocalPlaneHitLocalMomentumY);
+            fTreeAccurate->Branch("LegacyFocalPlaneHitLocalMomentumZ", &fLegacyFocalPlaneHitLocalMomentumZ);
+
             fTreeAccurate->Branch("SiDeltaEHitAccepted", &fSiDeltaEHitAccepted);
             fTreeAccurate->Branch("SiDeltaEHitTrackId", &fSiDeltaEHitTrackId);
             fTreeAccurate->Branch("SiDeltaEHitEDep", &fSiDeltaEHitEDep);

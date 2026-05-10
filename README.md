@@ -204,6 +204,8 @@ Important `AccurateData` branch groups include:
   positions, and momenta.
 - `Ppac1Hit*` and `Ppac2Hit*`: PPAC hit positions, momenta, times, and
   acceptance flags.
+- `LegacyFocalPlaneHit*`: a vacuum tracking-plane hit at the legacy RAYTRACE
+  focal plane, recorded before PPAC gas/window/cathode material.
 - `MdmTracePosition*` and `MdmTraceAngle*`: legacy MDMTrace focal-plane values
   used for comparison with the Geant4 field-map result.
 
@@ -257,9 +259,12 @@ Each canvas follows the MDMTrace comparison style:
 - residual convention: `Legacy - FieldMap`,
 - residual RMS printed directly on the residual pad.
 
-Positions are reported in mm and angles are reported in degrees. The field-map
-positions are obtained by projecting the two PPAC hits back to the configured
-legacy focal plane. The default macro call is equivalent to:
+Positions are reported in mm and angles are reported in degrees. For new ROOT
+files, the field-map values come from the `LegacyFocalPlaneHit*` vacuum scorer
+at the configured legacy plane. This avoids folding PPAC gas/window/cathode
+scattering into the optics comparison. For older ROOT files without that branch,
+the macro falls back to projecting the two PPAC hits back to the same plane. The
+default macro call is equivalent to:
 
 ```cpp
 CompareLegacyFieldMap(inputPath,

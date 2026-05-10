@@ -34,6 +34,22 @@ namespace MdmSim
         void SetMdmTraceAngleX(std::vector<G4double> &v) { fMdmTraceAngleX = v; };
         void SetMdmTraceAngleY(std::vector<G4double> &v) { fMdmTraceAngleY = v; };
 
+        void SetLegacyFocalPlaneAccepted(G4bool acc) { fLegacyFocalPlaneAccepted = acc; };
+        void SetLegacyFocalPlaneHitTrackId(std::vector<G4int> &v) { fLegacyFocalPlaneHitTrackId = v; };
+        void SetLegacyFocalPlaneHitTime(std::vector<G4double> &v) { fLegacyFocalPlaneHitTime = v; };
+        void SetLegacyFocalPlaneHitGlobalPosX(std::vector<G4double> &v) { fLegacyFocalPlaneHitGlobalPosX = v; };
+        void SetLegacyFocalPlaneHitGlobalPosY(std::vector<G4double> &v) { fLegacyFocalPlaneHitGlobalPosY = v; };
+        void SetLegacyFocalPlaneHitGlobalPosZ(std::vector<G4double> &v) { fLegacyFocalPlaneHitGlobalPosZ = v; };
+        void SetLegacyFocalPlaneHitLocalPosX(std::vector<G4double> &v) { fLegacyFocalPlaneHitLocalPosX = v; };
+        void SetLegacyFocalPlaneHitLocalPosY(std::vector<G4double> &v) { fLegacyFocalPlaneHitLocalPosY = v; };
+        void SetLegacyFocalPlaneHitLocalPosZ(std::vector<G4double> &v) { fLegacyFocalPlaneHitLocalPosZ = v; };
+        void SetLegacyFocalPlaneHitGlobalMomentumX(std::vector<G4double> &v) { fLegacyFocalPlaneHitGlobalMomentumX = v; };
+        void SetLegacyFocalPlaneHitGlobalMomentumY(std::vector<G4double> &v) { fLegacyFocalPlaneHitGlobalMomentumY = v; };
+        void SetLegacyFocalPlaneHitGlobalMomentumZ(std::vector<G4double> &v) { fLegacyFocalPlaneHitGlobalMomentumZ = v; };
+        void SetLegacyFocalPlaneHitLocalMomentumX(std::vector<G4double> &v) { fLegacyFocalPlaneHitLocalMomentumX = v; };
+        void SetLegacyFocalPlaneHitLocalMomentumY(std::vector<G4double> &v) { fLegacyFocalPlaneHitLocalMomentumY = v; };
+        void SetLegacyFocalPlaneHitLocalMomentumZ(std::vector<G4double> &v) { fLegacyFocalPlaneHitLocalMomentumZ = v; };
+
         void SetSiDeltaEHitAccepted(G4bool acc) { fSiDeltaEHitAccepted = acc; };
         void SetSiDeltaEHitTrackId(std::vector<G4int> &v) { fSiDeltaEHitTrackId = v; };
         void SetSiDeltaEHitEDep(std::vector<G4double> &v) { fSiDeltaEHitEDep = v; };
@@ -115,6 +131,22 @@ namespace MdmSim
         std::vector<G4double> fMdmTracePositionY;
         std::vector<G4double> fMdmTraceAngleX;
         std::vector<G4double> fMdmTraceAngleY;
+
+        G4bool fLegacyFocalPlaneAccepted;
+        std::vector<G4int> fLegacyFocalPlaneHitTrackId;
+        std::vector<G4double> fLegacyFocalPlaneHitTime;
+        std::vector<G4double> fLegacyFocalPlaneHitGlobalPosX;
+        std::vector<G4double> fLegacyFocalPlaneHitGlobalPosY;
+        std::vector<G4double> fLegacyFocalPlaneHitGlobalPosZ;
+        std::vector<G4double> fLegacyFocalPlaneHitLocalPosX;
+        std::vector<G4double> fLegacyFocalPlaneHitLocalPosY;
+        std::vector<G4double> fLegacyFocalPlaneHitLocalPosZ;
+        std::vector<G4double> fLegacyFocalPlaneHitGlobalMomentumX;
+        std::vector<G4double> fLegacyFocalPlaneHitGlobalMomentumY;
+        std::vector<G4double> fLegacyFocalPlaneHitGlobalMomentumZ;
+        std::vector<G4double> fLegacyFocalPlaneHitLocalMomentumX;
+        std::vector<G4double> fLegacyFocalPlaneHitLocalMomentumY;
+        std::vector<G4double> fLegacyFocalPlaneHitLocalMomentumZ;
 
         G4bool fSiDeltaEHitAccepted;
         std::vector<G4int> fSiDeltaEHitTrackId;

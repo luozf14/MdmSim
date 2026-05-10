@@ -7,9 +7,14 @@
 // In the current geometry the PPAC chamber center is placed 60 cm downstream of
 // the legacy focal plane, so the default comparison plane is z = -600 mm.
 //
+// New MdmSim files store a vacuum LegacyFocalPlane hit at the RAYTRACE focal
+// plane. The macro uses that branch when present, avoiding PPAC gas/window
+// scattering in the comparison. Older files are still handled by projecting the
+// PPAC1/PPAC2 track back to the same plane.
+//
 // The stored PPAC local z values are local to each cathode volume, not to the
-// PPAC chamber. The macro therefore uses explicit chamber-local PPAC plane z
-// values. Current defaults:
+// PPAC chamber. The PPAC fallback therefore uses explicit chamber-local PPAC
+// plane z values. Current defaults:
 //   PPAC1 cathode: -500 mm + 2.5 um / 2 + 10 mm = -489.99875 mm
 //   PPAC2 cathode: PPAC1 + 400 mm = -89.99875 mm
 //
@@ -52,6 +57,26 @@ bool HasValue(const std::vector<T>* values) {
 
 double FirstOrNaN(const std::vector<double>* values) {
   return HasValue(values) ? values->front() : std::numeric_limits<double>::quiet_NaN();
+}
+
+double AtOrNaN(const std::vector<double>* values, std::size_t index) {
+  return values && index < values->size() ? values->at(index) : std::numeric_limits<double>::quiet_NaN();
+}
+
+int FirstTrackOr(const std::vector<int>* values, int fallback) {
+  return values && !values->empty() ? values->front() : fallback;
+}
+
+std::size_t IndexForTrack(const std::vector<int>* trackIds, int trackId) {
+  if (!trackIds) {
+    return 0;
+  }
+  for (std::size_t i = 0; i < trackIds->size(); ++i) {
+    if (trackIds->at(i) == trackId) {
+      return i;
+    }
+  }
+  return 0;
 }
 
 struct CompareRow {
@@ -305,25 +330,51 @@ void CompareLegacyFieldMap(const char* inputPath = "SimData~0.root",
   }
 
   bool slitLegacyTransmitted = false;
+  bool legacyFocalPlaneAccepted = false;
   bool ppac1Accepted = false;
   bool ppac2Accepted = false;
 
+  std::vector<int>* slitTrackId = nullptr;
+  std::vector<int>* legacyFocalPlaneTrackId = nullptr;
   std::vector<double>* legacyX = nullptr;
   std::vector<double>* legacyY = nullptr;
   std::vector<double>* legacyAngleX = nullptr;
   std::vector<double>* legacyAngleY = nullptr;
+  std::vector<double>* legacyFocalPlaneX = nullptr;
+  std::vector<double>* legacyFocalPlaneY = nullptr;
+  std::vector<double>* legacyFocalPlaneMomentumX = nullptr;
+  std::vector<double>* legacyFocalPlaneMomentumY = nullptr;
+  std::vector<double>* legacyFocalPlaneMomentumZ = nullptr;
   std::vector<double>* ppac1X = nullptr;
   std::vector<double>* ppac1Y = nullptr;
   std::vector<double>* ppac2X = nullptr;
   std::vector<double>* ppac2Y = nullptr;
 
+  const bool hasLegacyFocalPlane =
+      tree->GetBranch("LegacyFocalPlaneAccepted") &&
+      tree->GetBranch("LegacyFocalPlaneHitLocalPosX") &&
+      tree->GetBranch("LegacyFocalPlaneHitLocalPosY") &&
+      tree->GetBranch("LegacyFocalPlaneHitLocalMomentumX") &&
+      tree->GetBranch("LegacyFocalPlaneHitLocalMomentumY") &&
+      tree->GetBranch("LegacyFocalPlaneHitLocalMomentumZ");
+
   tree->SetBranchAddress("SlitHitTransmitted", &slitLegacyTransmitted);
+  tree->SetBranchAddress("SlitHitTrackId", &slitTrackId);
   tree->SetBranchAddress("Ppac1Accepted", &ppac1Accepted);
   tree->SetBranchAddress("Ppac2Accepted", &ppac2Accepted);
   tree->SetBranchAddress("MdmTracePositionX", &legacyX);
   tree->SetBranchAddress("MdmTracePositionY", &legacyY);
   tree->SetBranchAddress("MdmTraceAngleX", &legacyAngleX);
   tree->SetBranchAddress("MdmTraceAngleY", &legacyAngleY);
+  if (hasLegacyFocalPlane) {
+    tree->SetBranchAddress("LegacyFocalPlaneAccepted", &legacyFocalPlaneAccepted);
+    tree->SetBranchAddress("LegacyFocalPlaneHitTrackId", &legacyFocalPlaneTrackId);
+    tree->SetBranchAddress("LegacyFocalPlaneHitLocalPosX", &legacyFocalPlaneX);
+    tree->SetBranchAddress("LegacyFocalPlaneHitLocalPosY", &legacyFocalPlaneY);
+    tree->SetBranchAddress("LegacyFocalPlaneHitLocalMomentumX", &legacyFocalPlaneMomentumX);
+    tree->SetBranchAddress("LegacyFocalPlaneHitLocalMomentumY", &legacyFocalPlaneMomentumY);
+    tree->SetBranchAddress("LegacyFocalPlaneHitLocalMomentumZ", &legacyFocalPlaneMomentumZ);
+  }
   tree->SetBranchAddress("Ppac1HitLocalPosX", &ppac1X);
   tree->SetBranchAddress("Ppac1HitLocalPosY", &ppac1Y);
   tree->SetBranchAddress("Ppac2HitLocalPosX", &ppac2X);
@@ -395,10 +446,23 @@ void CompareLegacyFieldMap(const char* inputPath = "SimData~0.root",
     tree->GetEntry(i);
 
     if (!ppac1Accepted || !ppac2Accepted || !slitLegacyTransmitted ||
-        !HasValue(ppac1X) || !HasValue(ppac1Y) ||
-        !HasValue(ppac2X) || !HasValue(ppac2Y) ||
         !HasValue(legacyX) || !HasValue(legacyY) || !HasValue(legacyAngleX) ||
         !HasValue(legacyAngleY)) {
+      ++skipped;
+      continue;
+    }
+
+    if (hasLegacyFocalPlane) {
+      if (!legacyFocalPlaneAccepted || !HasValue(legacyFocalPlaneX) ||
+          !HasValue(legacyFocalPlaneY) ||
+          !HasValue(legacyFocalPlaneMomentumX) ||
+          !HasValue(legacyFocalPlaneMomentumY) ||
+          !HasValue(legacyFocalPlaneMomentumZ)) {
+        ++skipped;
+        continue;
+      }
+    } else if (!HasValue(ppac1X) || !HasValue(ppac1Y) ||
+               !HasValue(ppac2X) || !HasValue(ppac2Y)) {
       ++skipped;
       continue;
     }
@@ -412,35 +476,57 @@ void CompareLegacyFieldMap(const char* inputPath = "SimData~0.root",
       continue;
     }
 
-    const double x1 = ppac1X->front();
-    const double y1 = ppac1Y->front();
-    const double z1 = ppac1PlaneZLocalMm;
-    const double x2 = ppac2X->front();
-    const double y2 = ppac2Y->front();
-    const double z2 = ppac2PlaneZLocalMm;
-    const double dzPpac = z2 - z1;
-    if (std::abs(dzPpac) < 1.0e-9) {
-      ++skipped;
-      continue;
-    }
+    if (hasLegacyFocalPlane) {
+      const int trackId = FirstTrackOr(slitTrackId, FirstTrackOr(legacyFocalPlaneTrackId, -99));
+      const std::size_t focalIndex = IndexForTrack(legacyFocalPlaneTrackId, trackId);
+      fieldX = AtOrNaN(legacyFocalPlaneX, focalIndex);
+      fieldY = AtOrNaN(legacyFocalPlaneY, focalIndex);
+      rawFieldX = fieldX;
+      const double px = AtOrNaN(legacyFocalPlaneMomentumX, focalIndex);
+      const double py = AtOrNaN(legacyFocalPlaneMomentumY, focalIndex);
+      const double pz = AtOrNaN(legacyFocalPlaneMomentumZ, focalIndex);
+      if (!std::isfinite(fieldX) || !std::isfinite(fieldY) ||
+          !std::isfinite(px) || !std::isfinite(py) || !std::isfinite(pz) ||
+          std::abs(pz) < 1.0e-12) {
+        ++skipped;
+        continue;
+      }
+      fieldAngleX = std::atan2(px, pz) * TMath::RadToDeg();
+      fieldAngleY =
+          std::atan2(py, std::sqrt(px * px + pz * pz)) * TMath::RadToDeg();
+      ppac1LocalZ = legacyPlaneZLocalMm;
+      ppac2LocalZ = legacyPlaneZLocalMm;
+    } else {
+      const double x1 = ppac1X->front();
+      const double y1 = ppac1Y->front();
+      const double z1 = ppac1PlaneZLocalMm;
+      const double x2 = ppac2X->front();
+      const double y2 = ppac2Y->front();
+      const double z2 = ppac2PlaneZLocalMm;
+      const double dzPpac = z2 - z1;
+      if (std::abs(dzPpac) < 1.0e-9) {
+        ++skipped;
+        continue;
+      }
 
-    const double t = (legacyPlaneZLocalMm - z1) / dzPpac;
-    rawFieldX = x1 + t * (x2 - x1);
-    fieldX = rawFieldX;
-    fieldY = y1 + t * (y2 - y1);
-    fieldAngleX = std::atan2(x2 - x1, dzPpac) * TMath::RadToDeg();
-    fieldAngleY =
-        std::atan2(y2 - y1,
-                   std::sqrt((x2 - x1) * (x2 - x1) + dzPpac * dzPpac)) *
-        TMath::RadToDeg();
+      const double t = (legacyPlaneZLocalMm - z1) / dzPpac;
+      rawFieldX = x1 + t * (x2 - x1);
+      fieldX = rawFieldX;
+      fieldY = y1 + t * (y2 - y1);
+      fieldAngleX = std::atan2(x2 - x1, dzPpac) * TMath::RadToDeg();
+      fieldAngleY =
+          std::atan2(y2 - y1,
+                     std::sqrt((x2 - x1) * (x2 - x1) + dzPpac * dzPpac)) *
+          TMath::RadToDeg();
+      ppac1LocalZ = z1;
+      ppac2LocalZ = z2;
+    }
 
     dx = mdmX - fieldX;
     dy = mdmY - fieldY;
     dAngleX = mdmAngleX - fieldAngleX;
     dAngleY = mdmAngleY - fieldAngleY;
     event = i;
-    ppac1LocalZ = z1;
-    ppac2LocalZ = z2;
 
     rows.push_back({mdmX, mdmY, mdmAngleX, mdmAngleY,
                     fieldX, fieldY, fieldAngleX, fieldAngleY});
@@ -492,6 +578,9 @@ void CompareLegacyFieldMap(const char* inputPath = "SimData~0.root",
             << "Compared entries: " << selected << '\n'
             << "Skipped entries: " << skipped << '\n'
             << "Legacy stopped entries: " << legacyStopped << '\n'
+            << "Field-map source: "
+            << (hasLegacyFocalPlane ? "LegacyFocalPlane hit" : "PPAC1/PPAC2 projection")
+            << '\n'
             << "Legacy plane local z: " << legacyPlaneZLocalMm << " mm\n"
             << "PPAC1 plane local z: " << ppac1PlaneZLocalMm << " mm\n"
             << "PPAC2 plane local z: " << ppac2PlaneZLocalMm << " mm\n"

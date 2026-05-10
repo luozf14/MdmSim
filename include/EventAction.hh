@@ -28,6 +28,7 @@ namespace MdmSim
         G4int fHCID_SiDetectorDeltaE;
         G4int fHCID_SiDetectorE;
         G4int fHCID_Slit;
+        G4int fHCID_LegacyFocalPlane;
         G4int fHCID_Ppac1;
         G4int fHCID_Ppac2;
         G4double fSiDetectorEnergyResolution;

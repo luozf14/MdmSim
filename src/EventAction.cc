@@ -38,6 +38,7 @@ namespace MdmSim
         fHCID_SiDetectorDeltaE = sdManager->GetCollectionID("SiDetectorDeltaEHitsCollection");
         fHCID_SiDetectorE = sdManager->GetCollectionID("SiDetectorEHitsCollection");
         fHCID_Slit = sdManager->GetCollectionID("SlitHitsCollection");
+        fHCID_LegacyFocalPlane = sdManager->GetCollectionID("LegacyFocalPlaneHitsCollection");
         fHCID_Ppac1 = sdManager->GetCollectionID("Ppac1HitsCollection");
         fHCID_Ppac2 = sdManager->GetCollectionID("Ppac2HitsCollection");
 
@@ -180,6 +181,149 @@ namespace MdmSim
         analysis->SetMdmTracePositionY(mdmTracePositionY);
         analysis->SetMdmTraceAngleX(mdmTraceAngleX);
         analysis->SetMdmTraceAngleY(mdmTraceAngleY);
+
+        auto collectTrackingPlaneHits = [](PpacHitsCollection *hits,
+                                           G4bool &accepted,
+                                           std::vector<G4int> &trackId,
+                                           std::vector<G4double> &time,
+                                           std::vector<G4double> &globalPosX,
+                                           std::vector<G4double> &globalPosY,
+                                           std::vector<G4double> &globalPosZ,
+                                           std::vector<G4double> &localPosX,
+                                           std::vector<G4double> &localPosY,
+                                           std::vector<G4double> &localPosZ,
+                                           std::vector<G4double> &globalMomentumX,
+                                           std::vector<G4double> &globalMomentumY,
+                                           std::vector<G4double> &globalMomentumZ,
+                                           std::vector<G4double> &localMomentumX,
+                                           std::vector<G4double> &localMomentumY,
+                                           std::vector<G4double> &localMomentumZ)
+        {
+            const G4int nofHits = hits ? hits->GetSize() : 0;
+            if (nofHits == 0)
+            {
+                accepted = false;
+                trackId.push_back(-99);
+                time.push_back(-99.);
+                globalPosX.push_back(-999.);
+                globalPosY.push_back(-999.);
+                globalPosZ.push_back(-999.);
+                localPosX.push_back(-999.);
+                localPosY.push_back(-999.);
+                localPosZ.push_back(-999.);
+                globalMomentumX.push_back(-999.);
+                globalMomentumY.push_back(-999.);
+                globalMomentumZ.push_back(-999.);
+                localMomentumX.push_back(-999.);
+                localMomentumY.push_back(-999.);
+                localMomentumZ.push_back(-999.);
+                return;
+            }
+
+            accepted = true;
+            G4int currentTrackId = (*hits)[0]->GetTrackID();
+            G4double sumTime = 0.;
+            G4ThreeVector sumGlobalPos(0., 0., 0.);
+            G4ThreeVector sumLocalPos(0., 0., 0.);
+            G4ThreeVector sumGlobalMomentum(0., 0., 0.);
+            G4ThreeVector sumLocalMomentum(0., 0., 0.);
+            G4int count = 0;
+
+            const auto flush = [&]()
+            {
+                if (count == 0)
+                {
+                    return;
+                }
+                const G4double scale = 1. / static_cast<G4double>(count);
+                trackId.push_back(currentTrackId);
+                time.push_back(sumTime * scale);
+                globalPosX.push_back(sumGlobalPos.x() * scale);
+                globalPosY.push_back(sumGlobalPos.y() * scale);
+                globalPosZ.push_back(sumGlobalPos.z() * scale);
+                localPosX.push_back(sumLocalPos.x() * scale);
+                localPosY.push_back(sumLocalPos.y() * scale);
+                localPosZ.push_back(sumLocalPos.z() * scale);
+                globalMomentumX.push_back(sumGlobalMomentum.x() * scale);
+                globalMomentumY.push_back(sumGlobalMomentum.y() * scale);
+                globalMomentumZ.push_back(sumGlobalMomentum.z() * scale);
+                localMomentumX.push_back(sumLocalMomentum.x() * scale);
+                localMomentumY.push_back(sumLocalMomentum.y() * scale);
+                localMomentumZ.push_back(sumLocalMomentum.z() * scale);
+            };
+
+            for (G4int i = 0; i < nofHits; ++i)
+            {
+                PpacHit *hit = (*hits)[i];
+                if (hit->GetTrackID() != currentTrackId)
+                {
+                    flush();
+                    currentTrackId = hit->GetTrackID();
+                    sumTime = 0.;
+                    sumGlobalPos = G4ThreeVector(0., 0., 0.);
+                    sumLocalPos = G4ThreeVector(0., 0., 0.);
+                    sumGlobalMomentum = G4ThreeVector(0., 0., 0.);
+                    sumLocalMomentum = G4ThreeVector(0., 0., 0.);
+                    count = 0;
+                }
+
+                sumTime += hit->GetTime();
+                sumGlobalPos += hit->GetGlobalPosition();
+                sumLocalPos += hit->GetLocalPosition();
+                sumGlobalMomentum += hit->GetGlobalMomentum();
+                sumLocalMomentum += hit->GetLocalMomentum();
+                ++count;
+            }
+            flush();
+        };
+
+        PpacHitsCollection *hcLegacyFocalPlane = (PpacHitsCollection *)hce->GetHC(fHCID_LegacyFocalPlane);
+        G4bool legacyFocalPlaneAccepted;
+        std::vector<G4int> legacyFocalPlaneHitTrackId;
+        std::vector<G4double> legacyFocalPlaneHitTime;
+        std::vector<G4double> legacyFocalPlaneHitGlobalPosX;
+        std::vector<G4double> legacyFocalPlaneHitGlobalPosY;
+        std::vector<G4double> legacyFocalPlaneHitGlobalPosZ;
+        std::vector<G4double> legacyFocalPlaneHitLocalPosX;
+        std::vector<G4double> legacyFocalPlaneHitLocalPosY;
+        std::vector<G4double> legacyFocalPlaneHitLocalPosZ;
+        std::vector<G4double> legacyFocalPlaneHitGlobalMomentumX;
+        std::vector<G4double> legacyFocalPlaneHitGlobalMomentumY;
+        std::vector<G4double> legacyFocalPlaneHitGlobalMomentumZ;
+        std::vector<G4double> legacyFocalPlaneHitLocalMomentumX;
+        std::vector<G4double> legacyFocalPlaneHitLocalMomentumY;
+        std::vector<G4double> legacyFocalPlaneHitLocalMomentumZ;
+        collectTrackingPlaneHits(hcLegacyFocalPlane,
+                                 legacyFocalPlaneAccepted,
+                                 legacyFocalPlaneHitTrackId,
+                                 legacyFocalPlaneHitTime,
+                                 legacyFocalPlaneHitGlobalPosX,
+                                 legacyFocalPlaneHitGlobalPosY,
+                                 legacyFocalPlaneHitGlobalPosZ,
+                                 legacyFocalPlaneHitLocalPosX,
+                                 legacyFocalPlaneHitLocalPosY,
+                                 legacyFocalPlaneHitLocalPosZ,
+                                 legacyFocalPlaneHitGlobalMomentumX,
+                                 legacyFocalPlaneHitGlobalMomentumY,
+                                 legacyFocalPlaneHitGlobalMomentumZ,
+                                 legacyFocalPlaneHitLocalMomentumX,
+                                 legacyFocalPlaneHitLocalMomentumY,
+                                 legacyFocalPlaneHitLocalMomentumZ);
+        analysis->SetLegacyFocalPlaneAccepted(legacyFocalPlaneAccepted);
+        analysis->SetLegacyFocalPlaneHitTrackId(legacyFocalPlaneHitTrackId);
+        analysis->SetLegacyFocalPlaneHitTime(legacyFocalPlaneHitTime);
+        analysis->SetLegacyFocalPlaneHitGlobalPosX(legacyFocalPlaneHitGlobalPosX);
+        analysis->SetLegacyFocalPlaneHitGlobalPosY(legacyFocalPlaneHitGlobalPosY);
+        analysis->SetLegacyFocalPlaneHitGlobalPosZ(legacyFocalPlaneHitGlobalPosZ);
+        analysis->SetLegacyFocalPlaneHitLocalPosX(legacyFocalPlaneHitLocalPosX);
+        analysis->SetLegacyFocalPlaneHitLocalPosY(legacyFocalPlaneHitLocalPosY);
+        analysis->SetLegacyFocalPlaneHitLocalPosZ(legacyFocalPlaneHitLocalPosZ);
+        analysis->SetLegacyFocalPlaneHitGlobalMomentumX(legacyFocalPlaneHitGlobalMomentumX);
+        analysis->SetLegacyFocalPlaneHitGlobalMomentumY(legacyFocalPlaneHitGlobalMomentumY);
+        analysis->SetLegacyFocalPlaneHitGlobalMomentumZ(legacyFocalPlaneHitGlobalMomentumZ);
+        analysis->SetLegacyFocalPlaneHitLocalMomentumX(legacyFocalPlaneHitLocalMomentumX);
+        analysis->SetLegacyFocalPlaneHitLocalMomentumY(legacyFocalPlaneHitLocalMomentumY);
+        analysis->SetLegacyFocalPlaneHitLocalMomentumZ(legacyFocalPlaneHitLocalMomentumZ);
 
         //
         // Delta E

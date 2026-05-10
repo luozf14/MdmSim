@@ -51,6 +51,8 @@ namespace MdmSim
     constexpr G4double kPpacEntranceWindowThickness = 2.5 * um;
     constexpr G4double kPpacCathodeMylarThickness = 220. * 1e-6 * g / cm2;
     constexpr G4double kPpacCathodeAlThickness = 80. * 1e-6 * g / cm2;
+    constexpr G4double kLegacyFocalPlaneLocalZ = -60. * cm;
+    constexpr G4double kLegacyFocalPlaneThickness = 1. * um;
 
 }
 

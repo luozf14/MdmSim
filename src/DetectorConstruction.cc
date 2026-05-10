@@ -1,6 +1,7 @@
 #include "DetectorConstruction.hh"
 #include "SiDetectorSD.hh"
 #include "PpacSD.hh"
+#include "TrackingPlaneSD.hh"
 #include "Constants.hh"
 
 #include "G4FieldManager.hh"
@@ -292,6 +293,23 @@ namespace MdmSim
                           "PpacChamberPhysical", logicWorld,
                           false, 0, checkOverlaps);
 
+        G4VSolid *solidLegacyFocalPlane = new G4Box("LegacyFocalPlaneSolid",
+                                                    kPpacWidth / 2.,
+                                                    kPpacHeight / 2.,
+                                                    kLegacyFocalPlaneThickness / 2.);
+        fLogicLegacyFocalPlane = new G4LogicalVolume(solidLegacyFocalPlane,
+                                                     nist->FindOrBuildMaterial("G4_Galactic"),
+                                                     "LegacyFocalPlaneLogical");
+        const G4ThreeVector legacyFocalPlaneLocal(0., 0., kLegacyFocalPlaneLocalZ);
+        const G4ThreeVector legacyFocalPlaneWorld = (*fPpacChamberRot)(legacyFocalPlaneLocal) + fPpacChamberPos;
+        new G4PVPlacement(G4Transform3D(*fPpacChamberRot, legacyFocalPlaneWorld),
+                          fLogicLegacyFocalPlane,
+                          "LegacyFocalPlanePhysical",
+                          logicWorld,
+                          false,
+                          0,
+                          checkOverlaps);
+
         // PPAC entrance window
         G4VSolid *solidEntranceWindow = new G4Box("EntranceWindowSolid", kPpacWidth / 2., kPpacHeight / 2., kPpacEntranceWindowThickness / 2.);
         G4LogicalVolume *logicEntranceWindow = new G4LogicalVolume(solidEntranceWindow, nist->FindOrBuildMaterial("G4_MYLAR"), "EntranceWindowLogical");
@@ -370,6 +388,11 @@ namespace MdmSim
         aPpac2SD->SetPpacChamberPosRot(fPpacChamberRot, fPpacChamberPos);
         G4SDManager::GetSDMpointer()->AddNewDetector(aPpac2SD);
         SetSensitiveDetector("Cathode1MylarLogical", aPpac2SD, true);
+
+        TrackingPlaneSD *legacyFocalPlaneSD = new TrackingPlaneSD("MdmSim/LegacyFocalPlaneSD", "LegacyFocalPlaneHitsCollection");
+        legacyFocalPlaneSD->SetReferenceFrame(fPpacChamberRot, fPpacChamberPos);
+        G4SDManager::GetSDMpointer()->AddNewDetector(legacyFocalPlaneSD);
+        SetSensitiveDetector("LegacyFocalPlaneLogical", legacyFocalPlaneSD, true);
 
         // Magnetic field ----------------------------------------------------------
         // First multipole
