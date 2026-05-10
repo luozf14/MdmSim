@@ -125,7 +125,25 @@ LinearFit FitLine(const std::vector<double>& x, const std::vector<double>& y) {
   return fit;
 }
 
-void MakePlot(const std::vector<CompareRow>& rows, const Quantity& q) {
+std::string PlotPngPath(const char* outputPath, const char* canvasName) {
+  std::string path = outputPath ? outputPath : "";
+  const std::size_t slash = path.find_last_of("/\\");
+  const std::string directory =
+      slash == std::string::npos ? "" : path.substr(0, slash + 1);
+  std::string basename =
+      slash == std::string::npos ? path : path.substr(slash + 1);
+  const std::size_t dot = basename.find_last_of('.');
+  if (dot != std::string::npos) {
+    basename = basename.substr(0, dot);
+  }
+  if (basename.empty()) {
+    basename = "legacy_fieldmap_compare";
+  }
+  return directory + basename + "_" + canvasName + ".png";
+}
+
+void MakePlot(const std::vector<CompareRow>& rows, const Quantity& q,
+              const std::string& pngPath) {
   std::vector<double> legacy;
   std::vector<double> fieldMap;
   std::vector<double> residual;
@@ -143,13 +161,28 @@ void MakePlot(const std::vector<CompareRow>& rows, const Quantity& q) {
   const auto xyRange = Range(both);
   const auto residualRange = Range(residual, true);
   const LinearFit fit = FitLine(legacy, fieldMap);
+  double residualSumSq = 0.0;
+  for (const double value : residual) {
+    residualSumSq += value * value;
+  }
+  const double residualRms =
+      residual.empty() ? 0.0 : std::sqrt(residualSumSq / residual.size());
 
   TCanvas canvas(q.key, (std::string(q.title) + " legacy vs field-map").c_str(), 900, 900);
+  canvas.SetBorderMode(0);
+  canvas.SetBorderSize(0);
+  canvas.SetFrameBorderMode(0);
   TPad top("top", "", 0.0, 0.32, 1.0, 1.0);
   TPad bottom("bottom", "", 0.0, 0.0, 1.0, 0.32);
+  top.SetBorderMode(0);
+  top.SetBorderSize(0);
+  top.SetFrameBorderMode(0);
   top.SetBottomMargin(0.03);
   top.SetLeftMargin(0.12);
   top.SetRightMargin(0.04);
+  bottom.SetBorderMode(0);
+  bottom.SetBorderSize(0);
+  bottom.SetFrameBorderMode(0);
   bottom.SetTopMargin(0.04);
   bottom.SetBottomMargin(0.30);
   bottom.SetLeftMargin(0.12);
@@ -178,6 +211,7 @@ void MakePlot(const std::vector<CompareRow>& rows, const Quantity& q) {
   fitLine.Draw("SAME");
   TPaveText fitText(0.15, 0.74, 0.62, 0.90, "NDC");
   fitText.SetFillColor(0);
+  fitText.SetFillStyle(0);
   fitText.SetBorderSize(0);
   fitText.SetTextAlign(12);
   fitText.SetTextSize(0.045);
@@ -194,7 +228,7 @@ void MakePlot(const std::vector<CompareRow>& rows, const Quantity& q) {
   TH2D bottomFrame(
       "bottomFrame",
       (std::string(";Legacy ") + q.title + " [" + q.unit +
-       "];Legacy - FieldMap [" + q.unit + "]")
+       "];Residual [" + q.unit + "]")
           .c_str(),
       1, xyRange.first, xyRange.second, 1, residualRange.first,
       residualRange.second);
@@ -212,8 +246,22 @@ void MakePlot(const std::vector<CompareRow>& rows, const Quantity& q) {
   zero.SetLineColor(kGray + 2);
   zero.SetLineStyle(2);
   zero.Draw("SAME");
+  TPaveText residualText(0.58, 0.72, 0.96, 0.90, "NDC");
+  residualText.SetFillColor(0);
+  residualText.SetFillStyle(0);
+  residualText.SetBorderSize(0);
+  residualText.SetTextAlign(12);
+  residualText.SetTextSize(0.09);
+  std::ostringstream residualLabel;
+  residualLabel << "Residual RMS = " << std::fixed << std::setprecision(4)
+                << residualRms << " " << q.unit;
+  residualText.AddText(residualLabel.str().c_str());
+  residualText.Draw("SAME");
 
+  canvas.Modified();
+  canvas.Update();
   canvas.Write();
+  canvas.SaveAs(pngPath.c_str());
 }
 
 double RmsResidual(const std::vector<CompareRow>& rows, const Quantity& q) {
@@ -422,9 +470,15 @@ void CompareLegacyFieldMap(const char* inputPath = "SimData~0.root",
 
   output->cd();
   gStyle->SetOptStat(0);
+  gStyle->SetCanvasBorderMode(0);
+  gStyle->SetPadBorderMode(0);
+  gStyle->SetFrameBorderMode(0);
+  std::vector<std::string> pngPaths;
   if (!rows.empty()) {
     for (const Quantity& quantity : quantities) {
-      MakePlot(rows, quantity);
+      pngPaths.push_back(PlotPngPath(outputPath, quantity.key));
+      MakePlot(rows, quantity, pngPaths.back());
+      output->cd();
     }
   }
   residualTree->Write();
@@ -443,10 +497,17 @@ void CompareLegacyFieldMap(const char* inputPath = "SimData~0.root",
             << "PPAC2 plane local z: " << ppac2PlaneZLocalMm << " mm\n"
             << "PPAC-to-legacy X origin offset: 0 mm\n"
             << "Wrote " << outputPath << " with 4 canvases and " << rows.size()
-            << " rays\n"
+            << " rays\n";
+  if (!pngPaths.empty()) {
+    std::cout << "Saved PNG plots:\n";
+    for (const std::string& pngPath : pngPaths) {
+      std::cout << "  " << pngPath << '\n';
+    }
+  }
+  std::cout
             << "Residual convention: Legacy - FieldMap\n";
   if (rows.empty()) {
-    std::cout << "No comparable rays found; canvases were not written.\n";
+    std::cout << "No comparable rays found; canvases and PNG plots were not written.\n";
     return;
   }
   std::cout << std::fixed << std::setprecision(6);
