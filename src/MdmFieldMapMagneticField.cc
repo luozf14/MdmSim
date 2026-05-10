@@ -2,6 +2,7 @@
 
 #include "Constants.hh"
 
+#include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
 
 #include <algorithm>
@@ -12,6 +13,9 @@
 namespace
 {
     constexpr double kProbeTolerance = 2.0e-6;
+    // RAYTRACE generated the map values with C = 3.0e10 cm/s; Geant4 uses
+    // the exact c_light in its magnetic equation of motion.
+    const G4double kRaytraceToGeantFieldScale = (300.0 * mm / ns) / c_light;
 
     double ToRadians(double degrees)
     {
@@ -127,7 +131,9 @@ namespace MdmSim
     {
         const G4ThreeVector globalPos(point[0], point[1], point[2]);
         const Vec3 localTesla = fMode == Mode::Multipole ? GetMultipoleFieldTesla(globalPos) : GetDipoleFieldTesla(globalPos);
-        const G4ThreeVector localField(localTesla.x * tesla, localTesla.y * tesla, localTesla.z * tesla);
+        const G4ThreeVector localField(localTesla.x * kRaytraceToGeantFieldScale * tesla,
+                                       localTesla.y * kRaytraceToGeantFieldScale * tesla,
+                                       localTesla.z * kRaytraceToGeantFieldScale * tesla);
         const G4ThreeVector globalField = fRotation(localField);
         bField[0] = globalField.x();
         bField[1] = globalField.y();
