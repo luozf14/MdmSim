@@ -45,14 +45,9 @@ actual particle tracking through those interpolated fields.
 8. Legacy MDMTrace values are also stored so the field-map result can be
    compared with the original RAYTRACE transport.
 
-## Demos
+## Demo
 
-<table>
-  <tr>
-    <td><img src="figures/Demo1.png" width="420" alt="MdmSim geometry demo"/></td>
-    <td><img src="figures/Demo2.png" width="420" alt="MdmSim trajectory demo"/></td>
-  </tr>
-</table>
+<td><img src="figures/Demo.png" width="420" alt="MdmSim geometry demo"/></td>
 
 ## Magnetic Field Maps
 
