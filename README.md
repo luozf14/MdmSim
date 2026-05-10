@@ -114,6 +114,10 @@ MdmSim requires a JSON configuration file. The default example is
     "Interactive": true,
     "MarcoName": "run.mac",
     "ProcessNumber": 0,
+    "BeamZ": 6,
+    "BeamA": 12,
+    "BeamCharge": 5,
+    "BeamEnergyInMeV": 15.0,
     "TargetRotationAngleInDeg": 0.0,
     "TargetThicknessInMgCm2": 159.0,
     "TdcResolutionInNs": 0.25,
@@ -139,6 +143,12 @@ Configuration keys:
   batch mode.
 - `MarcoName`: macro file used in batch mode, for example `run.mac`.
 - `ProcessNumber`: output index. `0` writes `SimData~0.root`.
+- `BeamZ`: atomic number of the primary ion. `6` means carbon.
+- `BeamA`: mass number of the primary ion. `12` with `BeamZ = 6` gives `12C`.
+- `BeamCharge`: charge state used for Geant4 tracking and legacy MDMTrace
+  comparison. For example, `BeamZ = 6`, `BeamA = 12`, and `BeamCharge = 5`
+  gives `12C5+`.
+- `BeamEnergyInMeV`: total kinetic energy of the primary ion in MeV.
 - `TargetRotationAngleInDeg`: target rotation angle in degrees.
 - `TargetThicknessInMgCm2`: target areal thickness in mg/cm2.
 - `TdcResolutionInNs`: TDC time resolution in ns.

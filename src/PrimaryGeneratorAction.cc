@@ -9,8 +9,12 @@
 #include "G4IonTable.hh"
 #include "G4ParticleDefinition.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4UnitsTable.hh"
 #include "Randomize.hh"
 #include "G4ChargedGeantino.hh"
+
+#include <cmath>
+#include <stdexcept>
 
 namespace MdmSim
 {
@@ -37,6 +41,32 @@ namespace MdmSim
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
+    void PrimaryGeneratorAction::ParseParams(std::map<std::string, G4double> params)
+    {
+        const bool hasBeamCharge = params.find("BeamCharge") != params.end();
+        if (params.find("BeamZ") != params.end())
+            fBeamZ = static_cast<G4int>(std::lround(params["BeamZ"]));
+        if (params.find("BeamA") != params.end())
+            fBeamA = static_cast<G4int>(std::lround(params["BeamA"]));
+        if (hasBeamCharge)
+            fBeamCharge = static_cast<G4int>(std::lround(params["BeamCharge"]));
+        else
+            fBeamCharge = fBeamZ;
+        if (params.find("BeamEnergyInMeV") != params.end())
+            fBeamEnergy = params["BeamEnergyInMeV"] * MeV;
+
+        if (fBeamZ <= 0 || fBeamA <= 0)
+            throw std::runtime_error("BeamZ and BeamA must be positive");
+        if (fBeamCharge < 0 || fBeamCharge > fBeamZ)
+            throw std::runtime_error("BeamCharge must satisfy 0 <= BeamCharge <= BeamZ");
+
+        G4cout << "Set: Beam ion: A = " << fBeamA << ", Z = " << fBeamZ
+               << ", charge state = " << fBeamCharge << "+"
+               << ", energy = " << G4BestUnit(fBeamEnergy, "Energy") << G4endl;
+    }
+
+    //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
     void PrimaryGeneratorAction::GeneratePrimaries(G4Event *anEvent)
     {
         // this function is called at the begining of ecah event
@@ -50,14 +80,14 @@ namespace MdmSim
         {
             G4ParticleDefinition *ion;
             G4ParticleTable *particleTable = G4ParticleTable::GetParticleTable();
-            G4int Z = 1, A = 1;
-            if (particleTable->GetIonTable()->FindIon(Z, A, 0.0))
-                ion = particleTable->GetIonTable()->FindIon(Z, A, 0.0);
+            if (particleTable->GetIonTable()->FindIon(fBeamZ, fBeamA, 0.0))
+                ion = particleTable->GetIonTable()->FindIon(fBeamZ, fBeamA, 0.0);
             else
-                ion = particleTable->GetIonTable()->GetIon(Z, A, 0.0);
+                ion = particleTable->GetIonTable()->GetIon(fBeamZ, fBeamA, 0.0);
             // ion = particleTable->FindParticle("alpha");
             fParticleGun->SetParticleDefinition(ion);
         }
+        fParticleGun->SetParticleCharge(fBeamCharge * eplus);
 
         G4double xAngle = G4RandFlat::shoot(-2. * deg, 2. * deg);
         G4double yAngle = G4RandFlat::shoot(-2. * deg, 2. * deg);
@@ -72,7 +102,7 @@ namespace MdmSim
 
         fParticleGun->SetParticlePosition(G4ThreeVector(0., 0., -1.));
         // fParticleGun->SetParticleEnergy(G4RandGauss::shoot(20. * MeV, 0.005 * 20. * MeV / 2.355));
-        fParticleGun->SetParticleEnergy(40. * MeV);
+        fParticleGun->SetParticleEnergy(fBeamEnergy);
 
         fParticleGun->GeneratePrimaryVertex(anEvent);
     }

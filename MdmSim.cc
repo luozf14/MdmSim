@@ -67,6 +67,12 @@ int main(int argc, char **argv)
     G4String macroName = config["MarcoName"].get<std::string>();
     G4int processNumber = config["ProcessNumber"].get<G4int>();
 
+    std::map<std::string, G4double> primaryParameters; // parameters for PrimaryGeneratorAction
+    primaryParameters["BeamZ"] = config.value("BeamZ", 6.0);
+    primaryParameters["BeamA"] = config.value("BeamA", 12.0);
+    primaryParameters["BeamCharge"] = config.value("BeamCharge", primaryParameters["BeamZ"]);
+    primaryParameters["BeamEnergyInMeV"] = config.value("BeamEnergyInMeV", 15.0);
+
     std::map<std::string, G4double> detectorParameters; // parameters for DectectorConstruction
     detectorParameters["TargetRotationAngleInDeg"] = config["TargetRotationAngleInDeg"].get<G4double>();
     detectorParameters["TargetThicknessInMgCm2"] = config["TargetThicknessInMgCm2"].get<G4double>();
@@ -93,6 +99,7 @@ int main(int argc, char **argv)
 
     std::map<std::string, std::variant<G4int, std::map<std::string, G4double>>> actionInitParameters; // parameters for ActionInitialization
     actionInitParameters["ProcessNumber"] = processNumber;
+    actionInitParameters["PrimaryParameters"] = primaryParameters;
     actionInitParameters["EventParameters"] = eventParameters;
 
     // Optionally: choose a different Random engine...

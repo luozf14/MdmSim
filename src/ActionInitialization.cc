@@ -32,7 +32,11 @@ namespace MdmSim
 
     void ActionInitialization::Build() const
     {
-        SetUserAction(new PrimaryGeneratorAction);
+        PrimaryGeneratorAction *primaryGeneratorAction = new PrimaryGeneratorAction;
+        auto primaryParameters = fParameters.find("PrimaryParameters");
+        if (primaryParameters != fParameters.end())
+            primaryGeneratorAction->ParseParams(std::get<std::map<std::string, G4double>>(primaryParameters->second));
+        SetUserAction(primaryGeneratorAction);
 
         RunAction *runAction = new RunAction;
         runAction->SetProcessNumber(std::get<G4int>(fParameters.find("ProcessNumber")->second));

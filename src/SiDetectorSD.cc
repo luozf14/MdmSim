@@ -64,7 +64,7 @@ namespace MdmSim
         newHit->SetMass(aStep->GetTrack()->GetParticleDefinition()->GetPDGMass() / (931.48 * MeV));
 
         // Particle charge
-        newHit->SetCharge(aStep->GetTrack()->GetParticleDefinition()->GetPDGCharge() / eplus);
+        newHit->SetCharge(aStep->GetTrack()->GetDynamicParticle()->GetCharge() / eplus);
 
         // Particle kinetic energy
         newHit->SetKineticEnergy(aStep->GetTrack()->GetDynamicParticle()->GetKineticEnergy());
