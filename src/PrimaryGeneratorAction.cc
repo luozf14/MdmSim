@@ -59,10 +59,6 @@ namespace MdmSim
             throw std::runtime_error("BeamZ and BeamA must be positive");
         if (fBeamCharge < 0 || fBeamCharge > fBeamZ)
             throw std::runtime_error("BeamCharge must satisfy 0 <= BeamCharge <= BeamZ");
-
-        G4cout << "Set: Beam ion: A = " << fBeamA << ", Z = " << fBeamZ
-               << ", charge state = " << fBeamCharge << "+"
-               << ", energy = " << G4BestUnit(fBeamEnergy, "Energy") << G4endl;
     }
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
