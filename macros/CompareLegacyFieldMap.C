@@ -3,14 +3,25 @@
 // Usage from the repository root:
 //   root -l -b -q 'macros/CompareLegacyFieldMap.C("build/SimData~99.root")'
 //
+// Source-selection examples:
+//   // Auto: use LegacyFocalPlaneHit* if available, otherwise PPAC projection.
+//   root -l -b -q 'macros/CompareLegacyFieldMap.C("SimData~93.root")'
+//
+//   // Force the vacuum legacy focal-plane scorer.
+//   root -l -b -q 'macros/CompareLegacyFieldMap.C("SimData~93.root","compare_focal.root",-600,-489.99875,-89.99875,"AccurateData","legacy")'
+//
+//   // Force projection from PPAC1/PPAC2 hit positions.
+//   root -l -b -q 'macros/CompareLegacyFieldMap.C("SimData~93.root","compare_ppac.root",-600,-489.99875,-89.99875,"AccurateData","ppac")'
+//
 // The legacy plane is expressed in the PPAC chamber local z coordinate, in mm.
 // In the current geometry the PPAC chamber center is placed 60 cm downstream of
 // the legacy focal plane, so the default comparison plane is z = -600 mm.
 //
 // New MdmSim files store a vacuum LegacyFocalPlane hit at the RAYTRACE focal
-// plane. The macro uses that branch when present, avoiding PPAC gas/window
-// scattering in the comparison. Older files are still handled by projecting the
-// PPAC1/PPAC2 track back to the same plane.
+// plane. By default the macro uses that branch when present, avoiding PPAC
+// gas/window/cathode scattering in the comparison. The final macro argument can
+// force either "legacy" focal-plane hits or "ppac" projection. Older files are
+// still handled by projecting the PPAC1/PPAC2 track back to the same plane.
 //
 // The stored PPAC local z values are local to each cathode volume, not to the
 // PPAC chamber. The PPAC fallback therefore uses explicit chamber-local PPAC
@@ -37,6 +48,7 @@
 #include <TTree.h>
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <functional>
 #include <iomanip>
@@ -97,6 +109,43 @@ struct Quantity {
   std::function<double(const CompareRow&)> legacyValue;
   std::function<double(const CompareRow&)> fieldValue;
 };
+
+enum class FieldMapSourceMode {
+  Auto,
+  LegacyFocalPlane,
+  PpacProjection,
+};
+
+std::string Lowercase(const char* value) {
+  std::string text = value ? value : "";
+  std::transform(text.begin(), text.end(), text.begin(), [](unsigned char c) {
+    return static_cast<char>(std::tolower(c));
+  });
+  return text;
+}
+
+bool ParseFieldMapSourceMode(const char* value, FieldMapSourceMode& mode) {
+  const std::string text = Lowercase(value);
+  if (text.empty() || text == "auto") {
+    mode = FieldMapSourceMode::Auto;
+    return true;
+  }
+  if (text == "legacy" || text == "legacyfocal" ||
+      text == "legacyfocalplane" || text == "focal" ||
+      text == "focalplane") {
+    mode = FieldMapSourceMode::LegacyFocalPlane;
+    return true;
+  }
+  if (text == "ppac" || text == "ppacs" || text == "ppacprojection") {
+    mode = FieldMapSourceMode::PpacProjection;
+    return true;
+  }
+  return false;
+}
+
+const char* SourceLabel(bool useLegacyFocalPlane) {
+  return useLegacyFocalPlane ? "LegacyFocalPlane hit" : "PPAC1/PPAC2 projection";
+}
 
 struct LinearFit {
   double intercept = 0.0;
@@ -314,7 +363,8 @@ void CompareLegacyFieldMap(const char* inputPath = "SimData~0.root",
                            double legacyPlaneZLocalMm = -600.0,
                            double ppac1PlaneZLocalMm = -489.99875,
                            double ppac2PlaneZLocalMm = -89.99875,
-                           const char* treeName = "AccurateData") {
+                           const char* treeName = "AccurateData",
+                           const char* fieldMapSource = "auto") {
   std::unique_ptr<TFile> input(TFile::Open(inputPath, "READ"));
   if (!input || input->IsZombie()) {
     std::cerr << "ERROR: cannot open input file: " << inputPath << '\n';
@@ -358,6 +408,25 @@ void CompareLegacyFieldMap(const char* inputPath = "SimData~0.root",
       tree->GetBranch("LegacyFocalPlaneHitLocalMomentumY") &&
       tree->GetBranch("LegacyFocalPlaneHitLocalMomentumZ");
 
+  FieldMapSourceMode sourceMode = FieldMapSourceMode::Auto;
+  if (!ParseFieldMapSourceMode(fieldMapSource, sourceMode)) {
+    std::cerr << "ERROR: unknown fieldMapSource '" << fieldMapSource
+              << "'. Use \"auto\", \"legacy\", or \"ppac\".\n";
+    return;
+  }
+
+  if (sourceMode == FieldMapSourceMode::LegacyFocalPlane &&
+      !hasLegacyFocalPlane) {
+    std::cerr << "ERROR: fieldMapSource=\"legacy\" was requested, but "
+              << "LegacyFocalPlaneHit* branches are not present in "
+              << inputPath << ".\n";
+    return;
+  }
+
+  const bool useLegacyFocalPlane =
+      sourceMode == FieldMapSourceMode::LegacyFocalPlane ||
+      (sourceMode == FieldMapSourceMode::Auto && hasLegacyFocalPlane);
+
   tree->SetBranchAddress("SlitHitTransmitted", &slitLegacyTransmitted);
   tree->SetBranchAddress("SlitHitTrackId", &slitTrackId);
   tree->SetBranchAddress("Ppac1Accepted", &ppac1Accepted);
@@ -366,7 +435,7 @@ void CompareLegacyFieldMap(const char* inputPath = "SimData~0.root",
   tree->SetBranchAddress("MdmTracePositionY", &legacyY);
   tree->SetBranchAddress("MdmTraceAngleX", &legacyAngleX);
   tree->SetBranchAddress("MdmTraceAngleY", &legacyAngleY);
-  if (hasLegacyFocalPlane) {
+  if (useLegacyFocalPlane) {
     tree->SetBranchAddress("LegacyFocalPlaneAccepted", &legacyFocalPlaneAccepted);
     tree->SetBranchAddress("LegacyFocalPlaneHitTrackId", &legacyFocalPlaneTrackId);
     tree->SetBranchAddress("LegacyFocalPlaneHitLocalPosX", &legacyFocalPlaneX);
@@ -452,7 +521,7 @@ void CompareLegacyFieldMap(const char* inputPath = "SimData~0.root",
       continue;
     }
 
-    if (hasLegacyFocalPlane) {
+    if (useLegacyFocalPlane) {
       if (!legacyFocalPlaneAccepted || !HasValue(legacyFocalPlaneX) ||
           !HasValue(legacyFocalPlaneY) ||
           !HasValue(legacyFocalPlaneMomentumX) ||
@@ -476,7 +545,7 @@ void CompareLegacyFieldMap(const char* inputPath = "SimData~0.root",
       continue;
     }
 
-    if (hasLegacyFocalPlane) {
+    if (useLegacyFocalPlane) {
       const int trackId = FirstTrackOr(slitTrackId, FirstTrackOr(legacyFocalPlaneTrackId, -99));
       const std::size_t focalIndex = IndexForTrack(legacyFocalPlaneTrackId, trackId);
       fieldX = AtOrNaN(legacyFocalPlaneX, focalIndex);
@@ -578,9 +647,7 @@ void CompareLegacyFieldMap(const char* inputPath = "SimData~0.root",
             << "Compared entries: " << selected << '\n'
             << "Skipped entries: " << skipped << '\n'
             << "Legacy stopped entries: " << legacyStopped << '\n'
-            << "Field-map source: "
-            << (hasLegacyFocalPlane ? "LegacyFocalPlane hit" : "PPAC1/PPAC2 projection")
-            << '\n'
+            << "Field-map source: " << SourceLabel(useLegacyFocalPlane) << '\n'
             << "Legacy plane local z: " << legacyPlaneZLocalMm << " mm\n"
             << "PPAC1 plane local z: " << ppac1PlaneZLocalMm << " mm\n"
             << "PPAC2 plane local z: " << ppac2PlaneZLocalMm << " mm\n"

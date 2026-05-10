@@ -272,11 +272,19 @@ CompareLegacyFieldMap(inputPath,
                       -600.0,
                       -489.99875,
                       -89.99875,
-                      "AccurateData")
+                      "AccurateData",
+                      "auto")
 ```
 
 where the three numeric arguments are the legacy plane, PPAC1 plane, and PPAC2
-plane in PPAC-chamber local z coordinates, in mm.
+plane in PPAC-chamber local z coordinates, in mm. The final argument chooses
+the field-map quantity used in the comparison:
+
+- `"auto"`: use `LegacyFocalPlaneHit*` if present, otherwise use PPAC
+  projection.
+- `"legacy"`: require and use the vacuum `LegacyFocalPlaneHit*` scorer.
+- `"ppac"`: force the PPAC1/PPAC2 projection, even when focal-plane branches
+  are present.
 
 Example comparison output:
 
