@@ -4,6 +4,7 @@
 #include "G4ThreeVector.hh"
 #include "G4SDManager.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4ParticleDefinition.hh"
 #include "G4ios.hh"
 
 namespace MdmSim
@@ -60,8 +61,14 @@ namespace MdmSim
         // Hit time
         newHit->SetTime(aStep->GetTrack()->GetGlobalTime());
 
-        // Particle mass in amu for the legacy MDMTrace interface.
-        newHit->SetMass(aStep->GetTrack()->GetParticleDefinition()->GetPDGMass() / (931.48 * MeV));
+        // Geant4 ion identity and mass. Legacy RAYTRACE receives the same mass
+        // converted to its PMASS convention by the MdmTrace wrapper.
+        const G4ParticleDefinition *particle =
+            aStep->GetTrack()->GetParticleDefinition();
+        newHit->SetMass(particle->GetPDGMass() / (931.48 * MeV));
+        newHit->SetIonMassMeV(particle->GetPDGMass() / MeV);
+        newHit->SetMassNumber(particle->GetAtomicMass());
+        newHit->SetAtomicNumber(particle->GetAtomicNumber());
 
         // Particle charge
         newHit->SetCharge(aStep->GetTrack()->GetDynamicParticle()->GetCharge() / eplus);

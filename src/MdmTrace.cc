@@ -1,7 +1,6 @@
-#include "MdmTrace.hh"
-#include <iostream>
-#include <math.h>
-#include <stdio.h>
+#include "MdmTrace.h"
+
+#include <cmath>
 
 extern "C" {
   void raytrace_(int*);
@@ -50,221 +49,191 @@ extern "C" {
   } kineblck_;
 }
 
-MDMTrace* MDMTrace::instance_ = 0;
-double MDMTrace::jeffParams_[6] = {-0.51927,0.038638,0.028404,-0.022797,-0.019275,0.755583};
-double MDMTrace::oxfordWireSpacing_[3] = {15.1,16.3,16.3};
+double MdmTrace::jeffParams_[6] = {
+    -0.51927, 0.038638, 0.028404, -0.022797, -0.019275, 0.755583};
+double MdmTrace::oxfordWireSpacing_[3] = {15.1, 16.3, 16.3};
 
-MDMTrace* MDMTrace::Instance() {
-  if(!instance_) {
-    instance_ = new MDMTrace;
-    int flag = 0;
-    raytrace_(&flag);
-    kineblck_.TRGT1 = 0.;
-    instance_->beamEnergy_ = 0;
-    instance_->scatteredEnergy_ = 0;
-  }
-  return instance_;
+MdmTrace::MdmTrace() {
+  int flag = 0;
+  raytrace_(&flag);
+  kineblck_.TRGT1 = 0.;
+  beamEnergy_ = 0;
+  scatteredEnergy_ = 0;
 }
 
-void MDMTrace::SetBeamEnergy(double energy) {
+void MdmTrace::SetBeamEnergy(double energy) {
   beamEnergy_ = energy;
 }
 
-double MDMTrace::GetBeamEnergy() const {
+double MdmTrace::GetBeamEnergy() const {
   return beamEnergy_;
 }
 
-void MDMTrace::SetMDMAngle(double angle) {
+void MdmTrace::SetMdmAngle(double angle) {
   kineblck_.THTSPEC = angle;
 }
 
-double MDMTrace::GetMDMAngle() const {
+double MdmTrace::GetMdmAngle() const {
   return kineblck_.THTSPEC;
 }
 
-void MDMTrace::SetMDMBRho(double bRho) {
-  double field = bRho/160.*1000;
-  SetMDMDipoleField(field);
+void MdmTrace::SetMdmBRho(double bRho) {
+  double field = bRho / 160. * 1000;
+  SetMdmDipoleField(field);
 }
 
-void MDMTrace::SetMDMDipoleField(double field) {
-  double hallProbe = field/1.034;
-  double multipoleHallProbe = hallProbe*0.71;
-  std::cout << "CONFIRM: Hall probe for dipole should be set to " << hallProbe << std::endl;
-  std::cout << "CONFIRM: Hall probe for multipole should be set to " << multipoleHallProbe << std::endl;
-  double BQR = -1.*multipoleHallProbe*1e-4*jeffParams_[5];
-  double BHR = BQR*jeffParams_[1]/jeffParams_[0];
-  double BOR = BQR*jeffParams_[2]/jeffParams_[0];
-  double BDR = BQR*jeffParams_[3]/jeffParams_[0];
-  double BDDR = BQR*jeffParams_[4]/jeffParams_[0];
-  blck0_.DATA[4][14] = field*1.e-4;
-  blck0_.DATA[3][13]=BQR;
-  blck0_.DATA[3][14]=BHR;
-  blck0_.DATA[3][15]=BOR;
-  blck0_.DATA[3][16]=BDR;
-  blck0_.DATA[3][17]=BDDR;
+void MdmTrace::SetMdmDipoleField(double field) {
+  blck0_.DATA[4][14] = field * 1.e-4;
+  SetMultipoleProbe(field / 1.034 * 0.71);
 }
 
-void MDMTrace::SetMDMField(double dipoleField, double multipoleField){
-  double hallProbe = dipoleField/1.034;
-  double multipoleHallProbe = multipoleField/1.034;
-  std::cout << "CONFIRM: Hall probe for dipole should be set to " << hallProbe << std::endl;
-  std::cout << "CONFIRM: Hall probe for multipole should be set to " << multipoleHallProbe << std::endl;
-  double BQR = -1.*multipoleHallProbe*1e-4*jeffParams_[5];
-  double BHR = BQR*jeffParams_[1]/jeffParams_[0];
-  double BOR = BQR*jeffParams_[2]/jeffParams_[0];
-  double BDR = BQR*jeffParams_[3]/jeffParams_[0];
-  double BDDR = BQR*jeffParams_[4]/jeffParams_[0];
-  blck0_.DATA[4][14] = dipoleField*1.e-4;
-  blck0_.DATA[3][13]=BQR;
-  blck0_.DATA[3][14]=BHR;
-  blck0_.DATA[3][15]=BOR;
-  blck0_.DATA[3][16]=BDR;
-  blck0_.DATA[3][17]=BDDR;
+void MdmTrace::SetMdmField(double dipoleField, double multipoleField) {
+  blck0_.DATA[4][14] = dipoleField * 1.e-4;
+  SetMultipoleProbe(multipoleField / 1.034);
 }
 
-void MDMTrace::SetMDMProbe(double dipoleProbe, double multipoleProbe){
-  double hallProbe = dipoleProbe;
-  double multipoleHallProbe = multipoleProbe;
-  // std::cout << "CONFIRM: Hall probe for dipole is set to " << hallProbe << std::endl;
-  // std::cout << "CONFIRM: Hall probe for multipole is set to " << multipoleHallProbe << std::endl;
-  double BQR = -1.*multipoleHallProbe*1e-4*jeffParams_[5];
-  double BHR = BQR*jeffParams_[1]/jeffParams_[0];
-  double BOR = BQR*jeffParams_[2]/jeffParams_[0];
-  double BDR = BQR*jeffParams_[3]/jeffParams_[0];
-  double BDDR = BQR*jeffParams_[4]/jeffParams_[0];
-  blck0_.DATA[4][14] = dipoleProbe*1.034*1.e-4;
-  blck0_.DATA[3][13]=BQR;
-  blck0_.DATA[3][14]=BHR;
-  blck0_.DATA[3][15]=BOR;
-  blck0_.DATA[3][16]=BDR;
-  blck0_.DATA[3][17]=BDDR;
+void MdmTrace::SetMdmProbe(double dipoleProbe, double multipoleProbe) {
+  blck0_.DATA[4][14] = dipoleProbe * 1.034 * 1.e-4;
+  SetMultipoleProbe(multipoleProbe);
 }
 
-double MDMTrace::GetMDMDipoleField() const {
-  return blck0_.DATA[4][14]*1.e4;
+void MdmTrace::SetMultipoleProbe(double multipoleProbe) {
+  double BQR = -multipoleProbe * 1e-4 * jeffParams_[5];
+  double BHR = BQR * jeffParams_[1] / jeffParams_[0];
+  double BOR = BQR * jeffParams_[2] / jeffParams_[0];
+  double BDR = BQR * jeffParams_[3] / jeffParams_[0];
+  double BDDR = BQR * jeffParams_[4] / jeffParams_[0];
+  blck0_.DATA[3][13] = BQR;
+  blck0_.DATA[3][14] = BHR;
+  blck0_.DATA[3][15] = BOR;
+  blck0_.DATA[3][16] = BDR;
+  blck0_.DATA[3][17] = BDDR;
 }
 
-void MDMTrace::SetScatteredAngle(double angle) {
+double MdmTrace::GetMdmDipoleField() const {
+  return blck0_.DATA[4][14] * 1.e4;
+}
+
+void MdmTrace::SetScatteredAngle(double angle) {
   kineblck_.THETACAL[0] = angle;
   scatteredAngles_[0] = angle;
   scatteredAngles_[1] = 0.;
 }
 
-void MDMTrace::SetScatteredAngle(double xAngle,double yAngle) {
+void MdmTrace::SetScatteredAngle(double xAngle, double yAngle) {
   kineblck_.THETACAL[0] = xAngle;
   scatteredAngles_[0] = xAngle;
   scatteredAngles_[1] = yAngle;
 }
 
-double MDMTrace::GetScatteredAngle() const {
+double MdmTrace::GetScatteredAngle() const {
   return kineblck_.THETACAL[0];
 }
 
-void MDMTrace::SetQValue(double qValue) {
-  kineblck_.QVALUE =qValue;
+void MdmTrace::SetQValue(double qValue) {
+  kineblck_.QVALUE = qValue;
 }
 
-double MDMTrace::GetQValue() const {
+double MdmTrace::GetQValue() const {
   return kineblck_.QVALUE;
 }
 
-void MDMTrace::SetResidualEnergy(double energy) {
+void MdmTrace::SetResidualEnergy(double energy) {
   kineblck_.EEXC = energy;
 }
 
-double MDMTrace::GetResidualEnergy() const {
+double MdmTrace::GetResidualEnergy() const {
   return kineblck_.EEXC;
 }
 
-void MDMTrace::SetScatteredEnergy(double energy) {
+void MdmTrace::SetScatteredEnergy(double energy) {
   scatteredEnergy_ = energy;
 }
 
-double MDMTrace::GetScatteredEnergy() const {
+double MdmTrace::GetScatteredEnergy() const {
   return scatteredEnergy_;
 }
 
-void MDMTrace::SetTargetMass(double mass) {
-    kineblck_.AM[1] = mass;
+void MdmTrace::SetTargetMass(double mass) {
+  kineblck_.AM[1] = mass;
 }
 
-double MDMTrace::GetTargetMass() const {
+double MdmTrace::GetTargetMass() const {
   return kineblck_.AM[1];
 }
 
-void MDMTrace::SetProjectileMass(double mass) {
-    kineblck_.AM[0] = mass;
+void MdmTrace::SetProjectileMass(double mass) {
+  kineblck_.AM[0] = mass;
 }
 
-double MDMTrace::GetProjectileMass() const {
+double MdmTrace::GetProjectileMass() const {
   return kineblck_.AM[0];
 }
 
-void MDMTrace::SetScatteredMass(double mass) {
-    blck4_.PMASS = mass;
+void MdmTrace::SetScatteredIon(const MdmIon& ion) {
+  blck4_.PMASS = ion.RaytraceMassAmu();
+  blck4_.Q0 = ion.chargeState;
 }
 
-double MDMTrace::GetScatteredMass() const {
-  return blck4_.PMASS;
+double MdmTrace::GetEnergyAfterKinematics() const {
+  return kineblck_.EKINE * (1. + blck1_.DELP[0] / 100.);
 }
 
-void MDMTrace::SetScatteredCharge(double charge) {
-    blck4_.Q0 = charge;
-}
-
-double MDMTrace::GetScatteredCharge() const {
-  return blck4_.Q0;
-}
-
-double MDMTrace::GetEnergyAfterKinematics() const {
-  return kineblck_.EKINE*(1.+blck1_.DELP[0]/100.);
-}
-
-void MDMTrace::SendRayWithKinematics() {
-    int flag = 1;
-    blck4_.ENERGY = beamEnergy_;
-    raytrace_(&flag);
-}
-
-void MDMTrace::SendRay() {
-  int flag = 2;
-  blck4_.ENERGY = scatteredEnergy_;
-  blck1_.XI[0]=0.;
-  blck1_.YI[0]=0.;
-  blck1_.ZI[0]=0.;
-  blck1_.VXI[0]=17.453*(scatteredAngles_[0]-kineblck_.THTSPEC);
-  blck1_.VYI[0]=17.453*(scatteredAngles_[1]);
-  blck1_.VZI[0]=0.;
-  blck1_.DELP[0]=0.;
+void MdmTrace::SendRayWithKinematics() {
+  int flag = 1;
+  blck4_.ENERGY = beamEnergy_;
   raytrace_(&flag);
 }
 
-void MDMTrace::GetPositionAngleFirstWire(double& pos, double& ang) const {
-  pos  = blck2_.XO[0];
-  ang  = blck2_.VXO[0]/1000.*180./3.14159;
+void MdmTrace::SendRay() {
+  int flag = 2;
+  blck4_.ENERGY = scatteredEnergy_;
+  blck1_.XI[0] = 0.;
+  blck1_.YI[0] = 0.;
+  blck1_.ZI[0] = 0.;
+  blck1_.VXI[0] = 17.453 * (scatteredAngles_[0] - kineblck_.THTSPEC);
+  blck1_.VYI[0] = 17.453 * scatteredAngles_[1];
+  blck1_.VZI[0] = 0.;
+  blck1_.DELP[0] = 0.;
+  raytrace_(&flag);
 }
 
-void MDMTrace::GetPositionAngleFirstWire(double& posX, double& posY, double& angX, double& angY) const {
-  posX  = blck2_.XO[0];
-  posY  = blck2_.YO[0];
-  angX  = blck2_.VXO[0]/1000.*180./3.14159;
-  angY  = blck2_.VYO[0]/1000.*180./3.14159;
+void MdmTrace::GetPositionAngleFirstWire(double& pos, double& ang) const {
+  pos = blck2_.XO[0];
+  ang = blck2_.VXO[0] / 1000. * 180. / 3.14159;
 }
 
-void MDMTrace::GetOxfordWirePositions(double& x1,double& x2,double& x3,double& x4) {
+void MdmTrace::GetPositionAngleFirstWire(double& posX,
+                                         double& posY,
+                                         double& angX,
+                                         double& angY) const {
+  posX = blck2_.XO[0];
+  posY = blck2_.YO[0];
+  angX = blck2_.VXO[0] / 1000. * 180. / 3.14159;
+  angY = blck2_.VYO[0] / 1000. * 180. / 3.14159;
+}
+
+void MdmTrace::GetOxfordWirePositions(double& x1,
+                                      double& x2,
+                                      double& x3,
+                                      double& x4) {
   double oxfordWire1Pos = blck2_.XO[0];
   double oxfordWire1Ang = blck2_.VXO[0];
-  double tanAngle = tan(1e-3*oxfordWire1Ang);
+  double tanAngle = std::tan(1e-3 * oxfordWire1Ang);
 
   x1 = oxfordWire1Pos;
-  x2 = oxfordWire1Pos+tanAngle*oxfordWireSpacing_[0];
-  x3 = oxfordWire1Pos+tanAngle*(oxfordWireSpacing_[0]+oxfordWireSpacing_[1]);
-  x4 = oxfordWire1Pos+tanAngle*(oxfordWireSpacing_[0]+oxfordWireSpacing_[1]+oxfordWireSpacing_[2]);
+  x2 = oxfordWire1Pos + tanAngle * oxfordWireSpacing_[0];
+  x3 = oxfordWire1Pos + tanAngle * (oxfordWireSpacing_[0] + oxfordWireSpacing_[1]);
+  x4 = oxfordWire1Pos +
+       tanAngle * (oxfordWireSpacing_[0] + oxfordWireSpacing_[1] +
+                   oxfordWireSpacing_[2]);
 }
 
-double MDMTrace::GetFirstWireX() const{return blck2_.XO[0];}
-double MDMTrace::GetFirstWireY() const{return blck2_.YO[0];}
-double MDMTrace::GetFirstWireXAngle() const{return blck2_.VXO[0]/1000.*180./3.14159;}
-double MDMTrace::GetFirstWireYAngle() const{return blck2_.VYO[0]/1000.*180./3.14159;}
-
+double MdmTrace::GetFirstWireX() const { return blck2_.XO[0]; }
+double MdmTrace::GetFirstWireY() const { return blck2_.YO[0]; }
+double MdmTrace::GetFirstWireXAngle() const {
+  return blck2_.VXO[0] / 1000. * 180. / 3.14159;
+}
+double MdmTrace::GetFirstWireYAngle() const {
+  return blck2_.VYO[0] / 1000. * 180. / 3.14159;
+}

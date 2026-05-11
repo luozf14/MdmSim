@@ -2,6 +2,7 @@
 #define MdmSimEventAction_h 1
 
 #include "G4UserEventAction.hh"
+#include "MdmTrace.h"
 #include "globals.hh"
 
 /// Event action class
@@ -36,6 +37,7 @@ namespace MdmSim
         G4double fMdmAngle = 0.;
         G4double fFirstMultipoleProbe = 0.;
         G4double fDipoleProbe = 0.;
+        MdmTrace fMdmTrace;
     };
 
 }

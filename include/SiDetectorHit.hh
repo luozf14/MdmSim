@@ -38,6 +38,9 @@ namespace MdmSim
         void SetEnergyDeposit(G4double de) { fEnergyDeposit = de; };
         void SetTime(G4double t) { fTime = t; };
         void SetMass(G4double mass) { fMass = mass; };
+        void SetIonMassMeV(G4double mass) { fIonMassMeV = mass; };
+        void SetMassNumber(G4int massNumber) { fMassNumber = massNumber; };
+        void SetAtomicNumber(G4int atomicNumber) { fAtomicNumber = atomicNumber; };
         void SetCharge(G4double charge) { fCharge = charge; };
         void SetKineticEnergy(G4double e) { fKineticEnergy = e; };
         void SetGlobalPosition(G4ThreeVector xyz) { fGlobalPosition = xyz; };
@@ -50,6 +53,9 @@ namespace MdmSim
         G4double GetEnergyDeposit() const { return fEnergyDeposit; };
         G4double GetTime() const { return fTime; };
         G4double GetMass() const { return fMass; };
+        G4double GetIonMassMeV() const { return fIonMassMeV; };
+        G4int GetMassNumber() const { return fMassNumber; };
+        G4int GetAtomicNumber() const { return fAtomicNumber; };
         G4double GetCharge() const { return fCharge; };
         G4double GetKineticEnergy() const { return fKineticEnergy; };
         G4ThreeVector GetLocalMomentum() const { return fLocalMomentum; };
@@ -62,6 +68,9 @@ namespace MdmSim
         G4double fEnergyDeposit;
         G4double fTime;
         G4double fMass;
+        G4double fIonMassMeV;
+        G4int fMassNumber;
+        G4int fAtomicNumber;
         G4double fCharge;
         G4double fKineticEnergy;
         G4ThreeVector fGlobalPosition;

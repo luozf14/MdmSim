@@ -54,6 +54,9 @@ actual particle tracking through those interpolated fields.
 MdmSim does not generate magnetic-field maps by itself. Generate them with
 [MDMTrace](https://github.com/luozf14/MDMTrace), then copy the resulting binary
 maps into this repository's `field/` directory before running MdmSim.
+MDMTrace may use AME2020 masses when tuning the magnet settings and generating
+the maps. MdmSim does not read the AME2020 table; Geant4's ion definition is the
+mass source used during tracking.
 
 The default field maps live in:
 
@@ -216,6 +219,9 @@ comparison. The Geant4 trajectory uses the field maps; the legacy branches give
 the independent RAYTRACE result for the same event stream. This makes it easier
 to validate the map coordinates, field scaling, PPAC projection, and focal-plane
 comparison.
+For consistency, the embedded legacy RAYTRACE call receives the same Geant4 ion
+mass and charge state used by the field-map tracking, converted internally to
+RAYTRACE's `PMASS` convention.
 
 The comparison macro is:
 

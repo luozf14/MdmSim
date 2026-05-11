@@ -4,7 +4,7 @@
 #include "SiDetectorHit.hh"
 #include "PpacHit.hh"
 
-#include "MdmTrace.hh"
+#include "MdmTrace.h"
 
 #include "G4SDManager.hh"
 #include "G4Event.hh"
@@ -13,6 +13,21 @@
 #include "Randomize.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4UnitsTable.hh"
+
+#include <cmath>
+
+namespace
+{
+    MdmIon BuildMdmIonFromHit(const MdmSim::SiDetectorHit &hit)
+    {
+        MdmIon ion;
+        ion.massNumber = hit.GetMassNumber();
+        ion.atomicNumber = hit.GetAtomicNumber();
+        ion.chargeState = static_cast<int>(std::lround(hit.GetCharge()));
+        ion.ionMassMeV = hit.GetIonMassMeV();
+        return ion;
+    }
+}
 
 namespace MdmSim
 {
@@ -42,11 +57,8 @@ namespace MdmSim
         fHCID_Ppac1 = sdManager->GetCollectionID("Ppac1HitsCollection");
         fHCID_Ppac2 = sdManager->GetCollectionID("Ppac2HitsCollection");
 
-        MDMTrace *mdm = MDMTrace::Instance();
-        mdm->SetMDMAngle(fMdmAngle); // deg
-        mdm->SetMDMProbe(fDipoleProbe, fFirstMultipoleProbe);
-        mdm->SetScatteredMass(1);   // ALWAYS
-        mdm->SetScatteredCharge(1); // ALWAYS
+        fMdmTrace.SetMdmAngle(fMdmAngle); // deg
+        fMdmTrace.SetMdmProbe(fDipoleProbe, fFirstMultipoleProbe);
     }
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -117,18 +129,16 @@ namespace MdmSim
                     G4ThreeVector direction = momentum / momentum.mag();
                     G4double xAngle = std::atan(direction.x() / direction.z()) * 180. / M_PI;
                     G4double yAngle = std::atan(direction.y() / std::sqrt(std::pow(direction.x(), 2.) + std::pow(direction.z(), 2.))) * 180. / M_PI;
-                    MDMTrace *mdm = MDMTrace::Instance();
-                    mdm->SetScatteredAngle(xAngle, yAngle);
-                    mdm->SetScatteredMass((*hcSlit)[i]->GetMass());
-                    mdm->SetScatteredCharge((*hcSlit)[i]->GetCharge());
-                    mdm->SetScatteredEnergy((*hcSlit)[i]->GetKineticEnergy());
-                    mdm->SendRay();
-                    const G4double legacyPosX = mdm->GetFirstWireX() * 10.;
-                    const G4double legacyPosY = mdm->GetFirstWireY() * 10.;
+                    fMdmTrace.SetScatteredAngle(xAngle, yAngle);
+                    fMdmTrace.SetScatteredIon(BuildMdmIonFromHit(*(*hcSlit)[i]));
+                    fMdmTrace.SetScatteredEnergy((*hcSlit)[i]->GetKineticEnergy());
+                    fMdmTrace.SendRay();
+                    const G4double legacyPosX = fMdmTrace.GetFirstWireX() * 10.;
+                    const G4double legacyPosY = fMdmTrace.GetFirstWireY() * 10.;
                     mdmPosX += legacyPosX;
                     mdmPosY += legacyPosY;
-                    mdmAngX += mdm->GetFirstWireXAngle();
-                    mdmAngY += mdm->GetFirstWireYAngle();
+                    mdmAngX += fMdmTrace.GetFirstWireXAngle();
+                    mdmAngY += fMdmTrace.GetFirstWireYAngle();
                     if (std::abs(legacyPosX) < 200. && std::abs(legacyPosY) < 50.)
                     {
                         slitHitTransmitted = true;
@@ -150,16 +160,14 @@ namespace MdmSim
                     G4ThreeVector direction = momentum / momentum.mag();
                     G4double xAngle = std::atan(direction.x() / direction.z()) * 180. / M_PI;
                     G4double yAngle = std::atan(direction.y() / std::sqrt(std::pow(direction.x(), 2.) + std::pow(direction.z(), 2.))) * 180. / M_PI;
-                    MDMTrace *mdm = MDMTrace::Instance();
-                    mdm->SetScatteredAngle(xAngle, yAngle);
-                    mdm->SetScatteredMass((*hcSlit)[i]->GetMass());
-                    mdm->SetScatteredCharge((*hcSlit)[i]->GetCharge());
-                    mdm->SetScatteredEnergy((*hcSlit)[i]->GetKineticEnergy());
-                    mdm->SendRay();
-                    mdmPosX = mdm->GetFirstWireX() * 10.;
-                    mdmPosY = mdm->GetFirstWireY() * 10.;
-                    mdmAngX = mdm->GetFirstWireXAngle();
-                    mdmAngY = mdm->GetFirstWireYAngle();
+                    fMdmTrace.SetScatteredAngle(xAngle, yAngle);
+                    fMdmTrace.SetScatteredIon(BuildMdmIonFromHit(*(*hcSlit)[i]));
+                    fMdmTrace.SetScatteredEnergy((*hcSlit)[i]->GetKineticEnergy());
+                    fMdmTrace.SendRay();
+                    mdmPosX = fMdmTrace.GetFirstWireX() * 10.;
+                    mdmPosY = fMdmTrace.GetFirstWireY() * 10.;
+                    mdmAngX = fMdmTrace.GetFirstWireXAngle();
+                    mdmAngY = fMdmTrace.GetFirstWireYAngle();
                     itTimes = 1;
                 }
             }
