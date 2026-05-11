@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iomanip>
 #include <sstream>
 #include <stdexcept>
 
@@ -118,6 +119,7 @@ namespace MdmSim
             !NearlyEqual(map.h.mdm_multipole_probe, multipoleProbe))
         {
             std::ostringstream message;
+            message << std::setprecision(17);
             message << "field map probe metadata mismatch for " << map.h.magnet
                     << ": map dipole=" << map.h.mdm_dipole_probe
                     << ", map multipole=" << map.h.mdm_multipole_probe
