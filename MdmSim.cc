@@ -79,6 +79,7 @@ int main(int argc, char **argv)
     detectorParameters["UseDeltaE"] = config["UseDeltaE"].get<G4bool>();
     detectorParameters["SiDetectorAngleInDeg"] = config["SiDetectorAngleInDeg"].get<G4double>();
     detectorParameters["MdmAngleInDeg"] = config["MdmAngleInDeg"].get<G4double>();
+    detectorParameters["BeamCharge"] = primaryParameters["BeamCharge"];
     detectorParameters["FirstMultipoleProbe"] = config["FirstMultipoleProbe"].get<G4double>();
     detectorParameters["DipoleProbe"] = config["DipoleProbe"].get<G4double>();
     detectorParameters["PpacVacuumInTorr"] = config["PpacVacuumInTorr"].get<G4double>();
@@ -96,6 +97,7 @@ int main(int argc, char **argv)
     eventParameters["MdmAngleInDeg"] = config["MdmAngleInDeg"].get<G4double>();
     eventParameters["FirstMultipoleProbe"] = config["FirstMultipoleProbe"].get<G4double>();
     eventParameters["DipoleProbe"] = config["DipoleProbe"].get<G4double>();
+    eventParameters["BeamCharge"] = primaryParameters["BeamCharge"];
 
     std::map<std::string, std::variant<G4int, std::map<std::string, G4double>>> actionInitParameters; // parameters for ActionInitialization
     actionInitParameters["ProcessNumber"] = processNumber;

@@ -148,9 +148,11 @@ Configuration keys:
 - `ProcessNumber`: output index. `0` writes `SimData~0.root`.
 - `BeamZ`: atomic number of the primary ion. `6` means carbon.
 - `BeamA`: mass number of the primary ion. `12` with `BeamZ = 6` gives `12C`.
-- `BeamCharge`: charge state used for Geant4 tracking and legacy MDMTrace
-  comparison. For example, `BeamZ = 6`, `BeamA = 12`, and `BeamCharge = 5`
-  gives `12C5+`.
+- `BeamCharge`: integer ion charge state used for MDM magnetic transport and
+  legacy MDMTrace comparison. For example, `BeamZ = 6`, `BeamA = 12`, and
+  `BeamCharge = 5` gives `12C5+`. The MDM field managers use this configured
+  charge state explicitly so Geant4 effective ion charges used by EM loss
+  models do not change the spectrometer rigidity.
 - `BeamEnergyInMeV`: total kinetic energy of the primary ion in MeV.
 - `TargetRotationAngleInDeg`: target rotation angle in degrees.
 - `TargetThicknessInMgCm2`: target areal thickness in mg/cm2.
@@ -219,9 +221,9 @@ comparison. The Geant4 trajectory uses the field maps; the legacy branches give
 the independent RAYTRACE result for the same event stream. This makes it easier
 to validate the map coordinates, field scaling, PPAC projection, and focal-plane
 comparison.
-For consistency, the embedded legacy RAYTRACE call receives the same Geant4 ion
-mass and charge state used by the field-map tracking, converted internally to
-RAYTRACE's `PMASS` convention.
+For consistency, the embedded legacy RAYTRACE call receives the Geant4 ion mass
+and the configured MDM magnetic-transport charge state used by the field-map
+tracking, converted internally to RAYTRACE's `PMASS` convention.
 
 The comparison macro is:
 

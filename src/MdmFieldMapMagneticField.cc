@@ -14,8 +14,9 @@
 namespace
 {
     constexpr double kProbeTolerance = 2.0e-6;
-    // RAYTRACE generated the map values with C = 3.0e10 cm/s; Geant4 uses
-    // the exact c_light in its magnetic equation of motion.
+    // RAYTRACE uses C = 3.0e10 cm/s exactly when converting B rho to field.
+    // Keep the maps in physical Tesla and only compensate that convention
+    // against Geant4's exact c_light.
     const G4double kRaytraceToGeantFieldScale = (300.0 * mm / ns) / c_light;
 
     double ToRadians(double degrees)

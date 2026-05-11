@@ -18,12 +18,12 @@
 
 namespace
 {
-    MdmIon BuildMdmIonFromHit(const MdmSim::SiDetectorHit &hit)
+    MdmIon BuildMdmIonFromHit(const MdmSim::SiDetectorHit &hit, G4int chargeState)
     {
         MdmIon ion;
         ion.massNumber = hit.GetMassNumber();
         ion.atomicNumber = hit.GetAtomicNumber();
-        ion.chargeState = static_cast<int>(std::lround(hit.GetCharge()));
+        ion.chargeState = chargeState;
         ion.ionMassMeV = hit.GetIonMassMeV();
         return ion;
     }
@@ -130,7 +130,7 @@ namespace MdmSim
                     G4double xAngle = std::atan(direction.x() / direction.z()) * 180. / M_PI;
                     G4double yAngle = std::atan(direction.y() / std::sqrt(std::pow(direction.x(), 2.) + std::pow(direction.z(), 2.))) * 180. / M_PI;
                     fMdmTrace.SetScatteredAngle(xAngle, yAngle);
-                    fMdmTrace.SetScatteredIon(BuildMdmIonFromHit(*(*hcSlit)[i]));
+                    fMdmTrace.SetScatteredIon(BuildMdmIonFromHit(*(*hcSlit)[i], fBeamCharge));
                     fMdmTrace.SetScatteredEnergy((*hcSlit)[i]->GetKineticEnergy());
                     fMdmTrace.SendRay();
                     const G4double legacyPosX = fMdmTrace.GetFirstWireX() * 10.;
@@ -161,7 +161,7 @@ namespace MdmSim
                     G4double xAngle = std::atan(direction.x() / direction.z()) * 180. / M_PI;
                     G4double yAngle = std::atan(direction.y() / std::sqrt(std::pow(direction.x(), 2.) + std::pow(direction.z(), 2.))) * 180. / M_PI;
                     fMdmTrace.SetScatteredAngle(xAngle, yAngle);
-                    fMdmTrace.SetScatteredIon(BuildMdmIonFromHit(*(*hcSlit)[i]));
+                    fMdmTrace.SetScatteredIon(BuildMdmIonFromHit(*(*hcSlit)[i], fBeamCharge));
                     fMdmTrace.SetScatteredEnergy((*hcSlit)[i]->GetKineticEnergy());
                     fMdmTrace.SendRay();
                     mdmPosX = fMdmTrace.GetFirstWireX() * 10.;
@@ -832,6 +832,11 @@ namespace MdmSim
             {
                 fDipoleProbe = it.second;
                 printf("Set: Dipole probe = %.4f\n", fDipoleProbe);
+            }
+            else if (it.first == "BeamCharge")
+            {
+                fBeamCharge = static_cast<G4int>(std::lround(it.second));
+                printf("Set: MDMTrace charge state = %d e\n", fBeamCharge);
             }
             else if (it.first == "MdmAngleInDeg")
             {

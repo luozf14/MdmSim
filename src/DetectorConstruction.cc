@@ -3,11 +3,11 @@
 #include "PpacSD.hh"
 #include "TrackingPlaneSD.hh"
 #include "Constants.hh"
+#include "MdmChargeStateMagneticEqRhs.hh"
 
 #include "G4FieldManager.hh"
 #include "G4ChordFinder.hh"
 #include "G4ClassicalRK4.hh"
-#include "G4Mag_UsualEqRhs.hh"
 #include "G4TransportationManager.hh"
 #include "G4Field.hh"
 #include "G4AutoDelete.hh"
@@ -399,7 +399,7 @@ namespace MdmSim
         fFirstMultipoleField = MdmFieldMapMagneticField::CreateMultipole(fFieldMapPaths.multipole, fMdmAngle, fMultipoleFieldPos, fDipoleProbe, fFirstMultipoleProbe);
         fFirstMultipoleFieldMgr = new G4FieldManager();
         fFirstMultipoleFieldMgr->SetDetectorField(fFirstMultipoleField);
-        auto *firstMultipoleEquation = new G4Mag_UsualEqRhs(fFirstMultipoleField);
+        auto *firstMultipoleEquation = new MdmChargeStateMagneticEqRhs(fFirstMultipoleField, fBeamCharge);
         auto *firstMultipoleStepper = new G4ClassicalRK4(firstMultipoleEquation);
         auto *firstMultipoleChordFinder = new G4ChordFinder(fFirstMultipoleField, 0.5 * mm, firstMultipoleStepper);
         fFirstMultipoleFieldMgr->SetChordFinder(firstMultipoleChordFinder);
@@ -410,7 +410,7 @@ namespace MdmSim
         fDipoleField = MdmFieldMapMagneticField::CreateDipole(fFieldMapPaths, fMdmAngle, fDipoleProbe, fFirstMultipoleProbe);
         fDipoleFieldMgr = new G4FieldManager();
         fDipoleFieldMgr->SetDetectorField(fDipoleField);
-        auto *dipoleEquation = new G4Mag_UsualEqRhs(fDipoleField);
+        auto *dipoleEquation = new MdmChargeStateMagneticEqRhs(fDipoleField, fBeamCharge);
         auto *dipoleStepper = new G4ClassicalRK4(dipoleEquation);
         auto *dipoleChordFinder = new G4ChordFinder(fDipoleField, 0.5 * mm, dipoleStepper);
         fDipoleFieldMgr->SetChordFinder(dipoleChordFinder);
@@ -460,6 +460,11 @@ namespace MdmSim
             {
                 fMdmAngle = it.second * deg;
                 G4cout << "Set: MDM angle = " << G4BestUnit(fMdmAngle, "Angle") << G4endl;
+            }
+            else if (it.first == "BeamCharge")
+            {
+                fBeamCharge = it.second;
+                G4cout << "Set: MDM magnetic transport charge state = " << fBeamCharge << " e" << G4endl;
             }
             else if (it.first == "FirstMultipoleProbe")
             {

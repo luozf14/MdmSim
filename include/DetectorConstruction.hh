@@ -43,6 +43,7 @@ namespace MdmSim
         G4double fSiDetectorAngle;
 
         G4double fMdmAngle;
+        G4double fBeamCharge = 0.;
 
         G4double fFirstMultipoleProbe;
         G4double fDipoleProbe;

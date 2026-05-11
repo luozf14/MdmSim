@@ -37,6 +37,7 @@ namespace MdmSim
         G4double fMdmAngle = 0.;
         G4double fFirstMultipoleProbe = 0.;
         G4double fDipoleProbe = 0.;
+        G4int fBeamCharge = 0;
         MdmTrace fMdmTrace;
     };
 
