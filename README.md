@@ -47,7 +47,7 @@ actual particle tracking through those interpolated fields.
 
 ## Demo
 
-<td><img src="figures/Demo.png" width="420" alt="MdmSim geometry demo"/></td>
+<td><img src="figures/Demo.png" width="800" alt="MdmSim geometry demo"/></td>
 
 ## Magnetic Field Maps
 
