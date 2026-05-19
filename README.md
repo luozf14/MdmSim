@@ -152,6 +152,8 @@ MdmSim requires a JSON configuration file. The default example is
     "BeamA": 12,
     "BeamCharge": 5,
     "BeamEnergyInMeV": 15.0,
+    "ReactionEnabled": false,
+    "ReactionProbability": 1.0,
     "TargetRotationAngleInDeg": 0.0,
     "TargetThicknessInMgCm2": 159.0,
     "TdcResolutionInNs": 0.25,
@@ -183,8 +185,50 @@ Configuration keys:
   legacy MDMTrace comparison. For example, `BeamZ = 6`, `BeamA = 12`, and
   `BeamCharge = 5` gives `12C5+`. The MDM field managers use this configured
   charge state explicitly so Geant4 effective ion charges used by EM loss
-  models do not change the spectrometer rigidity.
+  models do not change the spectrometer rigidity. In reaction mode, the MDM
+  field managers use each track's configured dynamic charge instead, because
+  multiple outgoing products can enter the spectrometer.
 - `BeamEnergyInMeV`: total kinetic energy of the primary ion in MeV.
+- `ReactionEnabled`: enables forced two-body reaction generation in the target.
+  The default is `false`, which preserves ordinary primary-beam tracking.
+  When enabled, add the reaction channel keys below. MdmSim samples one
+  reaction depth in the target for each selected matching primary beam ion,
+  kills the parent after the reaction, and tracks both outgoing products.
+  Unselected primaries pass through the target and can be transported through
+  MDM as the original beam. Product charge states are set manually from the
+  config; any charged product that reaches the slit or PPACs is analyzed with
+  its own `Z`, `A`, Geant4 mass, kinetic energy, and charge state.
+- `ReactionProbability`: probability that a matching primary beam ion reacts
+  in the target. `1.0` forces every matching primary to react; values below
+  `1.0` allow unreacted primaries to pass through.
+- `ReactionTargetZ`, `ReactionTargetA`: target nucleus used by the two-body
+  kinematics.
+- `ReactionLightZ`, `ReactionLightA`, `ReactionLightCharge`: light outgoing
+  product and its manual charge state.
+- `ReactionHeavyZ`, `ReactionHeavyA`, `ReactionHeavyCharge`: heavy outgoing
+  product and its manual charge state.
+- `ReactionLightExMeV`, `ReactionHeavyExMeV`: optional excitation energies for
+  the two products in MeV; omitted values default to `0`.
+
+Example reaction block:
+
+```json
+{
+    "ReactionEnabled": true,
+    "ReactionProbability": 1.0,
+    "ReactionTargetZ": 1,
+    "ReactionTargetA": 1,
+    "ReactionLightZ": 1,
+    "ReactionLightA": 1,
+    "ReactionLightCharge": 1,
+    "ReactionHeavyZ": 6,
+    "ReactionHeavyA": 12,
+    "ReactionHeavyCharge": 5,
+    "ReactionLightExMeV": 0.0,
+    "ReactionHeavyExMeV": 0.0
+}
+```
+
 - `TargetRotationAngleInDeg`: target rotation angle in degrees.
 - `TargetThicknessInMgCm2`: target areal thickness in mg/cm2.
 - `TdcResolutionInNs`: TDC time resolution in ns.

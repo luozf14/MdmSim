@@ -18,12 +18,12 @@
 
 namespace
 {
-    MdmIon BuildMdmIonFromHit(const MdmSim::SiDetectorHit &hit, G4int chargeState)
+    MdmIon BuildMdmIonFromHit(const MdmSim::SiDetectorHit &hit)
     {
         MdmIon ion;
         ion.massNumber = hit.GetMassNumber();
         ion.atomicNumber = hit.GetAtomicNumber();
-        ion.chargeState = chargeState;
+        ion.chargeState = static_cast<int>(std::lround(hit.GetCharge()));
         ion.ionMassMeV = hit.GetIonMassMeV();
         return ion;
     }
@@ -68,14 +68,14 @@ namespace MdmSim
         Analysis *analysis = Analysis::Instance();
 
         G4HCofThisEvent *hce = aEvent->GetHCofThisEvent();
-        if (!hce)
-        {
-            G4ExceptionDescription msg;
-            msg << "No hits collection of this event found.\n";
-            G4Exception("\n---> EventAction::EndOfEventAction()",
-                        "MdmSimCode01", JustWarning, msg);
-            return;
-        }
+        // if (!hce)
+        // {
+        //     G4ExceptionDescription msg;
+        //     msg << "No hits collection of this event found.\n";
+        //     G4Exception("\n---> EventAction::EndOfEventAction()",
+        //                 "MdmSimCode01", JustWarning, msg);
+        //     return;
+        // }
 
         //
         // Slit
@@ -94,10 +94,10 @@ namespace MdmSim
         std::vector<G4double> mdmTraceAngleY;
         if (nofHitsSlit == 0)
         {
-            G4ExceptionDescription msg;
-            msg << "No hits in slit of this event found.\n";
-            G4Exception("\n---> EventAction::EndOfEventAction()",
-                        "MdmSimCode01", JustWarning, msg);
+            // G4ExceptionDescription msg;
+            // msg << "No hits in slit of this event found.\n";
+            // G4Exception("\n---> EventAction::EndOfEventAction()",
+            //             "MdmSimCode01", JustWarning, msg);
             slitHitAccepted = false;
             slitHitTransmitted = false;
             slitHitTrackId.push_back(-999);
@@ -130,7 +130,7 @@ namespace MdmSim
                     G4double xAngle = std::atan(direction.x() / direction.z()) * 180. / M_PI;
                     G4double yAngle = std::atan(direction.y() / std::sqrt(std::pow(direction.x(), 2.) + std::pow(direction.z(), 2.))) * 180. / M_PI;
                     fMdmTrace.SetScatteredAngle(xAngle + fMdmAngle, yAngle);
-                    fMdmTrace.SetScatteredIon(BuildMdmIonFromHit(*(*hcSlit)[i], fBeamCharge));
+                    fMdmTrace.SetScatteredIon(BuildMdmIonFromHit(*(*hcSlit)[i]));
                     fMdmTrace.SetScatteredEnergy((*hcSlit)[i]->GetKineticEnergy());
                     fMdmTrace.SendRay();
                     const G4double legacyPosX = fMdmTrace.GetFirstWireX() * 10.;
@@ -161,7 +161,7 @@ namespace MdmSim
                     G4double xAngle = std::atan(direction.x() / direction.z()) * 180. / M_PI;
                     G4double yAngle = std::atan(direction.y() / std::sqrt(std::pow(direction.x(), 2.) + std::pow(direction.z(), 2.))) * 180. / M_PI;
                     fMdmTrace.SetScatteredAngle(xAngle + fMdmAngle, yAngle);
-                    fMdmTrace.SetScatteredIon(BuildMdmIonFromHit(*(*hcSlit)[i], fBeamCharge));
+                    fMdmTrace.SetScatteredIon(BuildMdmIonFromHit(*(*hcSlit)[i]));
                     fMdmTrace.SetScatteredEnergy((*hcSlit)[i]->GetKineticEnergy());
                     fMdmTrace.SendRay();
                     mdmPosX = fMdmTrace.GetFirstWireX() * 10.;
@@ -836,7 +836,7 @@ namespace MdmSim
             else if (it.first == "BeamCharge")
             {
                 fBeamCharge = static_cast<G4int>(std::lround(it.second));
-                printf("Set: MDMTrace charge state = %d e\n", fBeamCharge);
+                printf("Set: Primary charge state = %d e; MDMTrace uses each slit hit charge\n", fBeamCharge);
             }
             else if (it.first == "MdmAngleInDeg")
             {

@@ -33,6 +33,40 @@
 #include "G4UnitsTable.hh"
 #include "G4UserLimits.hh"
 #include "G4SDManager.hh"
+#include "G4ParticleDefinition.hh"
+#include "G4ParticleTable.hh"
+#include "G4IonTable.hh"
+#include "G4NucleiProperties.hh"
+
+#include <cmath>
+#include <vector>
+
+namespace
+{
+    G4double GetMdmSimIonMass(G4int z, G4int a, G4double excitationEnergy)
+    {
+        auto *particleTable = G4ParticleTable::GetParticleTable();
+        if (excitationEnergy == 0.)
+        {
+            if (z == 0 && a == 1)
+                return particleTable->FindParticle("neutron")->GetPDGMass();
+            if (z == 1 && a == 1)
+                return particleTable->FindParticle("proton")->GetPDGMass();
+            if (z == 1 && a == 2)
+                return particleTable->FindParticle("deuteron")->GetPDGMass();
+            if (z == 1 && a == 3)
+                return particleTable->FindParticle("triton")->GetPDGMass();
+            if (z == 2 && a == 3)
+                return particleTable->FindParticle("He3")->GetPDGMass();
+            if (z == 2 && a == 4)
+                return particleTable->FindParticle("alpha")->GetPDGMass();
+        }
+
+        if (z == 0)
+            return particleTable->FindParticle("neutron")->GetPDGMass() + excitationEnergy;
+        return G4NucleiProperties::GetNuclearMass(a, z) + excitationEnergy;
+    }
+}
 
 namespace MdmSim
 {
@@ -395,11 +429,31 @@ namespace MdmSim
         SetSensitiveDetector("LegacyFocalPlaneLogical", legacyFocalPlaneSD, true);
 
         // Magnetic field ----------------------------------------------------------
+        std::vector<MdmChargeOverride> chargeOverrides;
+        if (fReactionEnabled)
+        {
+            auto addChargeOverride = [&](G4int z, G4int a, G4double excitationEnergy, G4double chargeState) {
+                const G4double mass = GetMdmSimIonMass(z, a, excitationEnergy);
+                chargeOverrides.push_back({mass, chargeState});
+                G4cout << "Set: MDM magnetic transport override for "
+                       << "Z=" << z << " A=" << a << " = "
+                       << chargeState << " e" << G4endl;
+            };
+
+            addChargeOverride(fBeamZ, fBeamA, 0., fBeamCharge);
+            addChargeOverride(fReactionLightZ, fReactionLightA,
+                              fReactionLightEx, fReactionLightCharge);
+            addChargeOverride(fReactionHeavyZ, fReactionHeavyA,
+                              fReactionHeavyEx, fReactionHeavyCharge);
+        }
+
         // First multipole
         fFirstMultipoleField = MdmFieldMapMagneticField::CreateMultipole(fFieldMapPaths.multipole, fMdmAngle, fMultipoleFieldPos, fDipoleProbe, fFirstMultipoleProbe);
         fFirstMultipoleFieldMgr = new G4FieldManager();
         fFirstMultipoleFieldMgr->SetDetectorField(fFirstMultipoleField);
-        auto *firstMultipoleEquation = new MdmChargeStateMagneticEqRhs(fFirstMultipoleField, fBeamCharge);
+        auto *firstMultipoleEquation = fReactionEnabled
+                                           ? new MdmChargeStateMagneticEqRhs(fFirstMultipoleField, fBeamCharge, chargeOverrides)
+                                           : new MdmChargeStateMagneticEqRhs(fFirstMultipoleField, fBeamCharge);
         auto *firstMultipoleStepper = new G4ClassicalRK4(firstMultipoleEquation);
         auto *firstMultipoleChordFinder = new G4ChordFinder(fFirstMultipoleField, 0.5 * mm, firstMultipoleStepper);
         fFirstMultipoleFieldMgr->SetChordFinder(firstMultipoleChordFinder);
@@ -410,7 +464,9 @@ namespace MdmSim
         fDipoleField = MdmFieldMapMagneticField::CreateDipole(fFieldMapPaths, fMdmAngle, fDipoleProbe, fFirstMultipoleProbe);
         fDipoleFieldMgr = new G4FieldManager();
         fDipoleFieldMgr->SetDetectorField(fDipoleField);
-        auto *dipoleEquation = new MdmChargeStateMagneticEqRhs(fDipoleField, fBeamCharge);
+        auto *dipoleEquation = fReactionEnabled
+                                   ? new MdmChargeStateMagneticEqRhs(fDipoleField, fBeamCharge, chargeOverrides)
+                                   : new MdmChargeStateMagneticEqRhs(fDipoleField, fBeamCharge);
         auto *dipoleStepper = new G4ClassicalRK4(dipoleEquation);
         auto *dipoleChordFinder = new G4ChordFinder(fDipoleField, 0.5 * mm, dipoleStepper);
         fDipoleFieldMgr->SetChordFinder(dipoleChordFinder);
@@ -427,6 +483,13 @@ namespace MdmSim
         G4cout << "Set: Dipole entrance field map = " << fFieldMapPaths.dipoleEntrance << G4endl;
         G4cout << "Set: Dipole sector field map = " << fFieldMapPaths.dipoleSector << G4endl;
         G4cout << "Set: Dipole exit field map = " << fFieldMapPaths.dipoleExit << G4endl;
+    }
+
+    //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+    G4double DetectorConstruction::GetTargetThicknessLength() const
+    {
+        return fTargetThickness / (2.253 * g / cm3);
     }
 
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -461,10 +524,55 @@ namespace MdmSim
                 fMdmAngle = it.second * deg;
                 G4cout << "Set: MDM angle = " << G4BestUnit(fMdmAngle, "Angle") << G4endl;
             }
+            else if (it.first == "BeamZ")
+            {
+                fBeamZ = static_cast<G4int>(std::lround(it.second));
+            }
+            else if (it.first == "BeamA")
+            {
+                fBeamA = static_cast<G4int>(std::lround(it.second));
+            }
             else if (it.first == "BeamCharge")
             {
                 fBeamCharge = it.second;
                 G4cout << "Set: MDM magnetic transport charge state = " << fBeamCharge << " e" << G4endl;
+            }
+            else if (it.first == "ReactionEnabled")
+            {
+                fReactionEnabled = it.second != 0.;
+                G4cout << "Set: Reaction mode = " << (fReactionEnabled ? "enabled" : "disabled") << G4endl;
+            }
+            else if (it.first == "ReactionLightZ")
+            {
+                fReactionLightZ = static_cast<G4int>(std::lround(it.second));
+            }
+            else if (it.first == "ReactionLightA")
+            {
+                fReactionLightA = static_cast<G4int>(std::lround(it.second));
+            }
+            else if (it.first == "ReactionLightCharge")
+            {
+                fReactionLightCharge = it.second;
+            }
+            else if (it.first == "ReactionLightExMeV")
+            {
+                fReactionLightEx = it.second * MeV;
+            }
+            else if (it.first == "ReactionHeavyZ")
+            {
+                fReactionHeavyZ = static_cast<G4int>(std::lround(it.second));
+            }
+            else if (it.first == "ReactionHeavyA")
+            {
+                fReactionHeavyA = static_cast<G4int>(std::lround(it.second));
+            }
+            else if (it.first == "ReactionHeavyCharge")
+            {
+                fReactionHeavyCharge = it.second;
+            }
+            else if (it.first == "ReactionHeavyExMeV")
+            {
+                fReactionHeavyEx = it.second * MeV;
             }
             else if (it.first == "FirstMultipoleProbe")
             {

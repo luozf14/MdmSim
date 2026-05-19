@@ -1,10 +1,12 @@
 #include "DetectorConstruction.hh"
 #include "ActionInitialization.hh"
+#include "ReactionPhysics.hh"
 #include "nlohmann/json.hpp"
 
 #include "G4RunManagerFactory.hh"
 #include "G4SteppingVerbose.hh"
 #include "G4UImanager.hh"
+#include "G4VModularPhysicsList.hh"
 #include "QBBC.hh"
 
 #include "G4VisExecutive.hh"
@@ -15,6 +17,7 @@
 #include <filesystem>
 #include <fstream>
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <variant>
 
@@ -39,6 +42,15 @@ namespace
     {
         const std::filesystem::path configured = config.contains(key) ? config[key].get<std::string>() : defaultName;
         return ResolvePath(mapDirectory, configured).string();
+    }
+
+    G4double RequiredReactionValue(const json &config, const char *key)
+    {
+        if (!config.contains(key))
+        {
+            throw std::runtime_error(std::string("ReactionEnabled requires config key: ") + key);
+        }
+        return config.at(key).get<G4double>();
     }
 }
 
@@ -66,6 +78,7 @@ int main(int argc, char **argv)
     G4bool interactive = config["Interactive"].get<G4bool>();
     G4String macroName = config["MarcoName"].get<std::string>();
     G4int processNumber = config["ProcessNumber"].get<G4int>();
+    G4bool reactionEnabled = config.value("ReactionEnabled", false);
 
     std::map<std::string, G4double> primaryParameters; // parameters for PrimaryGeneratorAction
     primaryParameters["BeamZ"] = config.value("BeamZ", 6.0);
@@ -80,7 +93,10 @@ int main(int argc, char **argv)
     detectorParameters["UseDeltaE"] = config["UseDeltaE"].get<G4bool>();
     detectorParameters["SiDetectorAngleInDeg"] = config["SiDetectorAngleInDeg"].get<G4double>();
     detectorParameters["MdmAngleInDeg"] = config["MdmAngleInDeg"].get<G4double>();
+    detectorParameters["BeamZ"] = primaryParameters["BeamZ"];
+    detectorParameters["BeamA"] = primaryParameters["BeamA"];
     detectorParameters["BeamCharge"] = primaryParameters["BeamCharge"];
+    detectorParameters["ReactionEnabled"] = reactionEnabled ? 1.0 : 0.0;
     detectorParameters["FirstMultipoleProbe"] = config["FirstMultipoleProbe"].get<G4double>();
     detectorParameters["DipoleProbe"] = config["DipoleProbe"].get<G4double>();
     detectorParameters["PpacVacuumInTorr"] = config["PpacVacuumInTorr"].get<G4double>();
@@ -99,6 +115,34 @@ int main(int argc, char **argv)
     eventParameters["FirstMultipoleProbe"] = config["FirstMultipoleProbe"].get<G4double>();
     eventParameters["DipoleProbe"] = config["DipoleProbe"].get<G4double>();
     eventParameters["BeamCharge"] = primaryParameters["BeamCharge"];
+
+    std::map<std::string, G4double> reactionParameters;
+    if (reactionEnabled)
+    {
+        reactionParameters["BeamZ"] = primaryParameters["BeamZ"];
+        reactionParameters["BeamA"] = primaryParameters["BeamA"];
+        reactionParameters["BeamCharge"] = primaryParameters["BeamCharge"];
+        reactionParameters["ReactionProbability"] = config.value("ReactionProbability", 1.0);
+        reactionParameters["TargetZ"] = RequiredReactionValue(config, "ReactionTargetZ");
+        reactionParameters["TargetA"] = RequiredReactionValue(config, "ReactionTargetA");
+        reactionParameters["LightProductZ"] = RequiredReactionValue(config, "ReactionLightZ");
+        reactionParameters["LightProductA"] = RequiredReactionValue(config, "ReactionLightA");
+        reactionParameters["LightProductCharge"] = RequiredReactionValue(config, "ReactionLightCharge");
+        reactionParameters["LightProductExMeV"] = config.value("ReactionLightExMeV", 0.0);
+        reactionParameters["HeavyProductZ"] = RequiredReactionValue(config, "ReactionHeavyZ");
+        reactionParameters["HeavyProductA"] = RequiredReactionValue(config, "ReactionHeavyA");
+        reactionParameters["HeavyProductCharge"] = RequiredReactionValue(config, "ReactionHeavyCharge");
+        reactionParameters["HeavyProductExMeV"] = config.value("ReactionHeavyExMeV", 0.0);
+
+        detectorParameters["ReactionLightZ"] = reactionParameters["LightProductZ"];
+        detectorParameters["ReactionLightA"] = reactionParameters["LightProductA"];
+        detectorParameters["ReactionLightCharge"] = reactionParameters["LightProductCharge"];
+        detectorParameters["ReactionLightExMeV"] = reactionParameters["LightProductExMeV"];
+        detectorParameters["ReactionHeavyZ"] = reactionParameters["HeavyProductZ"];
+        detectorParameters["ReactionHeavyA"] = reactionParameters["HeavyProductA"];
+        detectorParameters["ReactionHeavyCharge"] = reactionParameters["HeavyProductCharge"];
+        detectorParameters["ReactionHeavyExMeV"] = reactionParameters["HeavyProductExMeV"];
+    }
 
     std::map<std::string, std::variant<G4int, std::map<std::string, G4double>>> actionInitParameters; // parameters for ActionInitialization
     actionInitParameters["ProcessNumber"] = processNumber;
@@ -131,6 +175,12 @@ int main(int argc, char **argv)
     // Physics list
     G4VModularPhysicsList *physicsList = new QBBC;
     physicsList->SetVerboseLevel(0);
+    if (reactionEnabled)
+    {
+        auto *reactionPhysics = new ReactionPhysics;
+        reactionPhysics->SetReactionParams(reactionParameters);
+        physicsList->RegisterPhysics(reactionPhysics);
+    }
     runManager->SetUserInitialization(physicsList);
 
     // User action initialization
