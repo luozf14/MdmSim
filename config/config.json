@@ -12,7 +12,7 @@
     "UseDeltaE": false,
     "SiDetectorAngleInDeg": 90.0,
     "SiDetectorEnergyResolution": 0.1,
-    "MdmAngleInDeg": 0.0,
+    "MdmAngleInDeg": 10.0,
     "DipoleProbe": 2338.0077369999999,
     "FirstMultipoleProbe": 1659.9854929999999,
     "FieldMapDirectory": "../field",
