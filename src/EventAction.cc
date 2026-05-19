@@ -129,7 +129,7 @@ namespace MdmSim
                     G4ThreeVector direction = momentum / momentum.mag();
                     G4double xAngle = std::atan(direction.x() / direction.z()) * 180. / M_PI;
                     G4double yAngle = std::atan(direction.y() / std::sqrt(std::pow(direction.x(), 2.) + std::pow(direction.z(), 2.))) * 180. / M_PI;
-                    fMdmTrace.SetScatteredAngle(xAngle, yAngle);
+                    fMdmTrace.SetScatteredAngle(xAngle + fMdmAngle, yAngle);
                     fMdmTrace.SetScatteredIon(BuildMdmIonFromHit(*(*hcSlit)[i], fBeamCharge));
                     fMdmTrace.SetScatteredEnergy((*hcSlit)[i]->GetKineticEnergy());
                     fMdmTrace.SendRay();
@@ -160,7 +160,7 @@ namespace MdmSim
                     G4ThreeVector direction = momentum / momentum.mag();
                     G4double xAngle = std::atan(direction.x() / direction.z()) * 180. / M_PI;
                     G4double yAngle = std::atan(direction.y() / std::sqrt(std::pow(direction.x(), 2.) + std::pow(direction.z(), 2.))) * 180. / M_PI;
-                    fMdmTrace.SetScatteredAngle(xAngle, yAngle);
+                    fMdmTrace.SetScatteredAngle(xAngle + fMdmAngle, yAngle);
                     fMdmTrace.SetScatteredIon(BuildMdmIonFromHit(*(*hcSlit)[i], fBeamCharge));
                     fMdmTrace.SetScatteredEnergy((*hcSlit)[i]->GetKineticEnergy());
                     fMdmTrace.SendRay();

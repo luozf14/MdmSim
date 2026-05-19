@@ -191,7 +191,10 @@ Configuration keys:
 - `UseDeltaE`: enables or disables the dE silicon detector.
 - `SiDetectorAngleInDeg`: silicon telescope angle in degrees.
 - `SiDetectorEnergyResolution`: silicon detector energy resolution in percent.
-- `MdmAngleInDeg`: MDM spectrometer rotation angle in degrees.
+- `MdmAngleInDeg`: MDM spectrometer rotation angle in degrees. The primary
+  beam's horizontal angular distribution is centered on this value, so non-zero
+  MDM settings launch particles toward the rotated slit/collimator and
+  spectrometer field volumes.
 - `FirstMultipoleProbe`: multipole hall-probe value. This must match the field
   map metadata.
 - `DipoleProbe`: dipole hall-probe value. This must match the field-map

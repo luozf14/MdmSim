@@ -54,6 +54,8 @@ namespace MdmSim
             fBeamCharge = fBeamZ;
         if (params.find("BeamEnergyInMeV") != params.end())
             fBeamEnergy = params["BeamEnergyInMeV"] * MeV;
+        if (params.find("MdmAngleInDeg") != params.end())
+            fMdmAngle = params["MdmAngleInDeg"] * deg;
 
         if (fBeamZ <= 0 || fBeamA <= 0)
             throw std::runtime_error("BeamZ and BeamA must be positive");
@@ -85,7 +87,7 @@ namespace MdmSim
         }
         fParticleGun->SetParticleCharge(fBeamCharge * eplus);
 
-        G4double xAngle = G4RandFlat::shoot(-2. * deg, 2. * deg);
+        G4double xAngle = G4RandFlat::shoot(fMdmAngle - 2. * deg, fMdmAngle + 2. * deg);
         G4double yAngle = G4RandFlat::shoot(-2. * deg, 2. * deg);
         // G4double yAngle = 0.;
         G4ThreeVector direction(std::tan(xAngle), std::tan(yAngle) * std::sqrt(std::tan(xAngle) * std::tan(xAngle) + 1.), 1.);

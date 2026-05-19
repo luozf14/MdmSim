@@ -72,6 +72,7 @@ int main(int argc, char **argv)
     primaryParameters["BeamA"] = config.value("BeamA", 12.0);
     primaryParameters["BeamCharge"] = config.value("BeamCharge", primaryParameters["BeamZ"]);
     primaryParameters["BeamEnergyInMeV"] = config.value("BeamEnergyInMeV", 15.0);
+    primaryParameters["MdmAngleInDeg"] = config["MdmAngleInDeg"].get<G4double>();
 
     std::map<std::string, G4double> detectorParameters; // parameters for DectectorConstruction
     detectorParameters["TargetRotationAngleInDeg"] = config["TargetRotationAngleInDeg"].get<G4double>();

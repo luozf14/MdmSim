@@ -40,6 +40,7 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
     G4int fBeamA = 12;
     G4int fBeamCharge = 6;
     G4double fBeamEnergy = 15. * MeV;
+    G4double fMdmAngle = 0. * deg;
 };
 
 }
