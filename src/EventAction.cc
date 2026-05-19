@@ -53,7 +53,7 @@ namespace MdmSim
         fHCID_SiDetectorDeltaE = sdManager->GetCollectionID("SiDetectorDeltaEHitsCollection");
         fHCID_SiDetectorE = sdManager->GetCollectionID("SiDetectorEHitsCollection");
         fHCID_Slit = sdManager->GetCollectionID("SlitHitsCollection");
-        fHCID_LegacyFocalPlane = sdManager->GetCollectionID("LegacyFocalPlaneHitsCollection");
+        fHCID_RaytraceFocalPlane = sdManager->GetCollectionID("RaytraceFocalPlaneHitsCollection");
         fHCID_Ppac1 = sdManager->GetCollectionID("Ppac1HitsCollection");
         fHCID_Ppac2 = sdManager->GetCollectionID("Ppac2HitsCollection");
 
@@ -88,10 +88,10 @@ namespace MdmSim
         std::vector<G4double> slitHitLocalPosX;
         std::vector<G4double> slitHitLocalPosY;
         std::vector<G4double> slitHitLocalPosZ;
-        std::vector<G4double> mdmTracePositionX;
-        std::vector<G4double> mdmTracePositionY;
-        std::vector<G4double> mdmTraceAngleX;
-        std::vector<G4double> mdmTraceAngleY;
+        std::vector<G4double> raytracePositionX;
+        std::vector<G4double> raytracePositionY;
+        std::vector<G4double> raytraceAngleX;
+        std::vector<G4double> raytraceAngleY;
         if (nofHitsSlit == 0)
         {
             // G4ExceptionDescription msg;
@@ -104,10 +104,10 @@ namespace MdmSim
             slitHitLocalPosX.push_back(-999.);
             slitHitLocalPosY.push_back(-999.);
             slitHitLocalPosZ.push_back(-999.);
-            mdmTracePositionX.push_back(-999.);
-            mdmTracePositionY.push_back(-999.);
-            mdmTraceAngleX.push_back(-999.);
-            mdmTraceAngleY.push_back(-999.);
+            raytracePositionX.push_back(-999.);
+            raytracePositionY.push_back(-999.);
+            raytraceAngleX.push_back(-999.);
+            raytraceAngleY.push_back(-999.);
         }
         else
         {
@@ -133,13 +133,13 @@ namespace MdmSim
                     fMdmTrace.SetScatteredIon(BuildMdmIonFromHit(*(*hcSlit)[i]));
                     fMdmTrace.SetScatteredEnergy((*hcSlit)[i]->GetKineticEnergy());
                     fMdmTrace.SendRay();
-                    const G4double legacyPosX = fMdmTrace.GetFirstWireX() * 10.;
-                    const G4double legacyPosY = fMdmTrace.GetFirstWireY() * 10.;
-                    mdmPosX += legacyPosX;
-                    mdmPosY += legacyPosY;
+                    const G4double raytracePosX = fMdmTrace.GetFirstWireX() * 10.;
+                    const G4double raytracePosY = fMdmTrace.GetFirstWireY() * 10.;
+                    mdmPosX += raytracePosX;
+                    mdmPosY += raytracePosY;
                     mdmAngX += fMdmTrace.GetFirstWireXAngle();
                     mdmAngY += fMdmTrace.GetFirstWireYAngle();
-                    if (std::abs(legacyPosX) < 200. && std::abs(legacyPosY) < 50.)
+                    if (std::abs(raytracePosX) < 200. && std::abs(raytracePosY) < 50.)
                     {
                         slitHitTransmitted = true;
                     }
@@ -151,10 +151,10 @@ namespace MdmSim
                     slitHitLocalPosX.push_back(slitLocalPos.x() / (double)itTimes);
                     slitHitLocalPosY.push_back(slitLocalPos.y() / (double)itTimes);
                     slitHitLocalPosZ.push_back(slitLocalPos.z() / (double)itTimes);
-                    mdmTracePositionX.push_back(mdmPosX / (double)itTimes);
-                    mdmTracePositionY.push_back(mdmPosY / (double)itTimes);
-                    mdmTraceAngleX.push_back(mdmAngX / (double)itTimes);
-                    mdmTraceAngleY.push_back(mdmAngY / (double)itTimes);
+                    raytracePositionX.push_back(mdmPosX / (double)itTimes);
+                    raytracePositionY.push_back(mdmPosY / (double)itTimes);
+                    raytraceAngleX.push_back(mdmAngX / (double)itTimes);
+                    raytraceAngleY.push_back(mdmAngY / (double)itTimes);
                     slitLocalPos = (*hcSlit)[i]->GetLocalPosition();
                     G4ThreeVector momentum = (*hcSlit)[i]->GetLocalMomentum();
                     G4ThreeVector direction = momentum / momentum.mag();
@@ -174,10 +174,10 @@ namespace MdmSim
             slitHitLocalPosX.push_back(slitLocalPos.x() / (double)itTimes);
             slitHitLocalPosY.push_back(slitLocalPos.y() / (double)itTimes);
             slitHitLocalPosZ.push_back(slitLocalPos.z() / (double)itTimes);
-            mdmTracePositionX.push_back(mdmPosX / (double)itTimes);
-            mdmTracePositionY.push_back(mdmPosY / (double)itTimes);
-            mdmTraceAngleX.push_back(mdmAngX / (double)itTimes);
-            mdmTraceAngleY.push_back(mdmAngY / (double)itTimes);
+            raytracePositionX.push_back(mdmPosX / (double)itTimes);
+            raytracePositionY.push_back(mdmPosY / (double)itTimes);
+            raytraceAngleX.push_back(mdmAngX / (double)itTimes);
+            raytraceAngleY.push_back(mdmAngY / (double)itTimes);
         }
         analysis->SetSlitHitAccepted(slitHitAccepted);
         analysis->SetSlitHitTransmitted(slitHitTransmitted);
@@ -185,10 +185,10 @@ namespace MdmSim
         analysis->SetSlitHitLocalPosX(slitHitLocalPosX);
         analysis->SetSlitHitLocalPosY(slitHitLocalPosY);
         analysis->SetSlitHitLocalPosZ(slitHitLocalPosZ);
-        analysis->SetMdmTracePositionX(mdmTracePositionX);
-        analysis->SetMdmTracePositionY(mdmTracePositionY);
-        analysis->SetMdmTraceAngleX(mdmTraceAngleX);
-        analysis->SetMdmTraceAngleY(mdmTraceAngleY);
+        analysis->SetRaytracePositionX(raytracePositionX);
+        analysis->SetRaytracePositionY(raytracePositionY);
+        analysis->SetRaytraceAngleX(raytraceAngleX);
+        analysis->SetRaytraceAngleY(raytraceAngleY);
 
         auto collectTrackingPlaneHits = [](PpacHitsCollection *hits,
                                            G4bool &accepted,
@@ -285,53 +285,53 @@ namespace MdmSim
             flush();
         };
 
-        PpacHitsCollection *hcLegacyFocalPlane = (PpacHitsCollection *)hce->GetHC(fHCID_LegacyFocalPlane);
-        G4bool legacyFocalPlaneAccepted;
-        std::vector<G4int> legacyFocalPlaneHitTrackId;
-        std::vector<G4double> legacyFocalPlaneHitTime;
-        std::vector<G4double> legacyFocalPlaneHitGlobalPosX;
-        std::vector<G4double> legacyFocalPlaneHitGlobalPosY;
-        std::vector<G4double> legacyFocalPlaneHitGlobalPosZ;
-        std::vector<G4double> legacyFocalPlaneHitLocalPosX;
-        std::vector<G4double> legacyFocalPlaneHitLocalPosY;
-        std::vector<G4double> legacyFocalPlaneHitLocalPosZ;
-        std::vector<G4double> legacyFocalPlaneHitGlobalMomentumX;
-        std::vector<G4double> legacyFocalPlaneHitGlobalMomentumY;
-        std::vector<G4double> legacyFocalPlaneHitGlobalMomentumZ;
-        std::vector<G4double> legacyFocalPlaneHitLocalMomentumX;
-        std::vector<G4double> legacyFocalPlaneHitLocalMomentumY;
-        std::vector<G4double> legacyFocalPlaneHitLocalMomentumZ;
-        collectTrackingPlaneHits(hcLegacyFocalPlane,
-                                 legacyFocalPlaneAccepted,
-                                 legacyFocalPlaneHitTrackId,
-                                 legacyFocalPlaneHitTime,
-                                 legacyFocalPlaneHitGlobalPosX,
-                                 legacyFocalPlaneHitGlobalPosY,
-                                 legacyFocalPlaneHitGlobalPosZ,
-                                 legacyFocalPlaneHitLocalPosX,
-                                 legacyFocalPlaneHitLocalPosY,
-                                 legacyFocalPlaneHitLocalPosZ,
-                                 legacyFocalPlaneHitGlobalMomentumX,
-                                 legacyFocalPlaneHitGlobalMomentumY,
-                                 legacyFocalPlaneHitGlobalMomentumZ,
-                                 legacyFocalPlaneHitLocalMomentumX,
-                                 legacyFocalPlaneHitLocalMomentumY,
-                                 legacyFocalPlaneHitLocalMomentumZ);
-        analysis->SetLegacyFocalPlaneAccepted(legacyFocalPlaneAccepted);
-        analysis->SetLegacyFocalPlaneHitTrackId(legacyFocalPlaneHitTrackId);
-        analysis->SetLegacyFocalPlaneHitTime(legacyFocalPlaneHitTime);
-        analysis->SetLegacyFocalPlaneHitGlobalPosX(legacyFocalPlaneHitGlobalPosX);
-        analysis->SetLegacyFocalPlaneHitGlobalPosY(legacyFocalPlaneHitGlobalPosY);
-        analysis->SetLegacyFocalPlaneHitGlobalPosZ(legacyFocalPlaneHitGlobalPosZ);
-        analysis->SetLegacyFocalPlaneHitLocalPosX(legacyFocalPlaneHitLocalPosX);
-        analysis->SetLegacyFocalPlaneHitLocalPosY(legacyFocalPlaneHitLocalPosY);
-        analysis->SetLegacyFocalPlaneHitLocalPosZ(legacyFocalPlaneHitLocalPosZ);
-        analysis->SetLegacyFocalPlaneHitGlobalMomentumX(legacyFocalPlaneHitGlobalMomentumX);
-        analysis->SetLegacyFocalPlaneHitGlobalMomentumY(legacyFocalPlaneHitGlobalMomentumY);
-        analysis->SetLegacyFocalPlaneHitGlobalMomentumZ(legacyFocalPlaneHitGlobalMomentumZ);
-        analysis->SetLegacyFocalPlaneHitLocalMomentumX(legacyFocalPlaneHitLocalMomentumX);
-        analysis->SetLegacyFocalPlaneHitLocalMomentumY(legacyFocalPlaneHitLocalMomentumY);
-        analysis->SetLegacyFocalPlaneHitLocalMomentumZ(legacyFocalPlaneHitLocalMomentumZ);
+        PpacHitsCollection *hcRaytraceFocalPlane = (PpacHitsCollection *)hce->GetHC(fHCID_RaytraceFocalPlane);
+        G4bool raytraceFocalPlaneAccepted;
+        std::vector<G4int> raytraceFocalPlaneHitTrackId;
+        std::vector<G4double> raytraceFocalPlaneHitTime;
+        std::vector<G4double> raytraceFocalPlaneHitGlobalPosX;
+        std::vector<G4double> raytraceFocalPlaneHitGlobalPosY;
+        std::vector<G4double> raytraceFocalPlaneHitGlobalPosZ;
+        std::vector<G4double> raytraceFocalPlaneHitLocalPosX;
+        std::vector<G4double> raytraceFocalPlaneHitLocalPosY;
+        std::vector<G4double> raytraceFocalPlaneHitLocalPosZ;
+        std::vector<G4double> raytraceFocalPlaneHitGlobalMomentumX;
+        std::vector<G4double> raytraceFocalPlaneHitGlobalMomentumY;
+        std::vector<G4double> raytraceFocalPlaneHitGlobalMomentumZ;
+        std::vector<G4double> raytraceFocalPlaneHitLocalMomentumX;
+        std::vector<G4double> raytraceFocalPlaneHitLocalMomentumY;
+        std::vector<G4double> raytraceFocalPlaneHitLocalMomentumZ;
+        collectTrackingPlaneHits(hcRaytraceFocalPlane,
+                                 raytraceFocalPlaneAccepted,
+                                 raytraceFocalPlaneHitTrackId,
+                                 raytraceFocalPlaneHitTime,
+                                 raytraceFocalPlaneHitGlobalPosX,
+                                 raytraceFocalPlaneHitGlobalPosY,
+                                 raytraceFocalPlaneHitGlobalPosZ,
+                                 raytraceFocalPlaneHitLocalPosX,
+                                 raytraceFocalPlaneHitLocalPosY,
+                                 raytraceFocalPlaneHitLocalPosZ,
+                                 raytraceFocalPlaneHitGlobalMomentumX,
+                                 raytraceFocalPlaneHitGlobalMomentumY,
+                                 raytraceFocalPlaneHitGlobalMomentumZ,
+                                 raytraceFocalPlaneHitLocalMomentumX,
+                                 raytraceFocalPlaneHitLocalMomentumY,
+                                 raytraceFocalPlaneHitLocalMomentumZ);
+        analysis->SetRaytraceFocalPlaneAccepted(raytraceFocalPlaneAccepted);
+        analysis->SetRaytraceFocalPlaneHitTrackId(raytraceFocalPlaneHitTrackId);
+        analysis->SetRaytraceFocalPlaneHitTime(raytraceFocalPlaneHitTime);
+        analysis->SetRaytraceFocalPlaneHitGlobalPosX(raytraceFocalPlaneHitGlobalPosX);
+        analysis->SetRaytraceFocalPlaneHitGlobalPosY(raytraceFocalPlaneHitGlobalPosY);
+        analysis->SetRaytraceFocalPlaneHitGlobalPosZ(raytraceFocalPlaneHitGlobalPosZ);
+        analysis->SetRaytraceFocalPlaneHitLocalPosX(raytraceFocalPlaneHitLocalPosX);
+        analysis->SetRaytraceFocalPlaneHitLocalPosY(raytraceFocalPlaneHitLocalPosY);
+        analysis->SetRaytraceFocalPlaneHitLocalPosZ(raytraceFocalPlaneHitLocalPosZ);
+        analysis->SetRaytraceFocalPlaneHitGlobalMomentumX(raytraceFocalPlaneHitGlobalMomentumX);
+        analysis->SetRaytraceFocalPlaneHitGlobalMomentumY(raytraceFocalPlaneHitGlobalMomentumY);
+        analysis->SetRaytraceFocalPlaneHitGlobalMomentumZ(raytraceFocalPlaneHitGlobalMomentumZ);
+        analysis->SetRaytraceFocalPlaneHitLocalMomentumX(raytraceFocalPlaneHitLocalMomentumX);
+        analysis->SetRaytraceFocalPlaneHitLocalMomentumY(raytraceFocalPlaneHitLocalMomentumY);
+        analysis->SetRaytraceFocalPlaneHitLocalMomentumZ(raytraceFocalPlaneHitLocalMomentumZ);
 
         //
         // Delta E
@@ -836,12 +836,12 @@ namespace MdmSim
             else if (it.first == "BeamCharge")
             {
                 fBeamCharge = static_cast<G4int>(std::lround(it.second));
-                printf("Set: Primary charge state = %d e; MDMTrace uses each slit hit charge\n", fBeamCharge);
+                printf("Set: Primary charge state = %d e; Raytrace uses each slit hit charge\n", fBeamCharge);
             }
             else if (it.first == "MdmAngleInDeg")
             {
                 fMdmAngle = it.second;
-                printf("Set: MDMTrace angle = %.4f deg\n", fMdmAngle);
+                printf("Set: Raytrace angle = %.4f deg\n", fMdmAngle);
             }
         }
     }

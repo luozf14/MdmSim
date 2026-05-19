@@ -61,7 +61,7 @@ namespace MdmSim
         // Hit time
         newHit->SetTime(aStep->GetTrack()->GetGlobalTime());
 
-        // Geant4 ion identity and mass. Legacy RAYTRACE receives the same mass
+        // Geant4 ion identity and mass. Raytrace receives the same mass
         // converted to its PMASS convention by the MdmTrace wrapper.
         const G4ParticleDefinition *particle =
             aStep->GetTrack()->GetParticleDefinition();

@@ -52,10 +52,10 @@ startup and stops with an error if the probes do not match.
 - Models the target chamber, target, optional dE silicon detector, E silicon
   detector, slit/collimator, MDM multipole and dipole field regions, and two
   PPACs near the focal plane.
-- Writes detailed ROOT output for detector hits, PPAC tracks, and legacy
-  MDMTrace comparison values.
-- Provides a ROOT comparison macro for checking Geant4 field-map tracking
-  against the legacy RAYTRACE/MDMTrace transport.
+- Writes detailed ROOT output for detector hits, PPAC tracks, and Raytrace
+  comparison values.
+- Provides a ROOT comparison macro for checking Geant4 tracking against the
+  Raytrace result from the RAYTRACE/MDMTrace transport.
 
 ## Simulation Flow
 
@@ -69,8 +69,8 @@ startup and stops with an error if the probes do not match.
 5. `MdmFieldMap` returns the interpolated local magnetic-field vector in Tesla.
 6. The field wrapper rotates that vector back into the Geant4 global frame.
 7. Geant4 integrates the trajectory through the fields and records PPAC hits.
-8. Legacy MDMTrace values are also stored so the field-map result can be
-   compared with the original RAYTRACE transport.
+8. Raytrace values are also stored so the Geant4 result can be compared with
+   the original RAYTRACE transport.
 
 ## Demo
 
@@ -182,7 +182,7 @@ Configuration keys:
 - `BeamZ`: atomic number of the primary ion. `6` means carbon.
 - `BeamA`: mass number of the primary ion. `12` with `BeamZ = 6` gives `12C`.
 - `BeamCharge`: integer ion charge state used for MDM magnetic transport and
-  legacy MDMTrace comparison. For example, `BeamZ = 6`, `BeamA = 12`, and
+  Raytrace comparison. For example, `BeamZ = 6`, `BeamA = 12`, and
   `BeamCharge = 5` gives `12C5+`. The MDM field managers use this configured
   charge state explicitly so Geant4 effective ion charges used by EM loss
   models do not change the spectrometer rigidity. In reaction mode, the MDM
@@ -286,7 +286,7 @@ For example, `ProcessNumber = 0` writes `SimData~0.root`.
 The ROOT file contains two trees:
 
 - `AccurateData`: detailed simulation output with slit, silicon, PPAC, and
-  legacy MDMTrace branches.
+  Raytrace comparison branches.
 - `ExperimentalData`: detector-oriented quantities with detector resolution and
   trigger-style information.
 
@@ -297,47 +297,49 @@ Important `AccurateData` branch groups include:
   positions, and momenta.
 - `Ppac1Hit*` and `Ppac2Hit*`: PPAC hit positions, momenta, times, and
   acceptance flags.
-- `LegacyFocalPlaneHit*`: a vacuum tracking-plane hit at the legacy RAYTRACE
+- `RaytraceFocalPlaneHit*`: a vacuum tracking-plane hit at the Raytrace
   focal plane, recorded before PPAC gas/window/cathode material.
-- `MdmTracePosition*` and `MdmTraceAngle*`: legacy MDMTrace focal-plane values
-  used for comparison with the Geant4 field-map result.
+- `RaytracePosition*` and `RaytraceAngle*`: Raytrace focal-plane values used
+  for comparison with the Geant4 result.
 
-## Legacy Field-Map Comparison
+## Raytrace vs Geant4 Comparison
 
-MdmSim keeps the legacy MDMTrace/RAYTRACE transport in the project for
-comparison. The Geant4 trajectory uses the field maps; the legacy branches give
-the independent RAYTRACE result for the same event stream. This makes it easier
-to validate the map coordinates, field scaling, PPAC projection, and focal-plane
-comparison.
-For consistency, the embedded legacy RAYTRACE call receives the Geant4 ion mass
-and the configured MDM magnetic-transport charge state used by the field-map
-tracking, converted internally to RAYTRACE's `PMASS` convention.
+MdmSim keeps the MDMTrace/RAYTRACE transport in the project for comparison. In
+comparison plots, `Raytrace` means the original RAYTRACE-style transport result
+returned through the MDMTrace wrapper. `Geant4` means the MdmSim trajectory
+tracked by Geant4 through interpolated MDMTrace-generated field maps. This makes
+it easier to validate map coordinates, field scaling, PPAC projection, and the
+focal-plane comparison.
+
+For consistency, the embedded RAYTRACE call receives the Geant4 ion mass and
+the configured MDM magnetic-transport charge state used by Geant4 tracking,
+converted internally to RAYTRACE's `PMASS` convention.
 
 The comparison macro is:
 
 ```text
-macros/CompareLegacyFieldMap.C
+macros/CompareRaytraceGeant4.C
 ```
 
 Run it from the repository root after producing a simulation ROOT file:
 
 ```sh
-root -l -b -q 'macros/CompareLegacyFieldMap.C("build/SimData~0.root")'
+root -l -b -q 'macros/CompareRaytraceGeant4.C("build/SimData~0.root")'
 ```
 
 By default it writes:
 
 ```text
-legacy_fieldmap_compare.root
+raytrace_geant4_compare.root
 ```
 
 It also saves the four comparison canvases as PNG files next to the ROOT output:
 
 ```text
-legacy_fieldmap_compare_X.png
-legacy_fieldmap_compare_Y.png
-legacy_fieldmap_compare_AngX.png
-legacy_fieldmap_compare_AngY.png
+raytrace_geant4_compare_X.png
+raytrace_geant4_compare_Y.png
+raytrace_geant4_compare_AngX.png
+raytrace_geant4_compare_AngY.png
 ```
 
 The output ROOT file contains four canvases named exactly:
@@ -349,51 +351,47 @@ The output ROOT file contains four canvases named exactly:
 
 Each canvas follows the MDMTrace comparison style:
 
-- upper pad: `Legacy` versus `FieldMap` scatter plot,
+- upper pad: `Raytrace` versus `Geant4` scatter plot,
 - red linear fit with fit equation and `R^2`,
-- lower pad: residual versus legacy value,
-- residual convention: `Legacy - FieldMap`,
+- lower pad: residual versus Raytrace value,
+- residual convention: `Raytrace - Geant4`,
 - residual RMS printed directly on the residual pad.
 
 Positions are reported in mm and angles are reported in degrees. For new ROOT
-files, the field-map values come from the `LegacyFocalPlaneHit*` vacuum scorer
-at the configured legacy plane. This avoids folding PPAC gas/window/cathode
-scattering into the optics comparison. For older ROOT files without that branch,
-the macro falls back to projecting the two PPAC hits back to the same plane. The
-default macro call is equivalent to:
+files, the Geant4 values come from the `RaytraceFocalPlaneHit*` vacuum scorer
+at the configured Raytrace plane. This avoids folding PPAC gas/window/cathode
+scattering into the optics comparison. The default macro call is equivalent to:
 
 ```cpp
-CompareLegacyFieldMap(inputPath,
-                      "legacy_fieldmap_compare.root",
+CompareRaytraceGeant4(inputPath,
+                      "raytrace_geant4_compare.root",
                       -600.0,
                       -489.99875,
                       -89.99875,
                       "AccurateData",
-                      "auto")
+                      "raytrace")
 ```
 
-where the three numeric arguments are the legacy plane, PPAC1 plane, and PPAC2
+where the three numeric arguments are the Raytrace plane, PPAC1 plane, and PPAC2
 plane in PPAC-chamber local z coordinates, in mm. The final argument chooses
-the field-map quantity used in the comparison:
+the Geant4 quantity used in the comparison:
 
-- `"auto"`: use `LegacyFocalPlaneHit*` if present, otherwise use PPAC
-  projection.
-- `"legacy"`: require and use the vacuum `LegacyFocalPlaneHit*` scorer.
+- `"raytrace"`: require and use the vacuum `RaytraceFocalPlaneHit*` scorer.
 - `"ppac"`: force the PPAC1/PPAC2 projection, even when focal-plane branches
   are present.
 
 Example comparison output:
 
-The example below is for a 40 MeV isotropic proton beam.
+The example below is for 12C(p,p)12C5+ two-body elastic scattering.
 
 <table>
   <tr>
-    <td><img src="figures/legacy_fieldmap_compare_X.png" width="420" alt="Legacy versus field-map X comparison"/></td>
-    <td><img src="figures/legacy_fieldmap_compare_Y.png" width="420" alt="Legacy versus field-map Y comparison"/></td>
+    <td><img src="figures/raytrace_geant4_compare_X.png" width="420" alt="Raytrace versus Geant4 X comparison"/></td>
+    <td><img src="figures/raytrace_geant4_compare_Y.png" width="420" alt="Raytrace versus Geant4 Y comparison"/></td>
   </tr>
   <tr>
-    <td><img src="figures/legacy_fieldmap_compare_AngX.png" width="420" alt="Legacy versus field-map AngX comparison"/></td>
-    <td><img src="figures/legacy_fieldmap_compare_AngY.png" width="420" alt="Legacy versus field-map AngY comparison"/></td>
+    <td><img src="figures/raytrace_geant4_compare_AngX.png" width="420" alt="Raytrace versus Geant4 AngX comparison"/></td>
+    <td><img src="figures/raytrace_geant4_compare_AngY.png" width="420" alt="Raytrace versus Geant4 AngY comparison"/></td>
   </tr>
 </table>
 
@@ -407,8 +405,8 @@ include/MdmFieldMap.h             field-map file reader and interpolator
 include/MdmFieldMapMagneticField.hh
 src/MdmFieldMap.cpp               trilinear interpolation implementation
 src/MdmFieldMapMagneticField.cc   Geant4 magnetic-field wrapper
-src/RAYTKIN1.F                    legacy RAYTRACE/MDMTrace transport
+src/RAYTKIN1.F                    RAYTRACE/MDMTrace transport
 rayin.dat                         original MDM spectrometer RAYTRACE input deck
-macros/CompareLegacyFieldMap.C    ROOT comparison macro
+macros/CompareRaytraceGeant4.C    ROOT comparison macro
 figures/                          README figures and comparison examples
 ```

@@ -1,36 +1,32 @@
-// Compare legacy MDMTrace focal-plane output to the Geant4 field-map track.
+// Compare Raytrace focal-plane output to the Geant4 track.
 //
 // Usage from the repository root:
-//   root -l -b -q 'macros/CompareLegacyFieldMap.C("build/SimData~99.root")'
+//   root -l -b -q 'macros/CompareRaytraceGeant4.C("build/SimData~99.root")'
 //
 // Source-selection examples:
-//   // Auto: use LegacyFocalPlaneHit* if available, otherwise PPAC projection.
-//   root -l -b -q 'macros/CompareLegacyFieldMap.C("SimData~93.root")'
+//   // Use the vacuum Raytrace focal-plane scorer.
+//   root -l -b -q 'macros/CompareRaytraceGeant4.C("SimData~93.root","compare_focal.root",-600,-489.99875,-89.99875,"AccurateData","raytrace")'
 //
-//   // Force the vacuum legacy focal-plane scorer.
-//   root -l -b -q 'macros/CompareLegacyFieldMap.C("SimData~93.root","compare_focal.root",-600,-489.99875,-89.99875,"AccurateData","legacy")'
+//   // Use projection from PPAC1/PPAC2 hit positions.
+//   root -l -b -q 'macros/CompareRaytraceGeant4.C("SimData~93.root","compare_ppac.root",-600,-489.99875,-89.99875,"AccurateData","ppac")'
 //
-//   // Force projection from PPAC1/PPAC2 hit positions.
-//   root -l -b -q 'macros/CompareLegacyFieldMap.C("SimData~93.root","compare_ppac.root",-600,-489.99875,-89.99875,"AccurateData","ppac")'
-//
-// The legacy plane is expressed in the PPAC chamber local z coordinate, in mm.
+// The Raytrace plane is expressed in the PPAC chamber local z coordinate, in mm.
 // In the current geometry the PPAC chamber center is placed 60 cm downstream of
-// the legacy focal plane, so the default comparison plane is z = -600 mm.
+// the Raytrace focal plane, so the default comparison plane is z = -600 mm.
 //
-// New MdmSim files store a vacuum LegacyFocalPlane hit at the RAYTRACE focal
-// plane. By default the macro uses that branch when present, avoiding PPAC
+// New MdmSim files store a vacuum RaytraceFocalPlane hit at the Raytrace focal
+// plane. By default the macro uses that Geant4 branch, avoiding PPAC
 // gas/window/cathode scattering in the comparison. The final macro argument can
-// force either "legacy" focal-plane hits or "ppac" projection. Older files are
-// still handled by projecting the PPAC1/PPAC2 track back to the same plane.
+// choose either "raytrace" focal-plane hits or "ppac" projection.
 //
 // The stored PPAC local z values are local to each cathode volume, not to the
-// PPAC chamber. The PPAC fallback therefore uses explicit chamber-local PPAC
-// plane z values. Current defaults:
+// PPAC chamber. The PPAC mode therefore uses explicit chamber-local PPAC plane
+// z values. Current defaults:
 //   PPAC1 cathode: -500 mm + 2.5 um / 2 + 10 mm = -489.99875 mm
 //   PPAC2 cathode: PPAC1 + 400 mm = -89.99875 mm
 //
 // PPAC local X is chamber-centered. In the current detector placement the
-// chamber center lies on the legacy D-axis, so no empirical X offset is applied.
+// chamber center lies on the Raytrace D-axis, so no empirical X offset is applied.
 // The DIPO "Drawing Exit" coefficients in rayin.dat are EFB curvature terms
 // (S12..S18), not coordinate-origin shifts. If a future deck uses nonzero
 // DIPO XCR2, handle that as geometry, not as a fitted comparison offset.
@@ -75,8 +71,8 @@ double AtOrNaN(const std::vector<double>* values, std::size_t index) {
   return values && index < values->size() ? values->at(index) : std::numeric_limits<double>::quiet_NaN();
 }
 
-int FirstTrackOr(const std::vector<int>* values, int fallback) {
-  return values && !values->empty() ? values->front() : fallback;
+int FirstTrackOr(const std::vector<int>* values, int defaultTrackId) {
+  return values && !values->empty() ? values->front() : defaultTrackId;
 }
 
 std::size_t IndexForTrack(const std::vector<int>* trackIds, int trackId) {
@@ -92,27 +88,26 @@ std::size_t IndexForTrack(const std::vector<int>* trackIds, int trackId) {
 }
 
 struct CompareRow {
-  double legacyX = 0.0;
-  double legacyY = 0.0;
-  double legacyAngleX = 0.0;
-  double legacyAngleY = 0.0;
-  double fieldX = 0.0;
-  double fieldY = 0.0;
-  double fieldAngleX = 0.0;
-  double fieldAngleY = 0.0;
+  double raytraceX = 0.0;
+  double raytraceY = 0.0;
+  double raytraceAngleX = 0.0;
+  double raytraceAngleY = 0.0;
+  double geant4X = 0.0;
+  double geant4Y = 0.0;
+  double geant4AngleX = 0.0;
+  double geant4AngleY = 0.0;
 };
 
 struct Quantity {
   const char* key;
   const char* title;
   const char* unit;
-  std::function<double(const CompareRow&)> legacyValue;
-  std::function<double(const CompareRow&)> fieldValue;
+  std::function<double(const CompareRow&)> raytraceValue;
+  std::function<double(const CompareRow&)> geant4Value;
 };
 
-enum class FieldMapSourceMode {
-  Auto,
-  LegacyFocalPlane,
+enum class Geant4SourceMode {
+  RaytraceFocalPlane,
   PpacProjection,
 };
 
@@ -124,27 +119,21 @@ std::string Lowercase(const char* value) {
   return text;
 }
 
-bool ParseFieldMapSourceMode(const char* value, FieldMapSourceMode& mode) {
+bool ParseGeant4SourceMode(const char* value, Geant4SourceMode& mode) {
   const std::string text = Lowercase(value);
-  if (text.empty() || text == "auto") {
-    mode = FieldMapSourceMode::Auto;
+  if (text.empty() || text == "raytrace") {
+    mode = Geant4SourceMode::RaytraceFocalPlane;
     return true;
   }
-  if (text == "legacy" || text == "legacyfocal" ||
-      text == "legacyfocalplane" || text == "focal" ||
-      text == "focalplane") {
-    mode = FieldMapSourceMode::LegacyFocalPlane;
-    return true;
-  }
-  if (text == "ppac" || text == "ppacs" || text == "ppacprojection") {
-    mode = FieldMapSourceMode::PpacProjection;
+  if (text == "ppac") {
+    mode = Geant4SourceMode::PpacProjection;
     return true;
   }
   return false;
 }
 
-const char* SourceLabel(bool useLegacyFocalPlane) {
-  return useLegacyFocalPlane ? "LegacyFocalPlane hit" : "PPAC1/PPAC2 projection";
+const char* SourceLabel(bool useRaytraceFocalPlane) {
+  return useRaytraceFocalPlane ? "RaytraceFocalPlane hit" : "PPAC1/PPAC2 projection";
 }
 
 struct LinearFit {
@@ -211,30 +200,30 @@ std::string PlotPngPath(const char* outputPath, const char* canvasName) {
     basename = basename.substr(0, dot);
   }
   if (basename.empty()) {
-    basename = "legacy_fieldmap_compare";
+    basename = "raytrace_geant4_compare";
   }
   return directory + basename + "_" + canvasName + ".png";
 }
 
 void MakePlot(const std::vector<CompareRow>& rows, const Quantity& q,
               const std::string& pngPath) {
-  std::vector<double> legacy;
-  std::vector<double> fieldMap;
+  std::vector<double> raytrace;
+  std::vector<double> geant4;
   std::vector<double> residual;
-  legacy.reserve(rows.size());
-  fieldMap.reserve(rows.size());
+  raytrace.reserve(rows.size());
+  geant4.reserve(rows.size());
   residual.reserve(rows.size());
   for (const CompareRow& row : rows) {
-    legacy.push_back(q.legacyValue(row));
-    fieldMap.push_back(q.fieldValue(row));
-    residual.push_back(legacy.back() - fieldMap.back());
+    raytrace.push_back(q.raytraceValue(row));
+    geant4.push_back(q.geant4Value(row));
+    residual.push_back(raytrace.back() - geant4.back());
   }
 
-  std::vector<double> both = legacy;
-  both.insert(both.end(), fieldMap.begin(), fieldMap.end());
+  std::vector<double> both = raytrace;
+  both.insert(both.end(), geant4.begin(), geant4.end());
   const auto xyRange = Range(both);
   const auto residualRange = Range(residual, true);
-  const LinearFit fit = FitLine(legacy, fieldMap);
+  const LinearFit fit = FitLine(raytrace, geant4);
   double residualSumSq = 0.0;
   for (const double value : residual) {
     residualSumSq += value * value;
@@ -242,7 +231,7 @@ void MakePlot(const std::vector<CompareRow>& rows, const Quantity& q,
   const double residualRms =
       residual.empty() ? 0.0 : std::sqrt(residualSumSq / residual.size());
 
-  TCanvas canvas(q.key, (std::string(q.title) + " legacy vs field-map").c_str(), 900, 900);
+  TCanvas canvas(q.key, (std::string(q.title) + " Raytrace vs Geant4").c_str(), 900, 900);
   canvas.SetBorderMode(0);
   canvas.SetBorderSize(0);
   canvas.SetFrameBorderMode(0);
@@ -266,8 +255,8 @@ void MakePlot(const std::vector<CompareRow>& rows, const Quantity& q,
 
   top.cd();
   TH2D topFrame("topFrame",
-                (std::string(q.title) + ";Legacy " + q.title + " [" + q.unit +
-                 "];FieldMap " + q.title + " [" + q.unit + "]")
+                (std::string(q.title) + ";Raytrace " + q.title + " [" + q.unit +
+                 "];Geant4 " + q.title + " [" + q.unit + "]")
                     .c_str(),
                 1, xyRange.first, xyRange.second, 1, xyRange.first,
                 xyRange.second);
@@ -275,7 +264,7 @@ void MakePlot(const std::vector<CompareRow>& rows, const Quantity& q,
   topFrame.GetXaxis()->SetLabelSize(0.0);
   topFrame.GetXaxis()->SetTitleSize(0.0);
   topFrame.Draw();
-  TGraph scatter(static_cast<int>(rows.size()), legacy.data(), fieldMap.data());
+  TGraph scatter(static_cast<int>(rows.size()), raytrace.data(), geant4.data());
   scatter.SetMarkerStyle(20);
   scatter.Draw("P SAME");
   TLine fitLine(xyRange.first, fit.intercept + fit.slope * xyRange.first,
@@ -301,7 +290,7 @@ void MakePlot(const std::vector<CompareRow>& rows, const Quantity& q,
   bottom.cd();
   TH2D bottomFrame(
       "bottomFrame",
-      (std::string(";Legacy ") + q.title + " [" + q.unit +
+      (std::string(";Raytrace ") + q.title + " [" + q.unit +
        "];Residual [" + q.unit + "]")
           .c_str(),
       1, xyRange.first, xyRange.second, 1, residualRange.first,
@@ -313,7 +302,7 @@ void MakePlot(const std::vector<CompareRow>& rows, const Quantity& q,
   bottomFrame.GetYaxis()->SetLabelSize(0.09);
   bottomFrame.GetYaxis()->SetTitleOffset(0.55);
   bottomFrame.Draw();
-  TGraph residualGraph(static_cast<int>(rows.size()), legacy.data(), residual.data());
+  TGraph residualGraph(static_cast<int>(rows.size()), raytrace.data(), residual.data());
   residualGraph.SetMarkerStyle(20);
   residualGraph.Draw("P SAME");
   TLine zero(xyRange.first, 0.0, xyRange.second, 0.0);
@@ -341,7 +330,7 @@ void MakePlot(const std::vector<CompareRow>& rows, const Quantity& q,
 double RmsResidual(const std::vector<CompareRow>& rows, const Quantity& q) {
   double sumSq = 0.0;
   for (const CompareRow& row : rows) {
-    const double residual = q.legacyValue(row) - q.fieldValue(row);
+    const double residual = q.raytraceValue(row) - q.geant4Value(row);
     sumSq += residual * residual;
   }
   return rows.empty() ? 0.0 : std::sqrt(sumSq / static_cast<double>(rows.size()));
@@ -350,7 +339,7 @@ double RmsResidual(const std::vector<CompareRow>& rows, const Quantity& q) {
 double MaxAbsResidual(const std::vector<CompareRow>& rows, const Quantity& q) {
   double maxAbs = 0.0;
   for (const CompareRow& row : rows) {
-    const double residual = q.legacyValue(row) - q.fieldValue(row);
+    const double residual = q.raytraceValue(row) - q.geant4Value(row);
     maxAbs = std::max(maxAbs, std::abs(residual));
   }
   return maxAbs;
@@ -358,13 +347,13 @@ double MaxAbsResidual(const std::vector<CompareRow>& rows, const Quantity& q) {
 
 }  // namespace
 
-void CompareLegacyFieldMap(const char* inputPath = "SimData~0.root",
-                           const char* outputPath = "legacy_fieldmap_compare.root",
-                           double legacyPlaneZLocalMm = -600.0,
+void CompareRaytraceGeant4(const char* inputPath = "SimData~0.root",
+                           const char* outputPath = "raytrace_geant4_compare.root",
+                           double raytracePlaneZLocalMm = -600.0,
                            double ppac1PlaneZLocalMm = -489.99875,
                            double ppac2PlaneZLocalMm = -89.99875,
                            const char* treeName = "AccurateData",
-                           const char* fieldMapSource = "auto") {
+                           const char* geant4Source = "raytrace") {
   std::unique_ptr<TFile> input(TFile::Open(inputPath, "READ"));
   if (!input || input->IsZombie()) {
     std::cerr << "ERROR: cannot open input file: " << inputPath << '\n';
@@ -379,70 +368,69 @@ void CompareLegacyFieldMap(const char* inputPath = "SimData~0.root",
     return;
   }
 
-  bool slitLegacyTransmitted = false;
-  bool legacyFocalPlaneAccepted = false;
+  bool slitRaytraceTransmitted = false;
+  bool raytraceFocalPlaneAccepted = false;
   bool ppac1Accepted = false;
   bool ppac2Accepted = false;
 
   std::vector<int>* slitTrackId = nullptr;
-  std::vector<int>* legacyFocalPlaneTrackId = nullptr;
-  std::vector<double>* legacyX = nullptr;
-  std::vector<double>* legacyY = nullptr;
-  std::vector<double>* legacyAngleX = nullptr;
-  std::vector<double>* legacyAngleY = nullptr;
-  std::vector<double>* legacyFocalPlaneX = nullptr;
-  std::vector<double>* legacyFocalPlaneY = nullptr;
-  std::vector<double>* legacyFocalPlaneMomentumX = nullptr;
-  std::vector<double>* legacyFocalPlaneMomentumY = nullptr;
-  std::vector<double>* legacyFocalPlaneMomentumZ = nullptr;
+  std::vector<int>* raytraceFocalPlaneTrackId = nullptr;
+  std::vector<double>* raytraceX = nullptr;
+  std::vector<double>* raytraceY = nullptr;
+  std::vector<double>* raytraceAngleX = nullptr;
+  std::vector<double>* raytraceAngleY = nullptr;
+  std::vector<double>* raytraceFocalPlaneX = nullptr;
+  std::vector<double>* raytraceFocalPlaneY = nullptr;
+  std::vector<double>* raytraceFocalPlaneMomentumX = nullptr;
+  std::vector<double>* raytraceFocalPlaneMomentumY = nullptr;
+  std::vector<double>* raytraceFocalPlaneMomentumZ = nullptr;
   std::vector<double>* ppac1X = nullptr;
   std::vector<double>* ppac1Y = nullptr;
   std::vector<double>* ppac2X = nullptr;
   std::vector<double>* ppac2Y = nullptr;
 
-  const bool hasLegacyFocalPlane =
-      tree->GetBranch("LegacyFocalPlaneAccepted") &&
-      tree->GetBranch("LegacyFocalPlaneHitLocalPosX") &&
-      tree->GetBranch("LegacyFocalPlaneHitLocalPosY") &&
-      tree->GetBranch("LegacyFocalPlaneHitLocalMomentumX") &&
-      tree->GetBranch("LegacyFocalPlaneHitLocalMomentumY") &&
-      tree->GetBranch("LegacyFocalPlaneHitLocalMomentumZ");
+  const bool hasRaytraceFocalPlane =
+      tree->GetBranch("RaytraceFocalPlaneAccepted") &&
+      tree->GetBranch("RaytraceFocalPlaneHitLocalPosX") &&
+      tree->GetBranch("RaytraceFocalPlaneHitLocalPosY") &&
+      tree->GetBranch("RaytraceFocalPlaneHitLocalMomentumX") &&
+      tree->GetBranch("RaytraceFocalPlaneHitLocalMomentumY") &&
+      tree->GetBranch("RaytraceFocalPlaneHitLocalMomentumZ");
 
-  FieldMapSourceMode sourceMode = FieldMapSourceMode::Auto;
-  if (!ParseFieldMapSourceMode(fieldMapSource, sourceMode)) {
-    std::cerr << "ERROR: unknown fieldMapSource '" << fieldMapSource
-              << "'. Use \"auto\", \"legacy\", or \"ppac\".\n";
+  Geant4SourceMode sourceMode = Geant4SourceMode::RaytraceFocalPlane;
+  if (!ParseGeant4SourceMode(geant4Source, sourceMode)) {
+    std::cerr << "ERROR: unknown geant4Source '" << geant4Source
+              << "'. Use \"raytrace\" or \"ppac\".\n";
     return;
   }
 
-  if (sourceMode == FieldMapSourceMode::LegacyFocalPlane &&
-      !hasLegacyFocalPlane) {
-    std::cerr << "ERROR: fieldMapSource=\"legacy\" was requested, but "
-              << "LegacyFocalPlaneHit* branches are not present in "
+  const bool useRaytraceFocalPlane =
+      sourceMode == Geant4SourceMode::RaytraceFocalPlane;
+
+  if (sourceMode == Geant4SourceMode::RaytraceFocalPlane &&
+      !hasRaytraceFocalPlane) {
+    std::cerr << "ERROR: geant4Source=\"raytrace\" was requested, but "
+              << "RaytraceFocalPlaneHit* branches are not present in "
               << inputPath << ".\n";
     return;
   }
 
-  const bool useLegacyFocalPlane =
-      sourceMode == FieldMapSourceMode::LegacyFocalPlane ||
-      (sourceMode == FieldMapSourceMode::Auto && hasLegacyFocalPlane);
-
-  tree->SetBranchAddress("SlitHitTransmitted", &slitLegacyTransmitted);
+  tree->SetBranchAddress("SlitHitTransmitted", &slitRaytraceTransmitted);
   tree->SetBranchAddress("SlitHitTrackId", &slitTrackId);
   tree->SetBranchAddress("Ppac1Accepted", &ppac1Accepted);
   tree->SetBranchAddress("Ppac2Accepted", &ppac2Accepted);
-  tree->SetBranchAddress("MdmTracePositionX", &legacyX);
-  tree->SetBranchAddress("MdmTracePositionY", &legacyY);
-  tree->SetBranchAddress("MdmTraceAngleX", &legacyAngleX);
-  tree->SetBranchAddress("MdmTraceAngleY", &legacyAngleY);
-  if (useLegacyFocalPlane) {
-    tree->SetBranchAddress("LegacyFocalPlaneAccepted", &legacyFocalPlaneAccepted);
-    tree->SetBranchAddress("LegacyFocalPlaneHitTrackId", &legacyFocalPlaneTrackId);
-    tree->SetBranchAddress("LegacyFocalPlaneHitLocalPosX", &legacyFocalPlaneX);
-    tree->SetBranchAddress("LegacyFocalPlaneHitLocalPosY", &legacyFocalPlaneY);
-    tree->SetBranchAddress("LegacyFocalPlaneHitLocalMomentumX", &legacyFocalPlaneMomentumX);
-    tree->SetBranchAddress("LegacyFocalPlaneHitLocalMomentumY", &legacyFocalPlaneMomentumY);
-    tree->SetBranchAddress("LegacyFocalPlaneHitLocalMomentumZ", &legacyFocalPlaneMomentumZ);
+  tree->SetBranchAddress("RaytracePositionX", &raytraceX);
+  tree->SetBranchAddress("RaytracePositionY", &raytraceY);
+  tree->SetBranchAddress("RaytraceAngleX", &raytraceAngleX);
+  tree->SetBranchAddress("RaytraceAngleY", &raytraceAngleY);
+  if (useRaytraceFocalPlane) {
+    tree->SetBranchAddress("RaytraceFocalPlaneAccepted", &raytraceFocalPlaneAccepted);
+    tree->SetBranchAddress("RaytraceFocalPlaneHitTrackId", &raytraceFocalPlaneTrackId);
+    tree->SetBranchAddress("RaytraceFocalPlaneHitLocalPosX", &raytraceFocalPlaneX);
+    tree->SetBranchAddress("RaytraceFocalPlaneHitLocalPosY", &raytraceFocalPlaneY);
+    tree->SetBranchAddress("RaytraceFocalPlaneHitLocalMomentumX", &raytraceFocalPlaneMomentumX);
+    tree->SetBranchAddress("RaytraceFocalPlaneHitLocalMomentumY", &raytraceFocalPlaneMomentumY);
+    tree->SetBranchAddress("RaytraceFocalPlaneHitLocalMomentumZ", &raytraceFocalPlaneMomentumZ);
   }
   tree->SetBranchAddress("Ppac1HitLocalPosX", &ppac1X);
   tree->SetBranchAddress("Ppac1HitLocalPosY", &ppac1Y);
@@ -456,15 +444,15 @@ void CompareLegacyFieldMap(const char* inputPath = "SimData~0.root",
   }
 
   auto* residualTree = new TTree(
-      "LegacyFieldMapResiduals",
-      "Field-map PPAC track projected to the legacy MDMTrace plane");
+      "RaytraceGeant4Residuals",
+      "Geant4 PPAC track projected to the Raytrace focal plane");
 
   Long64_t event = 0;
-  double fieldX = 0.0;
-  double rawFieldX = 0.0;
-  double fieldY = 0.0;
-  double fieldAngleX = 0.0;
-  double fieldAngleY = 0.0;
+  double geant4X = 0.0;
+  double rawGeant4X = 0.0;
+  double geant4Y = 0.0;
+  double geant4AngleX = 0.0;
+  double geant4AngleY = 0.0;
   double mdmX = 0.0;
   double mdmY = 0.0;
   double mdmAngleX = 0.0;
@@ -477,19 +465,19 @@ void CompareLegacyFieldMap(const char* inputPath = "SimData~0.root",
   double ppac2LocalZ = 0.0;
 
   residualTree->Branch("Event", &event, "Event/L");
-  residualTree->Branch("LegacyPlaneZLocalMm", &legacyPlaneZLocalMm,
-                       "LegacyPlaneZLocalMm/D");
-  residualTree->Branch("RawFieldMapX", &rawFieldX, "RawFieldMapX/D");
-  residualTree->Branch("FieldMapX", &fieldX, "FieldMapX/D");
-  residualTree->Branch("FieldMapY", &fieldY, "FieldMapY/D");
-  residualTree->Branch("FieldMapAngleXDeg", &fieldAngleX,
-                       "FieldMapAngleXDeg/D");
-  residualTree->Branch("FieldMapAngleYDeg", &fieldAngleY,
-                       "FieldMapAngleYDeg/D");
-  residualTree->Branch("LegacyX", &mdmX, "LegacyX/D");
-  residualTree->Branch("LegacyY", &mdmY, "LegacyY/D");
-  residualTree->Branch("LegacyAngleXDeg", &mdmAngleX, "LegacyAngleXDeg/D");
-  residualTree->Branch("LegacyAngleYDeg", &mdmAngleY, "LegacyAngleYDeg/D");
+  residualTree->Branch("RaytracePlaneZLocalMm", &raytracePlaneZLocalMm,
+                       "RaytracePlaneZLocalMm/D");
+  residualTree->Branch("RawGeant4X", &rawGeant4X, "RawGeant4X/D");
+  residualTree->Branch("Geant4X", &geant4X, "Geant4X/D");
+  residualTree->Branch("Geant4Y", &geant4Y, "Geant4Y/D");
+  residualTree->Branch("Geant4AngleXDeg", &geant4AngleX,
+                       "Geant4AngleXDeg/D");
+  residualTree->Branch("Geant4AngleYDeg", &geant4AngleY,
+                       "Geant4AngleYDeg/D");
+  residualTree->Branch("RaytraceX", &mdmX, "RaytraceX/D");
+  residualTree->Branch("RaytraceY", &mdmY, "RaytraceY/D");
+  residualTree->Branch("RaytraceAngleXDeg", &mdmAngleX, "RaytraceAngleXDeg/D");
+  residualTree->Branch("RaytraceAngleYDeg", &mdmAngleY, "RaytraceAngleYDeg/D");
   residualTree->Branch("DeltaX", &dx, "DeltaX/D");
   residualTree->Branch("DeltaY", &dy, "DeltaY/D");
   residualTree->Branch("DeltaAngleXDeg", &dAngleX, "DeltaAngleXDeg/D");
@@ -497,36 +485,36 @@ void CompareLegacyFieldMap(const char* inputPath = "SimData~0.root",
   residualTree->Branch("Ppac1LocalZ", &ppac1LocalZ, "Ppac1LocalZ/D");
   residualTree->Branch("Ppac2LocalZ", &ppac2LocalZ, "Ppac2LocalZ/D");
 
-  auto* hDx = new TH1D("hDeltaX", "Field map - legacy;#Delta x [mm];Events", 200, -100.0, 100.0);
-  auto* hDy = new TH1D("hDeltaY", "Field map - legacy;#Delta y [mm];Events", 200, -100.0, 100.0);
-  auto* hDAngleX = new TH1D("hDeltaAngleX", "Field map - legacy;#Delta x' [deg];Events", 200, -10.0, 10.0);
-  auto* hDAngleY = new TH1D("hDeltaAngleY", "Field map - legacy;#Delta y' [deg];Events", 200, -10.0, 10.0);
-  hDx->SetTitle("Legacy - field map;#Delta x [mm];Events");
-  hDy->SetTitle("Legacy - field map;#Delta y [mm];Events");
-  hDAngleX->SetTitle("Legacy - field map;#Delta x' [deg];Events");
-  hDAngleY->SetTitle("Legacy - field map;#Delta y' [deg];Events");
+  auto* hDx = new TH1D("hDeltaX", "Raytrace - Geant4;#Delta x [mm];Events", 200, -100.0, 100.0);
+  auto* hDy = new TH1D("hDeltaY", "Raytrace - Geant4;#Delta y [mm];Events", 200, -100.0, 100.0);
+  auto* hDAngleX = new TH1D("hDeltaAngleX", "Raytrace - Geant4;#Delta x' [deg];Events", 200, -10.0, 10.0);
+  auto* hDAngleY = new TH1D("hDeltaAngleY", "Raytrace - Geant4;#Delta y' [deg];Events", 200, -10.0, 10.0);
+  hDx->SetTitle("Raytrace - Geant4;#Delta x [mm];Events");
+  hDy->SetTitle("Raytrace - Geant4;#Delta y [mm];Events");
+  hDAngleX->SetTitle("Raytrace - Geant4;#Delta x' [deg];Events");
+  hDAngleY->SetTitle("Raytrace - Geant4;#Delta y' [deg];Events");
 
   std::vector<CompareRow> rows;
   Long64_t selected = 0;
   Long64_t skipped = 0;
-  Long64_t legacyStopped = 0;
+  Long64_t raytraceStopped = 0;
   const Long64_t entries = tree->GetEntries();
   for (Long64_t i = 0; i < entries; ++i) {
     tree->GetEntry(i);
 
-    if (!ppac1Accepted || !ppac2Accepted || !slitLegacyTransmitted ||
-        !HasValue(legacyX) || !HasValue(legacyY) || !HasValue(legacyAngleX) ||
-        !HasValue(legacyAngleY)) {
+    if (!ppac1Accepted || !ppac2Accepted || !slitRaytraceTransmitted ||
+        !HasValue(raytraceX) || !HasValue(raytraceY) || !HasValue(raytraceAngleX) ||
+        !HasValue(raytraceAngleY)) {
       ++skipped;
       continue;
     }
 
-    if (useLegacyFocalPlane) {
-      if (!legacyFocalPlaneAccepted || !HasValue(legacyFocalPlaneX) ||
-          !HasValue(legacyFocalPlaneY) ||
-          !HasValue(legacyFocalPlaneMomentumX) ||
-          !HasValue(legacyFocalPlaneMomentumY) ||
-          !HasValue(legacyFocalPlaneMomentumZ)) {
+    if (useRaytraceFocalPlane) {
+      if (!raytraceFocalPlaneAccepted || !HasValue(raytraceFocalPlaneX) ||
+          !HasValue(raytraceFocalPlaneY) ||
+          !HasValue(raytraceFocalPlaneMomentumX) ||
+          !HasValue(raytraceFocalPlaneMomentumY) ||
+          !HasValue(raytraceFocalPlaneMomentumZ)) {
         ++skipped;
         continue;
       }
@@ -536,35 +524,35 @@ void CompareLegacyFieldMap(const char* inputPath = "SimData~0.root",
       continue;
     }
 
-    mdmX = FirstOrNaN(legacyX);
-    mdmY = FirstOrNaN(legacyY);
-    mdmAngleX = FirstOrNaN(legacyAngleX);
-    mdmAngleY = FirstOrNaN(legacyAngleY);
+    mdmX = FirstOrNaN(raytraceX);
+    mdmY = FirstOrNaN(raytraceY);
+    mdmAngleX = FirstOrNaN(raytraceAngleX);
+    mdmAngleY = FirstOrNaN(raytraceAngleY);
     if (std::abs(mdmX) > 1.0e10 || std::abs(mdmY) > 1.0e10) {
-      ++legacyStopped;
+      ++raytraceStopped;
       continue;
     }
 
-    if (useLegacyFocalPlane) {
-      const int trackId = FirstTrackOr(slitTrackId, FirstTrackOr(legacyFocalPlaneTrackId, -99));
-      const std::size_t focalIndex = IndexForTrack(legacyFocalPlaneTrackId, trackId);
-      fieldX = AtOrNaN(legacyFocalPlaneX, focalIndex);
-      fieldY = AtOrNaN(legacyFocalPlaneY, focalIndex);
-      rawFieldX = fieldX;
-      const double px = AtOrNaN(legacyFocalPlaneMomentumX, focalIndex);
-      const double py = AtOrNaN(legacyFocalPlaneMomentumY, focalIndex);
-      const double pz = AtOrNaN(legacyFocalPlaneMomentumZ, focalIndex);
-      if (!std::isfinite(fieldX) || !std::isfinite(fieldY) ||
+    if (useRaytraceFocalPlane) {
+      const int trackId = FirstTrackOr(slitTrackId, FirstTrackOr(raytraceFocalPlaneTrackId, -99));
+      const std::size_t focalIndex = IndexForTrack(raytraceFocalPlaneTrackId, trackId);
+      geant4X = AtOrNaN(raytraceFocalPlaneX, focalIndex);
+      geant4Y = AtOrNaN(raytraceFocalPlaneY, focalIndex);
+      rawGeant4X = geant4X;
+      const double px = AtOrNaN(raytraceFocalPlaneMomentumX, focalIndex);
+      const double py = AtOrNaN(raytraceFocalPlaneMomentumY, focalIndex);
+      const double pz = AtOrNaN(raytraceFocalPlaneMomentumZ, focalIndex);
+      if (!std::isfinite(geant4X) || !std::isfinite(geant4Y) ||
           !std::isfinite(px) || !std::isfinite(py) || !std::isfinite(pz) ||
           std::abs(pz) < 1.0e-12) {
         ++skipped;
         continue;
       }
-      fieldAngleX = std::atan2(px, pz) * TMath::RadToDeg();
-      fieldAngleY =
+      geant4AngleX = std::atan2(px, pz) * TMath::RadToDeg();
+      geant4AngleY =
           std::atan2(py, std::sqrt(px * px + pz * pz)) * TMath::RadToDeg();
-      ppac1LocalZ = legacyPlaneZLocalMm;
-      ppac2LocalZ = legacyPlaneZLocalMm;
+      ppac1LocalZ = raytracePlaneZLocalMm;
+      ppac2LocalZ = raytracePlaneZLocalMm;
     } else {
       const double x1 = ppac1X->front();
       const double y1 = ppac1Y->front();
@@ -578,12 +566,12 @@ void CompareLegacyFieldMap(const char* inputPath = "SimData~0.root",
         continue;
       }
 
-      const double t = (legacyPlaneZLocalMm - z1) / dzPpac;
-      rawFieldX = x1 + t * (x2 - x1);
-      fieldX = rawFieldX;
-      fieldY = y1 + t * (y2 - y1);
-      fieldAngleX = std::atan2(x2 - x1, dzPpac) * TMath::RadToDeg();
-      fieldAngleY =
+      const double t = (raytracePlaneZLocalMm - z1) / dzPpac;
+      rawGeant4X = x1 + t * (x2 - x1);
+      geant4X = rawGeant4X;
+      geant4Y = y1 + t * (y2 - y1);
+      geant4AngleX = std::atan2(x2 - x1, dzPpac) * TMath::RadToDeg();
+      geant4AngleY =
           std::atan2(y2 - y1,
                      std::sqrt((x2 - x1) * (x2 - x1) + dzPpac * dzPpac)) *
           TMath::RadToDeg();
@@ -591,14 +579,14 @@ void CompareLegacyFieldMap(const char* inputPath = "SimData~0.root",
       ppac2LocalZ = z2;
     }
 
-    dx = mdmX - fieldX;
-    dy = mdmY - fieldY;
-    dAngleX = mdmAngleX - fieldAngleX;
-    dAngleY = mdmAngleY - fieldAngleY;
+    dx = mdmX - geant4X;
+    dy = mdmY - geant4Y;
+    dAngleX = mdmAngleX - geant4AngleX;
+    dAngleY = mdmAngleY - geant4AngleY;
     event = i;
 
     rows.push_back({mdmX, mdmY, mdmAngleX, mdmAngleY,
-                    fieldX, fieldY, fieldAngleX, fieldAngleY});
+                    geant4X, geant4Y, geant4AngleX, geant4AngleY});
 
     residualTree->Fill();
     hDx->Fill(dx);
@@ -610,17 +598,17 @@ void CompareLegacyFieldMap(const char* inputPath = "SimData~0.root",
 
   const std::vector<Quantity> quantities{
       {"X", "X", "mm",
-       [](const CompareRow& r) { return r.legacyX; },
-       [](const CompareRow& r) { return r.fieldX; }},
+       [](const CompareRow& r) { return r.raytraceX; },
+       [](const CompareRow& r) { return r.geant4X; }},
       {"Y", "Y", "mm",
-       [](const CompareRow& r) { return r.legacyY; },
-       [](const CompareRow& r) { return r.fieldY; }},
+       [](const CompareRow& r) { return r.raytraceY; },
+       [](const CompareRow& r) { return r.geant4Y; }},
       {"AngX", "AngX", "deg",
-       [](const CompareRow& r) { return r.legacyAngleX; },
-       [](const CompareRow& r) { return r.fieldAngleX; }},
+       [](const CompareRow& r) { return r.raytraceAngleX; },
+       [](const CompareRow& r) { return r.geant4AngleX; }},
       {"AngY", "AngY", "deg",
-       [](const CompareRow& r) { return r.legacyAngleY; },
-       [](const CompareRow& r) { return r.fieldAngleY; }},
+       [](const CompareRow& r) { return r.raytraceAngleY; },
+       [](const CompareRow& r) { return r.geant4AngleY; }},
   };
 
   output->cd();
@@ -646,12 +634,12 @@ void CompareLegacyFieldMap(const char* inputPath = "SimData~0.root",
   std::cout << "Input entries: " << entries << '\n'
             << "Compared entries: " << selected << '\n'
             << "Skipped entries: " << skipped << '\n'
-            << "Legacy stopped entries: " << legacyStopped << '\n'
-            << "Field-map source: " << SourceLabel(useLegacyFocalPlane) << '\n'
-            << "Legacy plane local z: " << legacyPlaneZLocalMm << " mm\n"
+            << "Raytrace stopped entries: " << raytraceStopped << '\n'
+            << "Geant4 source: " << SourceLabel(useRaytraceFocalPlane) << '\n'
+            << "Raytrace plane local z: " << raytracePlaneZLocalMm << " mm\n"
             << "PPAC1 plane local z: " << ppac1PlaneZLocalMm << " mm\n"
             << "PPAC2 plane local z: " << ppac2PlaneZLocalMm << " mm\n"
-            << "PPAC-to-legacy X origin offset: 0 mm\n"
+            << "PPAC-to-Raytrace X origin offset: 0 mm\n"
             << "Wrote " << outputPath << " with 4 canvases and " << rows.size()
             << " rays\n";
   if (!pngPaths.empty()) {
@@ -661,7 +649,7 @@ void CompareLegacyFieldMap(const char* inputPath = "SimData~0.root",
     }
   }
   std::cout
-            << "Residual convention: Legacy - FieldMap\n";
+            << "Residual convention: Raytrace - Geant4\n";
   if (rows.empty()) {
     std::cout << "No comparable rays found; canvases and PNG plots were not written.\n";
     return;

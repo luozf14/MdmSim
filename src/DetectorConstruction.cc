@@ -327,18 +327,18 @@ namespace MdmSim
                           "PpacChamberPhysical", logicWorld,
                           false, 0, checkOverlaps);
 
-        G4VSolid *solidLegacyFocalPlane = new G4Box("LegacyFocalPlaneSolid",
+        G4VSolid *solidRaytraceFocalPlane = new G4Box("RaytraceFocalPlaneSolid",
                                                     kPpacWidth / 2.,
                                                     kPpacHeight / 2.,
-                                                    kLegacyFocalPlaneThickness / 2.);
-        fLogicLegacyFocalPlane = new G4LogicalVolume(solidLegacyFocalPlane,
+                                                    kRaytraceFocalPlaneThickness / 2.);
+        fLogicRaytraceFocalPlane = new G4LogicalVolume(solidRaytraceFocalPlane,
                                                      nist->FindOrBuildMaterial("G4_Galactic"),
-                                                     "LegacyFocalPlaneLogical");
-        const G4ThreeVector legacyFocalPlaneLocal(0., 0., kLegacyFocalPlaneLocalZ);
-        const G4ThreeVector legacyFocalPlaneWorld = (*fPpacChamberRot)(legacyFocalPlaneLocal) + fPpacChamberPos;
-        new G4PVPlacement(G4Transform3D(*fPpacChamberRot, legacyFocalPlaneWorld),
-                          fLogicLegacyFocalPlane,
-                          "LegacyFocalPlanePhysical",
+                                                     "RaytraceFocalPlaneLogical");
+        const G4ThreeVector raytraceFocalPlaneLocal(0., 0., kRaytraceFocalPlaneLocalZ);
+        const G4ThreeVector raytraceFocalPlaneWorld = (*fPpacChamberRot)(raytraceFocalPlaneLocal) + fPpacChamberPos;
+        new G4PVPlacement(G4Transform3D(*fPpacChamberRot, raytraceFocalPlaneWorld),
+                          fLogicRaytraceFocalPlane,
+                          "RaytraceFocalPlanePhysical",
                           logicWorld,
                           false,
                           0,
@@ -423,10 +423,10 @@ namespace MdmSim
         G4SDManager::GetSDMpointer()->AddNewDetector(aPpac2SD);
         SetSensitiveDetector("Cathode1MylarLogical", aPpac2SD, true);
 
-        TrackingPlaneSD *legacyFocalPlaneSD = new TrackingPlaneSD("MdmSim/LegacyFocalPlaneSD", "LegacyFocalPlaneHitsCollection");
-        legacyFocalPlaneSD->SetReferenceFrame(fPpacChamberRot, fPpacChamberPos);
-        G4SDManager::GetSDMpointer()->AddNewDetector(legacyFocalPlaneSD);
-        SetSensitiveDetector("LegacyFocalPlaneLogical", legacyFocalPlaneSD, true);
+        TrackingPlaneSD *raytraceFocalPlaneSD = new TrackingPlaneSD("MdmSim/RaytraceFocalPlaneSD", "RaytraceFocalPlaneHitsCollection");
+        raytraceFocalPlaneSD->SetReferenceFrame(fPpacChamberRot, fPpacChamberPos);
+        G4SDManager::GetSDMpointer()->AddNewDetector(raytraceFocalPlaneSD);
+        SetSensitiveDetector("RaytraceFocalPlaneLogical", raytraceFocalPlaneSD, true);
 
         // Magnetic field ----------------------------------------------------------
         std::vector<MdmChargeOverride> chargeOverrides;

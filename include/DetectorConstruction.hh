@@ -73,7 +73,7 @@ namespace MdmSim
 
         G4LogicalVolume *fLogicDipoleMagnet = nullptr;
         G4VPhysicalVolume *fPhysicDipoleMagnet = nullptr;
-        G4LogicalVolume *fLogicLegacyFocalPlane = nullptr;
+        G4LogicalVolume *fLogicRaytraceFocalPlane = nullptr;
 
         G4double fPpacVacuum;
         G4double fPpacLength;

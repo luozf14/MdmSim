@@ -40,7 +40,7 @@ namespace MdmSim
     constexpr G4double kDipoleMagnetRadius = 1600. * 9.2 / 5.5 * mm;
     constexpr G4double kDipoleDeflectionAngle = 100. * deg;
 
-    // DIPO output to the legacy focal plane for the active rayin.dat deck:
+    // DIPO output to the Raytrace focal plane for the active rayin.dat deck:
     // DIPO B + post-dipole MULT (A + L + B) + final DRIF 96.13.
     constexpr G4double kSecondArmLength = (32.55 + 0.2 + 35. + 1.5 + 96.13) * cm;
 
@@ -51,8 +51,8 @@ namespace MdmSim
     constexpr G4double kPpacEntranceWindowThickness = 2.5 * um;
     constexpr G4double kPpacCathodeMylarThickness = 220. * 1e-6 * g / cm2;
     constexpr G4double kPpacCathodeAlThickness = 80. * 1e-6 * g / cm2;
-    constexpr G4double kLegacyFocalPlaneLocalZ = -60. * cm;
-    constexpr G4double kLegacyFocalPlaneThickness = 1. * um;
+    constexpr G4double kRaytraceFocalPlaneLocalZ = -60. * cm;
+    constexpr G4double kRaytraceFocalPlaneThickness = 1. * um;
 
 }
 
